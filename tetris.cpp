@@ -1,73 +1,74 @@
 #include "tetris.hpp"
 
 /* Your implementation goes here! */
+piece::piece()
+{
+m_side = 0;
+m_color = 0;
+m_grid = nullptr; //E' un doppio puntatore, non può essere 
+}
 
-
-tetris::piece()
+piece::piece(uint32_t s, uint8_t c)
 {
 }
 
-tetris::piece(uint32_t s, uint8_t c)
+piece::piece(piece const& rhs)
 {
 }
 
-tetris::piece(piece const& rhs)
+piece::piece(piece&& rhs)
 {
 }
 
-tetris::piece(piece&& rhs)
+piece::~piece()
 {
 }
 
-tetris::~piece()
-{
-}
-    
-piece& tetris::operator=(piece const& rhs)
-{
-}
-    
-piece& tetris::operator=(piece&& rhs)
+piece& piece::operator=(piece const& rhs)
 {
 }
 
-bool tetris::operator==(piece const& rhs) const
+piece& piece::operator=(piece&& rhs)
 {
 }
 
-bool tetris::operator!=(piece const& rhs) const
+bool piece::operator==(piece const& rhs) const
 {
 }
 
-bool& tetris::operator()(uint32_t i, uint32_t j)
+bool piece::operator!=(piece const& rhs) const
 {
 }
 
-bool tetris::operator()(uint32_t i, uint32_t j) const
+bool& piece::operator()(uint32_t i, uint32_t j)
 {
 }
 
-bool tetris::empty(uint32_t i, uint32_t j, uint32_t s) const
+bool piece::operator()(uint32_t i, uint32_t j) const
 {
 }
 
-bool tetris::full(uint32_t i, uint32_t j, uint32_t s) const
+bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
 {
 }
 
-bool tetris::empty() const
+bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
 {
 }
 
-bool tetris::full() const
+bool piece::empty() const
 {
 }
 
-void tetris::rotate()
+bool piece::full() const
 {
 }
 
-void tetris::cut_row(uint32_t i)
+void piece::rotate()
+{
+}
+
+void piece::cut_row(uint32_t i)
 {
 }
 
@@ -75,107 +76,162 @@ void tetris::print_ascii_art(std::ostream& os) const
 {
 }
 
-uint32_t tetris::side() const
-{
-}
-    
-int color() const
+uint32_t piece::side() const
 {
 }
 
-private:
-    uint32_t m_side;
-    uint8_t m_color;
-    bool** m_grid;
-};
+int piece::color() const
+{
+}
 
-std::istream& operator>>(std::istream& is, piece& p);
-std::ostream& operator<<(std::ostream& os, piece const& p);
-
+/*
 struct tetris_piece {
-    piece p;
-    int x;
-    int y;
+piece p;
+int x;
+int y;
 };
 
 class tetris  //
 {
-    struct node {
-        tetris_piece tp;
-        node* next;
-    };
+struct node {
+tetris_piece tp;
+node* next;
+};
+*/
 
-public:
-    tetris();
-    tetris(uint32_t w, uint32_t h, uint32_t s = 0);
-    tetris(tetris const& rhs);
-    tetris(tetris&& rhs);
-    ~tetris();
+tetris::tetris()
+{
 
-    tetris& operator=(tetris const& rhs);
-    tetris& operator=(tetris&& rhs);
+}
 
-    bool operator==(tetris const& rhs) const;
-    bool operator!=(tetris const& rhs) const;
+tetris::tetris(uint32_t w, uint32_t h, uint32_t s = 0)
+{
 
-    void insert(piece const& p, int x);
-    void add(piece const& p, int x, int y);
+}
 
-    bool containment(piece const& p, int x, int y) const;
+tetris::tetris(tetris const& rhs)
+{
 
-    void print_ascii_art(std::ostream& os) const;
+}
+tetris::tetris(tetris&& rhs)
+{
 
-    struct iterator {
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = tetris_piece;
-        using reference = tetris_piece&;
-        using pointer = tetris_piece*;
+}
+tetris::~tetris()
+{
 
-        iterator(node* ptr);
-        reference operator*();
-        pointer operator->();
-        iterator& operator++();
-        iterator operator++(int /*dummy*/);
-        bool operator==(iterator const& rhs) const;
-        bool operator!=(iterator const& rhs) const;
+}
 
-    private:
-        node* m_ptr;
-    };
+tetris& tetris::operator=(tetris const& rhs)
+{
 
-    struct const_iterator {
-        using iterator_category = std::forward_iterator_tag;
-        using value_type = tetris_piece const;
-        using reference = tetris_piece const&;
-        using pointer = tetris_piece const*;
+}
+tetris& tetris::operator=(tetris&& rhs)
+{
 
-        const_iterator(node const* ptr);
-        reference operator*() const;
-        pointer operator->() const;
-        const_iterator& operator++();
-        const_iterator operator++(int /*dummy*/);
-        bool operator==(const_iterator const& rhs) const;
-        bool operator!=(const_iterator const& rhs) const;
+}
 
-    private:
-        node const* m_ptr;
-    };
+bool tetris::operator==(tetris const& rhs) const
+{
 
-    iterator begin();
-    iterator end();
-    const_iterator begin() const;
-    const_iterator end() const;
+}
+bool tetris::operator!=(tetris const& rhs) const
+{
 
-    uint32_t score() const;
-    uint32_t width() const;
-    uint32_t height() const;
+}
+
+void tetris::insert(piece const& p, int x)
+{
+
+}
+void tetris::add(piece const& p, int x, int y)
+{
+
+}
+
+bool tetris::containment(piece const& p, int x, int y) const
+{
+
+}
+void tetris::print_ascii_art(std::ostream& os) const
+{
+
+}
+
+/*
+struct iterator {
+using iterator_category = std::forward_iterator_tag;
+using value_type = tetris_piece;
+using reference = tetris_piece&;
+using pointer = tetris_piece*;
 
 private:
-    uint32_t m_score;
-    uint32_t m_width;
-    uint32_t m_height;
-    node* m_field;
+node* m_ptr;
 };
+*/
+tetris::iterator::iterator(node* ptr)
+{}
+tetris::iterator::reference tetris::iterator::operator*()
+{}
+tetris::iterator::pointer tetris::iterator::operator->()
+{}
+tetris::iterator& tetris::iterator::operator++()
+{}
+tetris::iterator tetris::iterator::operator++(int /*dummy*/)
+{}
+bool tetris::iterator::operator==(iterator const& rhs) const
+{}
+bool tetris::iterator::operator!=(iterator const& rhs) const
+{}
 
-std::ostream& operator<<(std::ostream& os, tetris const& t);
-std::istream& operator>>(std::istream& is, tetris& t);
+
+tetris::const_iterator::const_iterator(node const* ptr)
+{}
+tetris::const_iterator::reference tetris::const_iterator::operator*() const
+{}
+tetris::const_iterator::pointer tetris::const_iterator::operator->() const
+{}
+tetris::const_iterator& tetris::const_iterator::operator++()
+{}
+tetris::const_iterator tetris::const_iterator::operator++(int /*dummy*/)
+{}
+bool tetris::const_iterator::operator==(const_iterator const& rhs) const
+{}
+bool tetris::const_iterator::operator!=(const_iterator const& rhs) const
+{}
+
+
+tetris::iterator tetris::begin()
+{}
+tetris::iterator tetris::end()
+{}
+tetris::const_iterator tetris::begin() const
+{}
+tetris::const_iterator tetris::end() const
+{}
+
+uint32_t tetris::score() const
+{}
+uint32_t tetris::width() const
+{}
+uint32_t tetris::height() const
+{}
+
+/*
+private:
+uint32_t m_score;
+uint32_t m_width;
+uint32_t m_height;
+node* m_field;
+};*/
+std::istream& operator>>(std::istream& is, piece& p)
+{
+
+}
+std::ostream& operator<<(std::ostream& os, piece const& p)
+{}
+
+std::ostream& operator<<(std::ostream& os, tetris const& t)
+{}
+std::istream& operator>>(std::istream& is, tetris& t)
+{}
