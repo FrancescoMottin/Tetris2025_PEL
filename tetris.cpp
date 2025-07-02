@@ -3,13 +3,16 @@
 /* Your implementation goes here! */
 piece::piece()
 {
-m_side = 0;
-m_color = 0;
-m_grid = nullptr; //E' un doppio puntatore, non può essere 
+    m_side = 0;
+    m_color = 0;
+    m_grid = nullptr; //E' un doppio puntatore, non può essere 
 }
 
 piece::piece(uint32_t s, uint8_t c)
 {
+    m_side = s;
+    m_color = c;
+    m_grid; //initialize a s*s matrix with all cells at false
 }
 
 piece::piece(piece const& rhs)
@@ -82,26 +85,15 @@ uint32_t piece::side() const
 
 int piece::color() const
 {
+    
 }
-
-/*
-struct tetris_piece {
-piece p;
-int x;
-int y;
-};
-
-class tetris  //
-{
-struct node {
-tetris_piece tp;
-node* next;
-};
-*/
 
 tetris::tetris()
 {
-
+    m_score = 0;
+    m_width = 0;
+    m_height = 0;
+    m_field = nullptr;
 }
 
 tetris::tetris(uint32_t w, uint32_t h, uint32_t s = 0)
