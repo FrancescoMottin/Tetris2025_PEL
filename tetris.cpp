@@ -1,27 +1,38 @@
 #include "tetris.hpp"
 
+//forse non serve definire un impl* impl
+
 /* Your implementation goes here! */
 piece::piece()
 {
     m_side = 0;
     m_color = 0;
-    m_grid = nullptr; //E' un doppio puntatore, non può essere 
+    m_grid = nullptr; //E' un doppio puntatore, non può essere altro che nullptr
 }
 
+//Throws "tetris_exception" se side != 2^n OR color = 0
 piece::piece(uint32_t s, uint8_t c)
 {
+    if(((s & (s - 1)) != 0 || s == 0) || c == 0) throw tetris_exception("");
     m_side = s;
     m_color = c;
-    m_grid; //initialize a s*s matrix with all cells at false
+    
+    m_grid = new bool*[m_side]; //initialize a s*s matrix with all cells at false, must be an empty piece
+    for(uint32_t i = 0; i < s; i++)
+        for(uint32_t j = 0; j < s; j++)
+            m_grid[i][j] = false;
 }
 
+//Copy constructor
 piece::piece(piece const& rhs)
 {
 }
 
+//Move constructor
 piece::piece(piece&& rhs)
 {
 }
+
 
 piece::~piece()
 {
@@ -45,18 +56,25 @@ bool piece::operator!=(piece const& rhs) const
 
 bool& piece::operator()(uint32_t i, uint32_t j)
 {
+    //tetris_exception if (i,j) is out of bounds.
+    //if((m_grid[i][j]) == nullptr) throw tetris_exception("");
 }
 
 bool piece::operator()(uint32_t i, uint32_t j) const
 {
+    //tetris_exception if (i,j) is out of bounds.
+    if(m_grid == nullptr) throw tetris_exception("");
 }
 
 bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
 {
+    //tetris_exception if out of bounds
+    if(m_grid == nullptr) throw tetris_exception("");
 }
 
 bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
 {
+    //tetris_exception if out of bounds
 }
 
 bool piece::empty() const
@@ -96,19 +114,24 @@ tetris::tetris()
     m_field = nullptr;
 }
 
-tetris::tetris(uint32_t w, uint32_t h, uint32_t s = 0)
+tetris::tetris(uint32_t w, uint32_t h, uint32_t s /* = 0*/)
 {
-
+    if(h*s == 0) throw tetris_exception("");
+    m_height = w;
+    m_width = h;
+    m_score = s;
 }
 
 tetris::tetris(tetris const& rhs)
 {
 
 }
+
 tetris::tetris(tetris&& rhs)
 {
 
 }
+
 tetris::~tetris()
 {
 
@@ -118,6 +141,7 @@ tetris& tetris::operator=(tetris const& rhs)
 {
 
 }
+
 tetris& tetris::operator=(tetris&& rhs)
 {
 
