@@ -19,70 +19,192 @@ piece::piece(uint32_t s, uint8_t c)
     
     m_grid = new bool*[m_side]; //initialize a s*s matrix with all cells at false, must be an empty piece
     for(uint32_t i = 0; i < s; i++)
+    {
+        m_grid[i] = new bool[s];
         for(uint32_t j = 0; j < s; j++)
             m_grid[i][j] = false;
+    }
+    //assert(empty() == true);
 }
 
 //Copy constructor
 piece::piece(piece const& rhs)
 {
+    m_side = rhs.m_side;
+    m_color = rhs.m_color;
+
+    if(m_side > 0)
+    {   
+        m_grid = new bool*[m_side];
+        for(uint32_t i = 0; i < m_side; i++)
+        {
+            m_grid[i] = new bool[m_side];
+            for(uint32_t j = 0; j < m_side; j++)
+                m_grid[i][j] = rhs.m_grid[i][j];
+        }
+    }
+    else m_grid = nullptr;
+    //assert(empty() == true);
 }
 
 //Move constructor
 piece::piece(piece&& rhs)
 {
-}
+    m_side = rhs.m_side;
+    m_color = rhs.m_color;
+    m_grid = rhs.m_grid;
 
+    rhs.m_side = 0;        
+    rhs.m_color = 0;
+    rhs.m_grid = nullptr;
+}
 
 piece::~piece()
 {
+    if(m_grid == nullptr) return ; //forse throw tetris_exception?
+    
+    m_side = 0;
+    m_color = 0;
+
+    for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
+        delete[] m_grid[i];                 
+    delete[] m_grid;                        //deallocazione righe
+
+    m_grid = nullptr;
+
 }
 
+//assignment operator
 piece& piece::operator=(piece const& rhs)
 {
+    if(this == &rhs) return *this;
+
+    //se la grandezza è differente tra this.m_grid e rhs.m_grid, avremmo errori!
+    if(m_grid != nullptr)
+    {
+        for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
+            delete[] m_grid[i];                   
+        delete[] m_grid;                        //deallocazione righe
+        m_grid = nullptr;                       
+    }
+    
+    m_side = rhs.m_side;
+    m_color = rhs.m_color;
+    if(m_side != 0)
+    {
+        m_grid = new bool*[m_side];
+        for(uint32_t i = 0; i < m_side; i++)
+        {
+            m_grid[i] = new bool[m_side];
+            for(uint32_t j = 0; j < m_side; j++)
+                m_grid[i][j] = rhs.m_grid[i][j];
+        }
+    }
+    else m_grid = nullptr;
+
+    return *this;
 }
 
+//move assignment operator
 piece& piece::operator=(piece&& rhs)
 {
+    if(this == &rhs) return *this;
+
+    if(m_grid != nullptr)
+    {
+        for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
+            delete[] m_grid[i];                 
+        delete[] m_grid;
+        m_grid = nullptr;
+    }
+
+    m_side = rhs.m_side;
+    m_color = rhs.m_color;
+    m_grid = rhs.m_grid;
+
+    rhs.m_side = 0;        
+    rhs.m_color = 0;
+    rhs.m_grid = nullptr;
+
+    return *this;
 }
 
 bool piece::operator==(piece const& rhs) const
 {
+    if(m_side != rhs.m_side || m_color != rhs.m_color) return false;
+
+    for(uint32_t i = 0; i < m_side; i++)
+        for(uint32_t j = 0; j < m_side; j++)
+            if(m_grid[i][j] != rhs.m_grid[i][j]) return false;
+    
+    return true;
 }
 
 bool piece::operator!=(piece const& rhs) const
 {
+    return !(operator==(rhs));
 }
 
 bool& piece::operator()(uint32_t i, uint32_t j)
 {
-    //tetris_exception if (i,j) is out of bounds.
-    //if((m_grid[i][j]) == nullptr) throw tetris_exception("");
-}
+    if(m_grid == nullptr || i >= m_side || j >= m_side) throw tetris_exception("");     //tetris_exception if (i,j) is out of bounds.
+    return m_grid[i][j];
+}  
 
 bool piece::operator()(uint32_t i, uint32_t j) const
 {
-    //tetris_exception if (i,j) is out of bounds.
-    if(m_grid == nullptr) throw tetris_exception("");
+    if(m_grid == nullptr || i >= m_side || j >= m_side) throw tetris_exception("");     //tetris_exception if (i,j) is out of bounds.
+    return m_grid[i][j];
 }
 
 bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
 {
-    //tetris_exception if out of bounds
-    if(m_grid == nullptr) throw tetris_exception("");
+    if(s == 0) return true;
+    if(m_grid == nullptr ) throw tetris_exception("");    //tetris_exception if out of bounds
+    if(i >= m_side || j >= m_side) throw tetris_exception("");
+    if(i + s > m_side || j + s > m_side) throw tetris_exception("");
+    
+
+    for(int i2 = i; i2 < i+s; i2++)
+        for(int j2 = j; j2 < j+s; j2++)
+            if(m_grid[i2][j2] == true) return false;
+
+    return true;
 }
 
 bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
 {
-    //tetris_exception if out of bounds
+    if(s == 0) return true;
+    if(m_grid == nullptr ) throw tetris_exception("");    //tetris_exception if out of bounds
+    if(i >= m_side || j >= m_side) throw tetris_exception("");
+    if(i + s > m_side || j + s > m_side) throw tetris_exception("");
+    
+
+    for(int i2 = i; i2 < i+s; i2++)
+        for(int j2 = j; j2 < j+s; j2++)
+            if(m_grid[i2][j2] == false) return false;
+
+    return true;
 }
 
 bool piece::empty() const
 {
+    if(m_grid == nullptr) throw tetris_exception("");
+    for(int i = 0; i < m_side; i++)
+        for(int j = 0; j < m_side; j++)
+            if(m_grid[i][j] == true) return false;
+
+    return true;
 }
 
 bool piece::full() const
 {
+    if(m_grid == nullptr) throw tetris_exception("");
+    for(int i = 0; i < m_side; i++)
+        for(int j = 0; j < m_side; j++)
+            if(m_grid[i][j] == false) return false;
+
+    return true;
 }
 
 void piece::rotate()
