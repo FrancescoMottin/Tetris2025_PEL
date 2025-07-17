@@ -207,42 +207,87 @@ bool piece::full() const
     return true;
 }
 
-//SBAGLIATO
 void piece::rotate()
 {
-    bool*** tmp_grid = new bool**[m_side]; 
+    if(m_grid == nullptr) return ;
+
+    bool** tmp_grid = new bool*[m_side];
     if(m_side > 1)
     {
-        for(uint32_t i = 0; i < m_side-1; i++)
+        for(uint32_t i = 0; i < m_side; i++)
         {         
-            for(uint32_t j = 0; j < m_side-1; j++)
+            tmp_grid[i] = new bool[m_side];
+            for(uint32_t j = 0; j < m_side; j++)
             {
                 int new_row = j;
                 int new_col = m_side - i - 1;
-                *tmp_grid[new_row][new_col] = m_grid[i][j];
+                tmp_grid[new_row][new_col] = m_grid[i][j];
             }    
         }
     }
+    else tmp_grid = nullptr;
 
-    if(m_grid != nullptr)
+    if(m_grid != nullptr && m_side > 0)
     {
-        for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
+        for(uint32_t i = 0; i < m_side; i++)    
             delete[] m_grid[i];                   
-        delete[] m_grid;                        //deallocazione righe
+        delete[] m_grid;                        
         m_grid = nullptr;                       
     }
+
+    m_grid = tmp_grid;
 }
 
+//maybe implement try-catch for std::bad_alloc
 void piece::cut_row(uint32_t i)
 {
+    if(m_grid == nullptr || m_side == 0) throw tetris_exception("");
+    if(i >= m_side) throw tetris_exception("");
+    if(m_side == 1) 
+    {
+        delete[] m_grid[0];
+        delete[] m_grid;
+        m_side = 0;
+        m_grid = nullptr;
+
+        return ;
+    }
+
+    bool** tmp_grid = new bool*[m_side-1]; // (m_side-1) x (m_side-1) oppure (m_side-1) x m_side
+    for (uint32_t r = 0; r < m_side; ++r)
+    {
+        if (r < i)
+        {
+            tmp_grid[r] = new bool[m_side-1];
+            for(uint32_t c = 0; c < m_side-1; ++c)
+                tmp_grid[r][c] = m_grid[r][c];
+        }
+        else if(r > i)
+        {
+            tmp_grid[r-1] = new bool[m_side-1];
+            for(uint32_t c = 0; c < m_side-1; ++c)
+                tmp_grid[r-1][c] = m_grid[r][c];
+        }
+        //No r == i because we want to skip it
+    }
+    
+    if(m_grid != nullptr && m_side > 0)
+    {
+        for(uint32_t i = 0; i < m_side; i++)    
+            delete[] m_grid[i];                   
+        delete[] m_grid;                        
+        m_grid = nullptr;                       
+    }
+
+    m_grid = tmp_grid;
 }
 
+//NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
 {
 }
 
 uint32_t piece::side() const { return m_side; }
-
 int piece::color() const { return m_color; }
 
 tetris::tetris()
