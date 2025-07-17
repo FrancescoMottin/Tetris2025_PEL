@@ -207,8 +207,30 @@ bool piece::full() const
     return true;
 }
 
+//SBAGLIATO
 void piece::rotate()
 {
+    bool*** tmp_grid = new bool**[m_side]; 
+    if(m_side > 1)
+    {
+        for(uint32_t i = 0; i < m_side-1; i++)
+        {         
+            for(uint32_t j = 0; j < m_side-1; j++)
+            {
+                int new_row = j;
+                int new_col = m_side - i - 1;
+                *tmp_grid[new_row][new_col] = m_grid[i][j];
+            }    
+        }
+    }
+
+    if(m_grid != nullptr)
+    {
+        for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
+            delete[] m_grid[i];                   
+        delete[] m_grid;                        //deallocazione righe
+        m_grid = nullptr;                       
+    }
 }
 
 void piece::cut_row(uint32_t i)
@@ -219,14 +241,9 @@ void tetris::print_ascii_art(std::ostream& os) const
 {
 }
 
-uint32_t piece::side() const
-{
-}
+uint32_t piece::side() const { return m_side; }
 
-int piece::color() const
-{
-    
-}
+int piece::color() const { return m_color; }
 
 tetris::tetris()
 {
@@ -348,12 +365,9 @@ tetris::const_iterator tetris::begin() const
 tetris::const_iterator tetris::end() const
 {}
 
-uint32_t tetris::score() const
-{}
-uint32_t tetris::width() const
-{}
-uint32_t tetris::height() const
-{}
+uint32_t tetris::score() const { return m_score; }
+uint32_t tetris::width() const { return m_width; }
+uint32_t tetris::height() const { return m_height; }
 
 /*
 private:
