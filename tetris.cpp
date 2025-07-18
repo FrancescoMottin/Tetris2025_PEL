@@ -329,26 +329,47 @@ tetris::tetris(tetris const& rhs)
     m_score = rhs.m_score;
     m_width = rhs.m_width;
     m_height = rhs.m_height;
-    m_field = nullptr;          //Devo utilzizare tmp_field per navigare la struttura, m_field rimane alla testa della lista
+    m_field = nullptr;          //Devo utilzizare tail_field per navigare la struttura, m_field rimane alla testa della lista
 
-    node* tmp_field = m_field;
+    node* tail_field = m_field;
     for(node* it = rhs.m_field; it != nullptr; it = it->next)
     {
         node* new_field = new node{it->tp, nullptr};
-        if(!m_field) m_field = tmp_field = new_field;
-        else tmp_field->next = new_field;
-        tmp_field = tmp_field->next;
+        if(!m_field) m_field = tail_field = new_field;
+        else tail_field->next = new_field;
+        tail_field = tail_field->next;
     }
 }
 
 tetris::tetris(tetris&& rhs)
 {
+    m_score = rhs.m_score;
+    m_width = rhs.m_width;
+    m_height = rhs.m_height;
+    m_field = rhs.m_field;
 
+    rhs.m_score = 0;
+    rhs.m_width = 0;
+    rhs.m_height = 0;
+    rhs.m_field = nullptr;
 }
 
 tetris::~tetris()
 {
+    if(m_field == nullptr) return ;
 
+    m_score = 0;
+    m_width = 0;
+    m_height = 0;
+
+    node* tail_field = m_field;
+    while(tail_field)
+    {
+        node* tmp_field = tail_field;
+        tail_field = tail_field->next;
+        delete tmp_field; 
+    }
+    m_field = nullptr;
 }
 
 tetris& tetris::operator=(tetris const& rhs)
