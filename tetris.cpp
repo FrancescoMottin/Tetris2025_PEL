@@ -372,14 +372,37 @@ tetris::~tetris()
     m_field = nullptr;
 }
 
+//non safe, cosa succede se la copia fallisce? Usa try catch
 tetris& tetris::operator=(tetris const& rhs)
 {
+    if(*this ==  rhs) return *this;
 
+    node* tail_field = m_field;
+    while(tail_field)
+    {
+        node* tmp_field = tail_field;
+        tail_field = tail_field->next;
+        delete tmp_field; 
+    }
+    m_field = nullptr;
+
+    m_score = rhs.m_score;
+    m_width = rhs.m_width;
+    m_height = rhs.m_height;
+    for(node* it = rhs.m_field; it != nullptr; it = it->next)
+    {
+        node* new_field = new node{it->tp, nullptr};
+        if(!m_field) m_field = tail_field = new_field;
+        else tail_field->next = new_field;
+        tail_field = tail_field->next;
+    }
+
+    return *this;
 }
 
 tetris& tetris::operator=(tetris&& rhs)
 {
-
+    
 }
 
 bool tetris::operator==(tetris const& rhs) const
