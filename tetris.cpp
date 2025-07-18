@@ -290,6 +290,21 @@ void tetris::print_ascii_art(std::ostream& os) const
 uint32_t piece::side() const { return m_side; }
 int piece::color() const { return m_color; }
 
+/*
+class tetris
+{
+    struct node {
+        tetris_piece tp;
+        node* next;
+    };
+    private:
+        uint32_t m_score;
+        uint32_t m_width;
+        uint32_t m_height;
+        node* m_field;
+};
+*/
+
 tetris::tetris()
 {
     m_score = 0;
@@ -298,17 +313,32 @@ tetris::tetris()
     m_field = nullptr;
 }
 
-tetris::tetris(uint32_t w, uint32_t h, uint32_t s /* = 0*/)
+//try-catch per l'assegnazione del field?
+tetris::tetris(uint32_t w, uint32_t h, uint32_t s)  //: m_width(0), m_height(0), m_score(0), m_field(nullptr)
 {
-    if(h*s == 0) throw tetris_exception("");
-    m_height = w;
-    m_width = h;
+    if(w <= 0 || h <= 0) throw tetris_exception("");
     m_score = s;
+    m_width = w;
+    m_height = h;   
+    m_field = nullptr; //m_field rappresenta i diversi pezzi, non il tabellone stesso
 }
 
+//try_catch per ciclo (nel caso si fallisse l'allcoazione)
 tetris::tetris(tetris const& rhs)
 {
+    m_score = rhs.m_score;
+    m_width = rhs.m_width;
+    m_height = rhs.m_height;
+    m_field = nullptr;          //Devo utilzizare tmp_field per navigare la struttura, m_field rimane alla testa della lista
 
+    node* tmp_field = m_field;
+    for(node* it = rhs.m_field; it != nullptr; it = it->next)
+    {
+        node* new_field = new node{it->tp, nullptr};
+        if(!m_field) m_field = tmp_field = new_field;
+        else tmp_field->next = new_field;
+        tmp_field = tmp_field->next;
+    }
 }
 
 tetris::tetris(tetris&& rhs)
