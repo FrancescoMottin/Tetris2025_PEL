@@ -291,6 +291,12 @@ uint32_t piece::side() const { return m_side; }
 int piece::color() const { return m_color; }
 
 /*
+struct tetris_piece {
+    piece p;
+    int x;
+    int y;
+};
+
 class tetris
 {
     struct node {
@@ -402,17 +408,46 @@ tetris& tetris::operator=(tetris const& rhs)
 
 tetris& tetris::operator=(tetris&& rhs)
 {
+    if(this == &rhs) return *this;
     
+    node* tail_field = m_field;
+    while(tail_field)
+    {
+        node* tmp_field = tail_field;
+        tail_field = tail_field->next;
+        delete tmp_field; 
+    }
+    m_field = nullptr;
+
+    m_score = rhs.m_score;
+    m_width = rhs.m_width;
+    m_height = rhs.m_height;
+    m_field = rhs.m_field;
+
+    rhs.m_score = 0;
+    rhs.m_width = 0;
+    rhs.m_height = 0;
+    rhs.m_field = nullptr;
+
+    return *this;
 }
 
 bool tetris::operator==(tetris const& rhs) const
 {
+    if(m_score != rhs.m_score || m_width != rhs.m_width || m_height != rhs.m_height) return false;
 
-}
-bool tetris::operator!=(tetris const& rhs) const
-{
+    node* tail = m_field;
+    node* it = rhs.m_field;
+    while(tail && it)
+    {
+        if(tail->tp.p != it->tp.p || tail->tp.x != it->tp.x || tail->tp.y != it->tp.y ) return false;
+        tail = tail->next;
+        it = it->next;
+    }
 
+    return (!it && !tail);
 }
+bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
 void tetris::insert(piece const& p, int x)
 {
