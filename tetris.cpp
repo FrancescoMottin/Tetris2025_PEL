@@ -447,6 +447,7 @@ bool tetris::operator==(tetris const& rhs) const
 
     return (!it && !tail);
 }
+
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
 void tetris::insert(piece const& p, int x)
@@ -461,12 +462,60 @@ void tetris::insert(piece const& p, int x)
 
 void tetris::add(piece const& p, int x, int y)
 {
+    if(!containment(p,x,y)) return ;
 
+    tetris_piece new_tp;
+    new_tp.p = p;
+    new_tp.x = x;
+    new_tp.y = y;
+
+    node* new_node = nullptr;
+    new_node = new node{new_tp, nullptr};   //try-catch?
+
+    if(!m_field) m_field = new_node;
+    else
+    {
+        node* current = m_field;
+        while(current->next)
+            current = current->next;
+        current->next = new_node;
+    }
 }
 
+//for(node* it = curr; curr; it = it->next)
 bool tetris::containment(piece const& p, int x, int y) const
 {
+    int p_side = p.side();
+    for(int r = 0; r < p_side; r++)
+    {
+        for(int c = 0; c < p_side; c++)
+        {
+            if(p.operator()(r,c))    //cosa devo mettere qua?
+            {
+                int abs_x = x + c;
+                int abs_y = y + r;
+            
+                if(abs_x < 0 || abs_x >= m_width || abs_y < 0 || abs_y >= m_height) return false;
 
+                node* curr = m_field;
+                while(curr)
+                {
+                    piece const& curr_piece = curr->tp.p;
+                    int curr_x = curr->tp.x;
+                    int curr_y = curr->tp.y;
+                
+                    int rel_x = abs_x - curr_x;
+                    int rel_y = abs_y - curr_y;
+
+                    if(rel_x >= 0 && rel_x < curr_piece.side() && rel_y >= 0 && rel_y < curr_piece.side())
+                        if(curr_piece.operator()(rel_y,rel_x)) return false;
+
+                    curr = curr->next;
+                }
+            }
+        }
+    }
+    return true;
 }
 
 void tetris::print_ascii_art(std::ostream& os) const
@@ -539,10 +588,23 @@ node* m_field;
 };*/
 std::istream& operator>>(std::istream& is, piece& p)
 {
-
+    /*
+    char c;
+    is >> std::skipws >> c; 
+    
+    if(p->m_side == 0) throw tetris_exception("");
+    */
 }
 std::ostream& operator<<(std::ostream& os, piece const& p)
-{}
+{
+    /*
+    if(&p == nullptr) os <<  "null" ;
+    else
+    {
+        for()
+    }
+    */
+}
 
 std::ostream& operator<<(std::ostream& os, tetris const& t)
 {}
