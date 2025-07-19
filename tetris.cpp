@@ -451,8 +451,14 @@ bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
 void tetris::insert(piece const& p, int x)
 {
-
+    /*
+    for(node* it = m_field; it != nullptr; it = it->next)
+    {
+        for(bool** it2 = it->tp.p->m_grid;  ; it2 = it->next)
+    }
+    */
 }
+
 void tetris::add(piece const& p, int x, int y)
 {
 
@@ -462,6 +468,7 @@ bool tetris::containment(piece const& p, int x, int y) const
 {
 
 }
+
 void tetris::print_ascii_art(std::ostream& os) const
 {
 
@@ -478,46 +485,46 @@ private:
 node* m_ptr;
 };
 */
-tetris::iterator::iterator(node* ptr)
-{}
-tetris::iterator::reference tetris::iterator::operator*()
-{}
-tetris::iterator::pointer tetris::iterator::operator->()
-{}
+tetris::iterator::iterator(node* ptr) { m_ptr = ptr; }
+tetris::iterator::reference tetris::iterator::operator*() { return m_ptr->tp;}                      //ritorno puntatore
+tetris::iterator::pointer tetris::iterator::operator->() { return &(m_ptr->tp);}                    //ritorno reference
 tetris::iterator& tetris::iterator::operator++()
-{}
-tetris::iterator tetris::iterator::operator++(int /*dummy*/)
-{}
-bool tetris::iterator::operator==(iterator const& rhs) const
-{}
-bool tetris::iterator::operator!=(iterator const& rhs) const
-{}
+{
+    m_ptr = m_ptr->next;
+    return *this;
+}
+tetris::iterator tetris::iterator::operator++(int /*dummy*/) 
+{
+    iterator tmp(m_ptr);
+    m_ptr = m_ptr->next;
+    return tmp;
+}
+bool tetris::iterator::operator==(iterator const& rhs) const { return m_ptr == rhs.m_ptr; }
+bool tetris::iterator::operator!=(iterator const& rhs) const { return !operator==(rhs);}
 
 
-tetris::const_iterator::const_iterator(node const* ptr)
-{}
-tetris::const_iterator::reference tetris::const_iterator::operator*() const
-{}
-tetris::const_iterator::pointer tetris::const_iterator::operator->() const
-{}
+tetris::const_iterator::const_iterator(node const* ptr) { m_ptr = ptr; }
+tetris::const_iterator::reference tetris::const_iterator::operator*() const { return m_ptr->tp;}
+tetris::const_iterator::pointer tetris::const_iterator::operator->() const { return &(m_ptr->tp);}
 tetris::const_iterator& tetris::const_iterator::operator++()
-{}
+{
+    m_ptr = m_ptr->next;
+    return *this;
+}
 tetris::const_iterator tetris::const_iterator::operator++(int /*dummy*/)
-{}
-bool tetris::const_iterator::operator==(const_iterator const& rhs) const
-{}
-bool tetris::const_iterator::operator!=(const_iterator const& rhs) const
-{}
+{
+    const_iterator tmp(m_ptr);
+    m_ptr = m_ptr->next;
+    return tmp;
+}
+bool tetris::const_iterator::operator==(const_iterator const& rhs) const { return m_ptr == rhs.m_ptr; }
+bool tetris::const_iterator::operator!=(const_iterator const& rhs) const { return !operator==(rhs); }
 
 
-tetris::iterator tetris::begin()
-{}
-tetris::iterator tetris::end()
-{}
-tetris::const_iterator tetris::begin() const
-{}
-tetris::const_iterator tetris::end() const
-{}
+tetris::iterator tetris::begin() { return iterator(m_field);}
+tetris::iterator tetris::end() { return iterator(nullptr);}
+tetris::const_iterator tetris::begin() const { return const_iterator(m_field);}
+tetris::const_iterator tetris::end() const {return const_iterator(nullptr);}
 
 uint32_t tetris::score() const { return m_score; }
 uint32_t tetris::width() const { return m_width; }
