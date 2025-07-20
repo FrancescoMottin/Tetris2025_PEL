@@ -292,27 +292,6 @@ void tetris::print_ascii_art(std::ostream& os) const
 uint32_t piece::side() const { return m_side; }
 int piece::color() const { return m_color; }
 
-/*
-struct tetris_piece {
-    piece p;
-    int x;
-    int y;
-};
-
-class tetris
-{
-    struct node {
-        tetris_piece tp;
-        node* next;
-    };
-    private:
-        uint32_t m_score;
-        uint32_t m_width;
-        uint32_t m_height;
-        node* m_field;
-};
-*/
-
 tetris::tetris()
 {
     m_score = 0;
@@ -524,11 +503,45 @@ void tetris::insert(piece const& p, int x)
         }
     }
 
-    delete[] arr;
-
     //gravity system per i pezzi sopra
+    int cleared_rows = 0;
+    uint32_t* cleared_index = nullptr;
+    for(uint32_t i = 0; i < m_height; i++)
+        if(arr[i] == m_width) cleared_rows++;
+    if(cleared_rows > 0) cleared_index = new uint32_t[cleared_rows];
 
-    
+    int curr_index = 0;
+    for(uint32_t i = 0; i < m_height; i++)
+    {
+        if(arr[i] == m_width && curr_index < cleared_rows)
+        {
+            cleared_index[curr_index] = i;
+            curr_index++;
+        }
+    }
+
+    if(cleared_rows > 0)
+    {
+        node* curr_piece = m_field;
+        while (curr_piece)
+        {
+            int fall_size = 0;
+            for(uint32_t i = 0; i < cleared_rows; i++)
+            {
+                int global_row = cleared_index[i];
+                if(global_row < curr_piece->tp.y) fall_size++;
+            }
+            curr_piece->tp.y -= fall_size;
+            curr_piece = curr_piece->next;
+        }
+    }
+
+    if(cleared_index)
+    {
+        delete[] cleared_index;
+        cleared_rows = 0;
+    }
+    delete[] arr;
 
     //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
     node* new_head = nullptr;
@@ -620,17 +633,6 @@ void tetris::print_ascii_art(std::ostream& os) const
 
 }
 
-/*
-struct iterator {
-using iterator_category = std::forward_iterator_tag;
-using value_type = tetris_piece;
-using reference = tetris_piece&;
-using pointer = tetris_piece*;
-
-private:
-node* m_ptr;
-};
-*/
 tetris::iterator::iterator(node* ptr) { m_ptr = ptr; }
 tetris::iterator::reference tetris::iterator::operator*() { return m_ptr->tp;}                      //ritorno puntatore
 tetris::iterator::pointer tetris::iterator::operator->() { return &(m_ptr->tp);}                    //ritorno reference
