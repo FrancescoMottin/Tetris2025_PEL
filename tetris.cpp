@@ -14,6 +14,7 @@ piece::piece()
 piece::piece(uint32_t s, uint8_t c)
 {
     if(((s & (s - 1)) != 0 || s == 0) || c == 0) throw tetris_exception("");
+
     m_side = s;
     m_color = c;
     
@@ -61,7 +62,7 @@ piece::piece(piece&& rhs)
 
 piece::~piece()
 {
-    if(m_grid == nullptr) return ; //forse throw tetris_exception?
+    if(m_grid == nullptr) return ;
     
     m_side = 0;
     m_color = 0;
@@ -160,7 +161,7 @@ bool piece::operator()(uint32_t i, uint32_t j) const
 bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
 {
     if(s == 0) return true;
-    if(m_grid == nullptr ) throw tetris_exception("");    //tetris_exception if out of bounds
+    if(m_grid == nullptr) throw tetris_exception("");    //tetris_exception if out of bounds
     if(i >= m_side || j >= m_side) throw tetris_exception("");
     if(i + s > m_side || j + s > m_side) throw tetris_exception("");
     
@@ -253,24 +254,24 @@ void piece::cut_row(uint32_t i)
         return ;
     }
 
-    bool** tmp_grid = new bool*[m_side-1]; // (m_side-1) x (m_side-1) oppure (m_side-1) x m_side
-    for (uint32_t r = 0; r < m_side; ++r)
-    {
-        if (r < i)
-        {
-            tmp_grid[r] = new bool[m_side-1];
-            for(uint32_t c = 0; c < m_side-1; ++c)
-                tmp_grid[r][c] = m_grid[r][c];
-        }
-        else if(r > i)
-        {
-            tmp_grid[r-1] = new bool[m_side-1];
-            for(uint32_t c = 0; c < m_side-1; ++c)
-                tmp_grid[r-1][c] = m_grid[r][c];
-        }
-        //No r == i because we want to skip it
-    }
+    uint32_t new_side = m_side-1;
+
+    bool** tmp_grid = new bool*[new_side]; // (m_side-1) x (m_side-1) oppure (m_side-1) x m_side
+    for(uint32_t r = 0; r < new_side; ++r)
+        tmp_grid[r] = new bool[new_side];
     
+    uint32_t curr_row = 0;
+    for(uint32_t r = 0; r < new_side; ++r)
+    {
+        if(curr_row == i) curr_row++;
+        uint32_t curr_col = 0;
+        for(uint32_t c = 0; c < new_side; ++c)
+        {
+            tmp_grid[r][c] = m_grid[curr_row][curr_col];
+            curr_col++;
+        }   
+    }
+
     if(m_grid != nullptr && m_side > 0)
     {
         for(uint32_t i = 0; i < m_side; i++)    
@@ -279,6 +280,7 @@ void piece::cut_row(uint32_t i)
         m_grid = nullptr;                       
     }
 
+    m_side = new_side;
     m_grid = tmp_grid;
 }
 
@@ -450,14 +452,110 @@ bool tetris::operator==(tetris const& rhs) const
 
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
+/*
+insert(piece const& p, int x) operation is where most of the game logic happens. 
+It inserts a piece p whose x-coordinate in the field is x and, if possible, cut rows and shifts other pieces further down in the field.
+*/
+//Il pezzo è già dentro alla lista
+//where most of the game logic happens
+
+//Arriva il pezzo contenuto nella lista tetris. Scorriamo tutta la lista e controlli se in qualche coordinata x abbiamo tutte le celle siano contenute dal pezzo (cut_row)
+//Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x)
 {
-    /*
-    for(node* it = m_field; it != nullptr; it = it->next)
+    //that p is the piece whose bottom-left corner is at position (x,y) in the tetris field
+    if(m_field == nullptr) throw tetris_exception(" ");
+
+    //compute "y" coordinate throught containment
+    int y = -1;
+    for(int i = 0; i < m_height; i++)
     {
-        for(bool** it2 = it->tp.p->m_grid;  ; it2 = it->next)
+        if(containment(p, x, i)) y = i;
     }
-    */
+    if(y == -1) throw tetris_exception("insert(piece const& p, int x) -> GAME OVER! Non possiamo inserire altri pezzi!");
+
+    add(p, x, y); //aggiungere piece all'inizio della lista
+
+    /*for(int i = 0; i < m_height; i++)   //controllare se una row è tutta occupata. In tal caso, cancellare riga
+    {
+        bool whole_row = false;
+        for(int j = 0; i < m_width; j++)
+        {
+            if(m_grid[i][j] == false) break;
+            if(j == m_width-1) whole_row = true;
+        }
+        if(whole_row) 
+        {
+            cut_row(i);
+
+            whole_row = 0;
+        }
+    }*/
+
+    // array usato per contare le celle occupate per riga
+    int* arr = new int[m_height];
+
+    for(int i = 0; i < m_height; i++) {
+        arr[i] = 0;
+    }
+
+    // si scorre la lista pezzo per pezzo
+    node* tmp = m_field;
+    while(tmp != nullptr) {
+        for(int i = 0; i < tmp->tp.p.side(); i++) {
+            for(int j = 0; j < tmp->tp.p.side(); j++) {
+                if(tmp->tp.p(i,j)) arr[tmp->tp.y + (tmp->tp.p.side() - 1 - i)]++;
+            }
+        }
+
+        tmp = tmp->next;
+    }
+
+    // ogni riga di ogni pezzo è stata computata. Avviene in controllo se alcune righe sono interamente occupate
+    for(int i = 0; i < m_height; i++) {
+        if(arr[i] == m_width) {
+            node* tmp = m_field;
+            while(tmp != nullptr) {
+                if(i >= tmp->tp.y && i <= tmp->tp.y + tmp->tp.p.side()) {
+                    tmp->tp.p.cut_row((tmp->tp.p.side() - 1) - (i - tmp->tp.y));                           //Cut_row non gestice la gravità del tabellone
+                }
+                tmp = tmp->next;
+            }
+        }
+    }
+
+    delete[] arr;
+
+    //gravity system per i pezzi sopra
+
+    
+
+    //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
+    node* new_head = nullptr;
+    node* new_tail = nullptr;
+    node* curr_node = m_field;
+    while (curr_node)
+    {
+        node* tmp = curr_node->next;
+        if((curr_node->tp.p).empty()) delete curr_node;
+        else 
+        {
+            curr_node->next = nullptr;
+            if(new_head == nullptr) 
+            {
+                new_head = curr_node;
+                new_tail = curr_node;
+            }
+            else
+            {
+                new_tail->next = curr_node;     //??
+                new_tail = curr_node;
+            }
+        }
+
+        curr_node = tmp;
+    }
+    m_field = new_head;
 }
 
 void tetris::add(piece const& p, int x, int y)
@@ -482,7 +580,6 @@ void tetris::add(piece const& p, int x, int y)
     }
 }
 
-//for(node* it = curr; curr; it = it->next)
 bool tetris::containment(piece const& p, int x, int y) const
 {
     int p_side = p.side();
@@ -490,7 +587,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     {
         for(int c = 0; c < p_side; c++)
         {
-            if(p.operator()(r,c))    //cosa devo mettere qua?
+            if(p.operator()(r,c))    
             {
                 int abs_x = x + c;
                 int abs_y = y + r;
@@ -588,22 +685,9 @@ node* m_field;
 };*/
 std::istream& operator>>(std::istream& is, piece& p)
 {
-    /*
-    char c;
-    is >> std::skipws >> c; 
-    
-    if(p->m_side == 0) throw tetris_exception("");
-    */
 }
-std::ostream& operator<<(std::ostream& os, piece const& p)
+std::ostream& operator<<(std::ostream& os, piece const& p)  //empty(i,j,s) and full(i,j,s) are useful to write the piece is the recursive format to an output stream
 {
-    /*
-    if(&p == nullptr) os <<  "null" ;
-    else
-    {
-        for()
-    }
-    */
 }
 
 std::ostream& operator<<(std::ostream& os, tetris const& t)
