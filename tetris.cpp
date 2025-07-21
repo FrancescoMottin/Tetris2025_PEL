@@ -63,16 +63,14 @@ piece::piece(piece&& rhs)
 piece::~piece()
 {
     if(m_grid == nullptr) return ;
-    
-    m_side = 0;
-    m_color = 0;
 
     for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
         delete[] m_grid[i];                 
     delete[] m_grid;                        //deallocazione righe
-
     m_grid = nullptr;
 
+    m_side = 0;
+    m_color = 0;
 }
 
 //assignment operator
@@ -319,12 +317,15 @@ tetris::tetris(tetris const& rhs)
     m_field = nullptr;          //Devo utilzizare tail_field per navigare la struttura, m_field rimane alla testa della lista
 
     node* tail_field = m_field;
-    for(node* it = rhs.m_field; it != nullptr; it = it->next)
+    for(node* it = rhs.m_field; it != nullptr; it = it->next) //copia solo il primo nodo
     {
         node* new_field = new node{it->tp, nullptr};
-        if(!m_field) m_field = tail_field = new_field;
-        else tail_field->next = new_field;
-        tail_field = tail_field->next;
+        if(!tail_field) m_field = tail_field = new_field;
+        else 
+        {
+            tail_field->next = new_field;
+            tail_field = tail_field->next;
+        }
     }
 }
 
@@ -380,8 +381,11 @@ tetris& tetris::operator=(tetris const& rhs)
     {
         node* new_field = new node{it->tp, nullptr};
         if(!m_field) m_field = tail_field = new_field;
-        else tail_field->next = new_field;
-        tail_field = tail_field->next;
+        else 
+        {
+            tail_field->next = new_field;
+            tail_field = tail_field->next;
+        }
     }
 
     return *this;
