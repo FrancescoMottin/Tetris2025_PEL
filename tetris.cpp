@@ -282,11 +282,6 @@ void piece::cut_row(uint32_t i)
     m_grid = tmp_grid;
 }
 
-//NOT NECESSARY BUT USEFUL FOR DEBUGGING
-void tetris::print_ascii_art(std::ostream& os) const
-{
-}
-
 uint32_t piece::side() const { return m_side; }
 int piece::color() const { return m_color; }
 
@@ -632,6 +627,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     return true;
 }
 
+//NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
 {
 
