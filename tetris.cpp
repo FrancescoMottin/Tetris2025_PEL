@@ -807,10 +807,43 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 return ;
             }
         }
-        else
+    }
+}
+
+void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
+{
+    if(curr_side == 1) 
+    {
+        if(p(row_offset, col_offset) == false) os << '[]';
+        else os << '()';
+        return ;
+    }
+    else if(curr_side > 1)
+    {
+        int half_side = curr_side / 2;
+        
+        struct SubQuadrant { uint32_t r_off, c_off; };
+        SubQuadrant sub_quadrants[4] = 
         {
-            is.setstate(std::ios_base::failbit);
-            return ;
+            {0, 0},                 // Top-Left
+            {0, half_side},         // Top-Right
+            {half_side, 0},         // Bottom-Left
+            {half_side, half_side}  // Bottom-Right
+        };
+        
+        for(int i = 0; i < 4; i++)
+        {
+            uint32_t new_row = row_offset + sub_quadrants[i].r_off;
+            uint32_t new_col = col_offset + sub_quadrants[i].c_off;
+        
+            if(p.empty(new_row, new_col, half_side)) os << '[]';
+            else if(p.full(new_row, new_col, half_side)) os << '()';
+            else
+            {
+                os << '('; 
+                output_grid_rec(os, p, half_side, new_row, new_col);
+                os << ')';
+            } 
         }
     }
 }
@@ -874,9 +907,23 @@ std::istream& operator>>(std::istream& is, piece& p)
 
 std::ostream& operator<<(std::ostream& os, piece const& p)  //empty(i,j,s) and full(i,j,s) are useful to write the piece is the recursive format to an output stream
 {
+    os << p.side() << ' ' << p.color() << ' ';
+    if(p.empty() == true) os << '[]';
+    else
+    {
+        os << '(' ;
+        output_grid_rec(os, p , p.side(), 0, 0);
+        os << ')';
+    }
+
+    return os;
+}
+
+std::istream& operator>>(std::istream& is, tetris& t)
+{
+
 }
 
 std::ostream& operator<<(std::ostream& os, tetris const& t)
 {}
-std::istream& operator>>(std::istream& is, tetris& t)
-{}
+
