@@ -430,13 +430,9 @@ bool tetris::operator==(tetris const& rhs) const
 
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
-/*
-insert(piece const& p, int x) operation is where most of the game logic happens. 
-It inserts a piece p whose x-coordinate in the field is x and, if possible, cut rows and shifts other pieces further down in the field.
-*/
+
 //Il pezzo è già dentro alla lista
 //where most of the game logic happens
-
 //Arriva il pezzo contenuto nella lista tetris. Scorriamo tutta la lista e controlli se in qualche coordinata x abbiamo tutte le celle siano contenute dal pezzo (cut_row)
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x)
@@ -454,25 +450,8 @@ void tetris::insert(piece const& p, int x)
 
     add(p, x, y); //aggiungere piece all'inizio della lista
 
-    /*for(int i = 0; i < m_height; i++)   //controllare se una row è tutta occupata. In tal caso, cancellare riga
-    {
-        bool whole_row = false;
-        for(int j = 0; i < m_width; j++)
-        {
-            if(m_grid[i][j] == false) break;
-            if(j == m_width-1) whole_row = true;
-        }
-        if(whole_row) 
-        {
-            cut_row(i);
-
-            whole_row = 0;
-        }
-    }*/
-
     // array usato per contare le celle occupate per riga
     int* arr = new int[m_height];
-
     for(int i = 0; i < m_height; i++) {
         arr[i] = 0;
     }
@@ -560,7 +539,7 @@ void tetris::insert(piece const& p, int x)
             }
             else
             {
-                new_tail->next = curr_node;     //??
+                new_tail->next = curr_node;     
                 new_tail = curr_node;
             }
         }
@@ -630,7 +609,62 @@ bool tetris::containment(piece const& p, int x, int y) const
 //NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
 {
+    char** tmp_mat = new char*[m_height];
+    for(uint32_t i = 0; i < m_height; i++)
+    {
+        tmp_mat[i] = new char[m_width];
+        for(uint32_t j = 0; j < m_width; j++)
+            tmp_mat[i][j] = ' ';
+    }
 
+    piece p;
+    int x = 0;
+    int y = 0;
+    int abs_x = 0;
+    int abs_y = 0;
+    for(node* it = m_field; it; it = it->next)
+    {
+        p = it->tp.p;
+        x = it->tp.x;
+        y = it->tp.y;
+
+        for(int i = 0; i < p.side(); i++)
+        {
+            for(int j = 0; j < p.side(); j++)
+            {
+                if(p(i,j) == true)
+                {
+                    abs_x = x + j;
+                    abs_y = y + i;
+                    tmp_mat[abs_y][abs_x] = '#';
+                } 
+            }
+        }
+    }
+
+    os << '+';
+    for(int i = 0; i < m_width; i++)
+        os << '-';
+    os << '+' << std::endl;
+
+    
+    for(int i = 0; i < m_height; i++)
+    {
+        os << '|';
+        for(int j = 0; j < m_width; j++)
+            os << tmp_mat[i][j];
+        os << '|' << std::endl;
+    }
+
+    os << '+';
+    for(int i = 0; i < m_width; i++)
+        os << '-';
+    os << '+' << std::endl;
+
+    for(int i = 0; i < m_height; i++)
+        delete[] tmp_mat[i];
+    delete[] tmp_mat;
+    tmp_mat = nullptr;
 }
 
 tetris::iterator::iterator(node* ptr) { m_ptr = ptr; }
@@ -685,9 +719,159 @@ uint32_t m_width;
 uint32_t m_height;
 node* m_field;
 };*/
+void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
+{
+    if(is.fail()) return ;
+    
+    char c;
+    if(curr_side == 1) 
+    {
+        is >> std::skipws >> c;
+        if(is.fail()) 
+        {
+            is.setstate(std::ios_base::failbit);
+            return ;
+        }
+
+        if(c == '[') 
+        {
+            is >> std::skipws >> c;
+            if(is.fail() || c != ']')
+            {
+                is.setstate(std::ios_base::failbit);
+                return ;
+            }
+            else p(row_offset, col_offset) = false;
+        }
+        else if(c == '(') 
+        {
+            is >> std::skipws >> c;
+            if(is.fail() || c != ')')
+            {
+                is.setstate(std::ios_base::failbit);
+                return ;
+            }
+            else p(row_offset, col_offset) = true;
+        }
+        else                    //failing state
+        {
+            is.setstate(std::ios_base::failbit);
+            return ;
+        }
+    }
+    else if(curr_side > 1)
+    {
+        int half_side = curr_side / 2;
+        is >> std::skipws >> c;
+        if(is.fail()) 
+        {
+            is.setstate(std::ios_base::failbit);
+            return ;
+        }
+
+        if(c == '[')
+        {
+            is >> std::skipws >> c;
+            if(is.fail() || c != ']')
+            {
+                is.setstate(std::ios_base::failbit);
+                return ;
+            }
+
+            for(int i = row_offset; i < row_offset + curr_side; i++)
+                for(int j =col_offset; j < col_offset + curr_side; j++)
+                    p(i,j) = false;
+        }
+        else if (c == '(')
+        {
+            //Top-Lefts
+            input_grid_rec(is, p, half_side, row_offset, col_offset);
+            if(is.fail()) return ;
+            
+            //Top-rigth
+            input_grid_rec(is, p, half_side, row_offset, col_offset + half_side);
+            if(is.fail()) return ;
+            
+            //Bottom-left
+            input_grid_rec(is, p, half_side, row_offset + half_side, col_offset);
+            if(is.fail()) return ;
+            
+            //Bottom-right
+            input_grid_rec(is, p, half_side, row_offset + half_side, col_offset + half_side);
+            if(is.fail()) return ;
+
+            is >> std::skipws >> c;
+            if(is.fail() || c != ')')
+            {
+                is.setstate(std::ios_base::failbit);
+                return ;
+            }
+        }
+        else
+        {
+            is.setstate(std::ios_base::failbit);
+            return ;
+        }
+    }
+}
+
 std::istream& operator>>(std::istream& is, piece& p)
 {
+    uint32_t val_side;
+    uint8_t val_color;
+    is >> std::skipws >> val_side >> val_color;
+    if(is.fail()) return is;
+
+    //Controlliamo se val_side è 2^n
+    if((val_side & (val_side - 1)) != 0 || val_side == 0 || val_color == 0)   //throw tetris_exception("");
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }                       
+    piece temp_piece(val_side, val_color);
+
+    char c;
+    is >> std::skipws >> c;
+    if(is.fail())
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
+
+    if(c == '[')
+    {
+        is >> std::skipws >> c;
+        if(is.fail() || c != ']')
+        {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
+        //else return is;
+    }
+    else if(c == '(')
+    {
+        //FUNZIONE HELPER RICORSIVA PER LEGGERE LA GRIGLIA (???)
+        input_grid_rec(is, temp_piece, val_side, 0, 0);
+
+        is >> std::skipws >> c;
+        if(is.fail() || c != ')')
+        {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
+        //else return is;
+    }
+    else if(c != '[' && c != '(')
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
+
+    p = std::move(temp_piece); //Usa il move constructor (?)
+    return is;
 }
+
+
 std::ostream& operator<<(std::ostream& os, piece const& p)  //empty(i,j,s) and full(i,j,s) are useful to write the piece is the recursive format to an output stream
 {
 }
