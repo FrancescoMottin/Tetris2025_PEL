@@ -1,5 +1,7 @@
 # Programming and Laboratory Project, A.Y. 2024/2025
 
+You can access the original repo at this link: (https://github.com/PEL-unive/project-24-25)
+
 This project involves implementing a simplified version of the classic game [Tetris](https://www.lumpty.com/amusements/games/tetris/tetris.html), focusing on the fundamental operations of (1) parsing pieces recursively from an input stream, and (2) inserting those pieces in the Tetris grid.
 
 The project requires to implement two classes, `piece` and `tetris`, as described in this document.
