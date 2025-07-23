@@ -925,5 +925,15 @@ std::istream& operator>>(std::istream& is, tetris& t)
 }
 
 std::ostream& operator<<(std::ostream& os, tetris const& t)
-{}
+{
+    os << 'Dimensioni: ' << t.width() << ' x ' << t.height() << std::endl;
+    os << 'Punteggio: ' << t.score() << std::endl;
+
+    t.print_ascii_art(os);
+
+    for(auto it = t.begin(); it != t.end(); ++it)
+        os << 'X:' << it->x << 'Y:' << it->y << 'Piece' << it->p << std::endl;
+
+    return os;
+}
 
