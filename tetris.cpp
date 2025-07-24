@@ -13,7 +13,9 @@ piece::piece()
 //Throws "tetris_exception" se side != 2^n OR color = 0
 piece::piece(uint32_t s, uint8_t c)
 {
-    if(((s & (s - 1)) != 0 || s == 0) || c == 0) throw tetris_exception("");
+    if((s & (s - 1)) != 0) throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  La dimensione del pezzo (side) deve essere una potenza di 2.");
+    if(s == 0)  throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  La dimensione del pezzo (side) non puo' essere 0.");
+    if(c == 0)  throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  Il colore del pezzo (color) non puo' essere 0.");
 
     m_side = s;
     m_color = c;
@@ -146,22 +148,24 @@ bool piece::operator!=(piece const& rhs) const
 
 bool& piece::operator()(uint32_t i, uint32_t j)
 {
-    if(m_grid == nullptr || i >= m_side || j >= m_side) throw tetris_exception("");     //tetris_exception if (i,j) is out of bounds.
+    //tetris_exception if (i,j) is out of bounds.
+    if(m_grid == nullptr || i >= m_side || j >= m_side) throw tetris_exception("ERROR! - operator()(uint32_t i, uint32_t j) - Accesso a griglia non inizializzata (nullptr).");     
     return m_grid[i][j];
 }  
 
 bool piece::operator()(uint32_t i, uint32_t j) const
 {
-    if(m_grid == nullptr || i >= m_side || j >= m_side) throw tetris_exception("");     //tetris_exception if (i,j) is out of bounds.
+    //tetris_exception if (i,j) is out of bounds.
+    if(m_grid == nullptr || i >= m_side || j >= m_side) throw tetris_exception("ERROR! - operator()(uint32_t i, uint32_t j) const - Indici (" + std::to_string(i) + ", " + std::to_string(j) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");     
     return m_grid[i][j];
 }
 
 bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
 {
     if(s == 0) return true;
-    if(m_grid == nullptr) throw tetris_exception("");    //tetris_exception if out of bounds
-    if(i >= m_side || j >= m_side) throw tetris_exception("");
-    if(i + s > m_side || j + s > m_side) throw tetris_exception("");
+    if(m_grid == nullptr) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Accesso a griglia non inizializzata (nullptr).");    //tetris_exception if out of bounds
+    if(i >= m_side || j >= m_side) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
+    if(i + s > m_side || j + s > m_side) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
     
 
     for(int i2 = i; i2 < i+s; i2++)
@@ -174,9 +178,9 @@ bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
 bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
 {
     if(s == 0) return true;
-    if(m_grid == nullptr ) throw tetris_exception("");    //tetris_exception if out of bounds
-    if(i >= m_side || j >= m_side) throw tetris_exception("");
-    if(i + s > m_side || j + s > m_side) throw tetris_exception("");
+    if(m_grid == nullptr ) throw tetris_exception("ERROR! - full(uint32_t i, uint32_t j, uint32_t s) - Accesso a griglia non inizializzata (nullptr).");    //tetris_exception if out of bounds
+    if(i >= m_side || j >= m_side) throw tetris_exception("ERROR! - full(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
+    if(i + s > m_side || j + s > m_side) throw tetris_exception("ERROR! - full(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
     
 
     for(int i2 = i; i2 < i+s; i2++)
@@ -188,7 +192,7 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
 
 bool piece::empty() const
 {
-    if(m_grid == nullptr) throw tetris_exception("");
+    if(m_grid == nullptr) throw tetris_exception("ERROR! - empty() - Accesso a griglia non inizializzata (nullptr).");
     for(int i = 0; i < m_side; i++)
         for(int j = 0; j < m_side; j++)
             if(m_grid[i][j] == true) return false;
@@ -198,7 +202,7 @@ bool piece::empty() const
 
 bool piece::full() const
 {
-    if(m_grid == nullptr) throw tetris_exception("");
+    if(m_grid == nullptr) throw tetris_exception("ERROR! - full() - Accesso a griglia non inizializzata (nullptr).");
     for(int i = 0; i < m_side; i++)
         for(int j = 0; j < m_side; j++)
             if(m_grid[i][j] == false) return false;
@@ -240,8 +244,9 @@ void piece::rotate()
 //maybe implement try-catch for std::bad_alloc
 void piece::cut_row(uint32_t i)
 {
-    if(m_grid == nullptr || m_side == 0) throw tetris_exception("");
-    if(i >= m_side) throw tetris_exception("");
+    if(m_grid == nullptr || m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
+    if(m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Impossibile tagliare riga su un pezzo di dimensione 0.");
+    if(i >= m_side) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Indice di riga (" + std::to_string(i) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
     if(m_side == 1) 
     {
         delete[] m_grid[0];
@@ -296,7 +301,8 @@ tetris::tetris()
 //try-catch per l'assegnazione del field?
 tetris::tetris(uint32_t w, uint32_t h, uint32_t s)  //: m_width(0), m_height(0), m_score(0), m_field(nullptr)
 {
-    if(w <= 0 || h <= 0) throw tetris_exception("");
+    if(w <= 0) throw tetris_exception("ERROR! - tetris(uint32_t w, uint32_t h, uint32_t s) - La larghezza del tabellone (w) non puo' essere 0.");
+    if(h <= 0) throw tetris_exception("ERROR! - tetris(uint32_t w, uint32_t h, uint32_t s) - L'altezza del tabellone (h) non puo' essere 0.");
     m_score = s;
     m_width = w;
     m_height = h;   
@@ -438,7 +444,7 @@ bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 void tetris::insert(piece const& p, int x)
 {
     //that p is the piece whose bottom-left corner is at position (x,y) in the tetris field
-    if(m_field == nullptr) throw tetris_exception(" ");
+    if(m_field == nullptr) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Impossibile aggiungere il pezzo Visto che il lo spazio dove aggiungere non è allocato");
 
     //compute "y" coordinate throught containment
     int y = -1;
@@ -446,7 +452,7 @@ void tetris::insert(piece const& p, int x)
     {
         if(containment(p, x, i)) y = i;
     }
-    if(y == -1) throw tetris_exception("insert(piece const& p, int x) -> GAME OVER! Non possiamo inserire altri pezzi!");
+    if(y == -1) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
 
     add(p, x, y); //aggiungere piece all'inizio della lista
 
