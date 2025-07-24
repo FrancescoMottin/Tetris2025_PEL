@@ -921,18 +921,70 @@ std::ostream& operator<<(std::ostream& os, piece const& p)  //empty(i,j,s) and f
 
 std::istream& operator>>(std::istream& is, tetris& t)
 {
+    uint32_t width;
+    uint32_t height;
+    uint32_t score;
+    is >> std::skipws >> width >> height >> score;
+    if(is.fail()) return is;
+    tetris temp_t(width, height, score);
 
+    std::string dummy_line;
+    std::getline(is, dummy_line);
+    for(uint32_t i = 0; i < height + 2; ++i)
+        std::getline(is, dummy_line);
+    if(is.fail())
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
+
+    uint32_t num_pieces;
+    is >> std::skipws >> num_pieces;
+    if(is.fail())
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
+
+    for(uint32_t i = 0; i < num_pieces; i++)
+    {
+        piece p_data;
+        int x = 0;
+        int y = 0;
+        is >> std::skipws >> x >> y;
+        if(is.fail())
+        {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
+
+        is >> std::skipws >> p_data;
+        if(is.fail())
+        {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
+
+        temp_t.add(p_data, x, y);   //Prima era insert
+    }
+
+
+    t = std::move(temp_t);
+    return is;
 }
 
 std::ostream& operator<<(std::ostream& os, tetris const& t)
 {
-    os << 'Dimensioni: ' << t.width() << ' x ' << t.height() << std::endl;
-    os << 'Punteggio: ' << t.score() << std::endl;
+    os << t.width() << ' ' << t.height() << ' ' << t.score() << std::endl;  //Dimensioni e Punteggio
 
     t.print_ascii_art(os);
 
+    uint32_t piece_count = 0;
+    for(auto it = t.begin(); it != t.end(); ++it)   piece_count++;
+    os << piece_count << std::endl;                     //Numero pezzi
+
     for(auto it = t.begin(); it != t.end(); ++it)
-        os << 'X:' << it->x << 'Y:' << it->y << 'Piece' << it->p << std::endl;
+        os << it->x << ' ' << it->y << ' ' << it->p << std::endl;  //X, Y e Piece
 
     return os;
 }
