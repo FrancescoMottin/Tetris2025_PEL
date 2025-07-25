@@ -449,7 +449,7 @@ void tetris::insert(piece const& p, int x)
 
     //compute "y" coordinate throught containment
     int y = -1;
-    for(int i = 0; i < m_height; i++)
+    for(uint32_t i = 0; i < m_height; i++)
     {
         if(containment(p, x, i)) y = i;
     }
@@ -459,15 +459,15 @@ void tetris::insert(piece const& p, int x)
 
     // array usato per contare le celle occupate per riga
     int* arr = new int[m_height];
-    for(int i = 0; i < m_height; i++) {
+    for(uint32_t i = 0; i < m_height; i++) {
         arr[i] = 0;
     }
 
     // si scorre la lista pezzo per pezzo
     node* tmp = m_field;
     while(tmp != nullptr) {
-        for(int i = 0; i < tmp->tp.p.side(); i++) {
-            for(int j = 0; j < tmp->tp.p.side(); j++) {
+        for(uint32_t i = 0; i < tmp->tp.p.side(); i++) {
+            for(uint32_t j = 0; j < tmp->tp.p.side(); j++) {
                 if(tmp->tp.p(i,j)) arr[tmp->tp.y + (tmp->tp.p.side() - 1 - i)]++;
             }
         }
@@ -476,7 +476,7 @@ void tetris::insert(piece const& p, int x)
     }
 
     // ogni riga di ogni pezzo è stata computata. Avviene in controllo se alcune righe sono interamente occupate
-    for(int i = 0; i < m_height; i++) {
+    for(uint32_t i = 0; i < m_height; i++) {
         if(arr[i] == m_width) {
             node* tmp = m_field;
             while(tmp != nullptr) {
@@ -580,10 +580,10 @@ void tetris::add(piece const& p, int x, int y)
 
 bool tetris::containment(piece const& p, int x, int y) const
 {
-    int p_side = p.side();
-    for(int r = 0; r < p_side; r++)
+    uint32_t p_side = p.side();
+    for(uint32_t r = 0; r < p_side; r++)
     {
-        for(int c = 0; c < p_side; c++)
+        for(uint32_t c = 0; c < p_side; c++)
         {
             if(p.operator()(r,c))    
             {
@@ -650,12 +650,12 @@ void tetris::print_ascii_art(std::ostream& os) const
     }
 
     os << '+';
-    for(int i = 0; i < m_width; i++)
+    for(uint32_t i = 0; i < m_width; i++)
         os << '-';
     os << '+' << std::endl;
 
     
-    for(int i = 0; i < m_height; i++)
+    for(uint32_t i = 0; i < m_height; i++)
     {
         os << '|';
         for(int j = 0; j < m_width; j++)
@@ -664,11 +664,11 @@ void tetris::print_ascii_art(std::ostream& os) const
     }
 
     os << '+';
-    for(int i = 0; i < m_width; i++)
+    for(uint32_t i = 0; i < m_width; i++)
         os << '-';
     os << '+' << std::endl;
 
-    for(int i = 0; i < m_height; i++)
+    for(uint32_t i = 0; i < m_height; i++)
         delete[] tmp_mat[i];
     delete[] tmp_mat;
     tmp_mat = nullptr;
