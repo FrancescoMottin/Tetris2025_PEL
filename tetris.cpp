@@ -169,8 +169,8 @@ bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
     if(i + s > m_side || j + s > m_side) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
     
 
-    for(int i2 = i; i2 < i+s; i2++)
-        for(int j2 = j; j2 < j+s; j2++)
+    for(uint32_t i2 = i; i2 < i+s; i2++)
+        for(uint32_t j2 = j; j2 < j+s; j2++)
             if(m_grid[i2][j2] == true) return false;
 
     return true;
@@ -184,8 +184,8 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
     if(i + s > m_side || j + s > m_side) throw tetris_exception("ERROR! - full(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
     
 
-    for(int i2 = i; i2 < i+s; i2++)
-        for(int j2 = j; j2 < j+s; j2++)
+    for(uint32_t i2 = i; i2 < i+s; i2++)
+        for(uint32_t j2 = j; j2 < j+s; j2++)
             if(m_grid[i2][j2] == false) return false;
 
     return true;
@@ -194,8 +194,8 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
 bool piece::empty() const
 {
     if(m_grid == nullptr) throw tetris_exception("ERROR! - empty() - Accesso a griglia non inizializzata (nullptr).");
-    for(int i = 0; i < m_side; i++)
-        for(int j = 0; j < m_side; j++)
+    for(uint32_t i = 0; i < m_side; i++)
+        for(uint32_t j = 0; j < m_side; j++)
             if(m_grid[i][j] == true) return false;
 
     return true;
@@ -204,8 +204,8 @@ bool piece::empty() const
 bool piece::full() const
 {
     if(m_grid == nullptr) throw tetris_exception("ERROR! - full() - Accesso a griglia non inizializzata (nullptr).");
-    for(int i = 0; i < m_side; i++)
-        for(int j = 0; j < m_side; j++)
+    for(uint32_t i = 0; i < m_side; i++)
+        for(uint32_t j = 0; j < m_side; j++)
             if(m_grid[i][j] == false) return false;
 
     return true;
