@@ -213,31 +213,25 @@ bool piece::full() const
 
 void piece::rotate()
 {
-    if(m_grid == nullptr) return ;
+    if(m_grid == nullptr || m_side <= 1) return ;
 
     bool** tmp_grid = new bool*[m_side];
-    if(m_side > 1)
-    {
-        for(uint32_t i = 0; i < m_side; i++)
-        {         
-            tmp_grid[i] = new bool[m_side];
-            for(uint32_t j = 0; j < m_side; j++)
-            {
-                int new_row = j;
-                int new_col = m_side - i - 1;
-                tmp_grid[new_row][new_col] = m_grid[i][j];
-            }    
-        }
+    
+    for(uint32_t i = 0; i < m_side; i++)    //Probabilemente sarebbe una buona idea aggiungere un try-catch qui
+    {         
+        tmp_grid[i] = new bool[m_side];
+        for(uint32_t j = 0; j < m_side; j++)
+        {
+            int new_row = j;
+            int new_col = m_side - i - 1;
+            tmp_grid[new_row][new_col] = m_grid[i][j];
+        }    
     }
-    else tmp_grid = nullptr;
 
-    if(m_grid != nullptr && m_side > 0)
-    {
-        for(uint32_t i = 0; i < m_side; i++)    
-            delete[] m_grid[i];                   
-        delete[] m_grid;                        
-        m_grid = nullptr;                       
-    }
+    for(uint32_t i = 0; i < m_side; i++)    
+        delete[] m_grid[i];                   
+    delete[] m_grid;                        
+    m_grid = nullptr;                       
 
     m_grid = tmp_grid;
 }
