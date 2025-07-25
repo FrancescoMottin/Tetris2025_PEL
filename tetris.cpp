@@ -458,7 +458,7 @@ void tetris::insert(piece const& p, int x)
     add(p, x, y); //aggiungere piece all'inizio della lista
 
     // array usato per contare le celle occupate per riga
-    int* arr = new int[m_height];
+    uint32_t* arr = new uint32_t[m_height];
     for(uint32_t i = 0; i < m_height; i++) {
         arr[i] = 0;
     }
@@ -476,13 +476,15 @@ void tetris::insert(piece const& p, int x)
     }
 
     // ogni riga di ogni pezzo è stata computata. Avviene in controllo se alcune righe sono interamente occupate
-    for(uint32_t i = 0; i < m_height; i++) {
-        if(arr[i] == m_width) {
+    for(uint32_t i = 0; i < m_height; i++) 
+    {
+        if(arr[i] == m_width) 
+        {
             node* tmp = m_field;
-            while(tmp != nullptr) {
-                if(i >= tmp->tp.y && i <= tmp->tp.y + tmp->tp.p.side()) {
+            while(tmp != nullptr) 
+            {
+                if(i >= tmp->tp.y && i <= tmp->tp.y + tmp->tp.p.side()) 
                     tmp->tp.p.cut_row((tmp->tp.p.side() - 1) - (i - tmp->tp.y));                           //Cut_row non gestice la gravità del tabellone
-                }
                 tmp = tmp->next;
             }
         }
@@ -587,8 +589,8 @@ bool tetris::containment(piece const& p, int x, int y) const
         {
             if(p.operator()(r,c))    
             {
-                int abs_x = x + c;
-                int abs_y = y + r;
+                uint32_t abs_x = x + c;
+                uint32_t abs_y = y + r;
             
                 if(abs_x < 0 || abs_x >= m_width || abs_y < 0 || abs_y >= m_height) return false;
 
@@ -596,11 +598,11 @@ bool tetris::containment(piece const& p, int x, int y) const
                 while(curr)
                 {
                     piece const& curr_piece = curr->tp.p;
-                    int curr_x = curr->tp.x;
-                    int curr_y = curr->tp.y;
+                    uint32_t curr_x = curr->tp.x;
+                    uint32_t curr_y = curr->tp.y;
                 
-                    int rel_x = abs_x - curr_x;
-                    int rel_y = abs_y - curr_y;
+                    uint32_t rel_x = abs_x - curr_x;
+                    uint32_t rel_y = abs_y - curr_y;
 
                     if(rel_x >= 0 && rel_x < curr_piece.side() && rel_y >= 0 && rel_y < curr_piece.side())
                         if(curr_piece.operator()(rel_y,rel_x)) return false;
@@ -635,9 +637,9 @@ void tetris::print_ascii_art(std::ostream& os) const
         x = it->tp.x;
         y = it->tp.y;
 
-        for(int i = 0; i < p.side(); i++)
+        for(uint32_t i = 0; i < p.side(); i++)
         {
-            for(int j = 0; j < p.side(); j++)
+            for(uint32_t j = 0; j < p.side(); j++)
             {
                 if(p(i,j) == true)
                 {
@@ -658,7 +660,7 @@ void tetris::print_ascii_art(std::ostream& os) const
     for(uint32_t i = 0; i < m_height; i++)
     {
         os << '|';
-        for(int j = 0; j < m_width; j++)
+        for(uint32_t j = 0; j < m_width; j++)
             os << tmp_mat[i][j];
         os << '|' << std::endl;
     }
@@ -785,8 +787,8 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 return ;
             }
 
-            for(int i = row_offset; i < row_offset + curr_side; i++)
-                for(int j =col_offset; j < col_offset + curr_side; j++)
+            for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
+                for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
                     p(i,j) = false;
         }
         else if (c == '(')
