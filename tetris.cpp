@@ -829,7 +829,7 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
     }
     else if(curr_side > 1)
     {
-        int half_side = curr_side / 2;
+        uint32_t half_side = curr_side / 2;
         
         struct SubQuadrant { uint32_t r_off, c_off; };
         SubQuadrant sub_quadrants[4] = 
