@@ -1,3 +1,4 @@
+#include <cstdint>
 #include "tetris.hpp"
 
 //forse non serve definire un impl* impl
