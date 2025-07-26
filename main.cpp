@@ -192,7 +192,7 @@ bool test_piece_rotate() {
         p(0,1) = true; // Forma a 'L' rovesciata nella parte superiore sinistra
         p(1,0) = true;
 
-        std::cout << "Creazione pezzo fatta" << std::endl;
+        //std::cout << "Creazione pezzo fatta" << std::endl;
 
         // 0 gradi:
         // # #
