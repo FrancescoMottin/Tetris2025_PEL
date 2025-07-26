@@ -103,7 +103,9 @@ bool test_piece_move_assignment() {
         std::cout << "Copia per confronto fatta" << std::endl;
 
         piece p_move = std::move(p_original); // Costruttore di move
+        std::cout << "Failstate 1" << std::endl;
         if (!(p_move == p_original_copy)) passed = false; // p_move deve essere uguale alla copia dell'originale
+        std::cout << "Failstate 2" << std::endl;
         if (!p_original.empty() || p_original.side() != 0) passed = false; // p_original deve essere in stato valido ma vuoto
         std::cout << "Move constructor funzionante" << std::endl;
 
