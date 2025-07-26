@@ -203,7 +203,6 @@ bool test_piece_rotate() {
         p.rotate(); // 90 gradi orario
         // # #
         // . #
-        //if (!p(0,1) || !p(1,0) || !p(1,1) || p(0,0)) passed = false;
         if (!p(0,0) || !p(0,1) || p(1,0) || !p(1,1)) passed = false;    //Test modificato
         if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
         std::cout << "90 gradi" << std::endl;
@@ -216,9 +215,10 @@ bool test_piece_rotate() {
         std::cout << "180 gradi" << std::endl;
 
         p.rotate(); // 270 gradi
-        // # #
         // # .
-        if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
+        // # #
+        //if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
+        if (!p(0,0) || p(0,1) || !p(1,0) || !p(1,1)) passed = false;
         if (!passed) { std::cout << "Rotate 270 failed." << std::endl; return false; }
         std::cout << "270 gradi" << std::endl;
 
