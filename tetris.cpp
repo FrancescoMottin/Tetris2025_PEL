@@ -255,8 +255,10 @@ void piece::rotate()
 }
 
 //maybe implement try-catch for std::bad_alloc
+//Probabilmente mal implementato
 void piece::cut_row(uint32_t i)
 {
+    /*
     if(m_grid == nullptr || m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
     if(m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Impossibile tagliare riga su un pezzo di dimensione 0.");
     if(i >= m_side) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Indice di riga (" + std::to_string(i) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
@@ -298,6 +300,26 @@ void piece::cut_row(uint32_t i)
 
     m_side = new_side;
     m_grid = tmp_grid;
+    */
+    if(m_grid == nullptr || m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
+    if(m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Impossibile tagliare riga su un pezzo di dimensione 0.");
+    if(i >= m_side) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Indice di riga (" + std::to_string(i) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
+    if(m_side == 1) 
+    {
+        delete[] m_grid[0];
+        delete[] m_grid;
+        m_side = 0;
+        m_grid = nullptr;
+
+        return ;
+    }
+
+    for(uint32_t r = i; r <  m_side - 1; r++)
+        for(uint32_t c = 0; c < m_side; c++)    
+            m_grid[r][c] = m_grid[r+1][c];
+
+    for(uint32_t c = 0; c < m_side; c++)
+        m_grid[m_side-1][c] = false;
 }
 
 uint32_t piece::side() const { return m_side; }

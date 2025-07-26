@@ -198,21 +198,21 @@ bool test_piece_rotate() {
         // # #
         // # .
         if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
-        std::cout << "0 gradi" << std::endl;
+        //std::cout << "0 gradi" << std::endl;
 
         p.rotate(); // 90 gradi orario
         // # #
         // . #
         if (!p(0,0) || !p(0,1) || p(1,0) || !p(1,1)) passed = false;    //Test modificato
         if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
-        std::cout << "90 gradi" << std::endl;
+        //std::cout << "90 gradi" << std::endl;
 
         p.rotate(); // 180 gradi
         // . #
         // # #
         if (!p(0,1) || !p(1,0) || !p(1,1) || p(0,0)) passed = false; // La forma è la stessa per questo esempio specifico di rotazione
         if (!passed) { std::cout << "Rotate 180 failed." << std::endl; return false; }
-        std::cout << "180 gradi" << std::endl;
+        //std::cout << "180 gradi" << std::endl;
 
         p.rotate(); // 270 gradi
         // # .
@@ -220,14 +220,14 @@ bool test_piece_rotate() {
         //if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
         if (!p(0,0) || p(0,1) || !p(1,0) || !p(1,1)) passed = false;
         if (!passed) { std::cout << "Rotate 270 failed." << std::endl; return false; }
-        std::cout << "270 gradi" << std::endl;
+        //std::cout << "270 gradi" << std::endl;
 
         p.rotate(); // 360 gradi (torna all'originale)
         // # #
         // # .
         if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
         if (!passed) { std::cout << "Rotate 360 failed." << std::endl; return false; }
-        std::cout << "360 gradi" << std::endl;
+        //std::cout << "360 gradi" << std::endl;
 
 
     } catch (const tetris_exception& e) {
