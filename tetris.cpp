@@ -142,10 +142,7 @@ bool piece::operator==(piece const& rhs) const
     return true;
 }
 
-bool piece::operator!=(piece const& rhs) const
-{
-    return !(operator==(rhs));
-}
+bool piece::operator!=(piece const& rhs) const { return !(operator==(rhs)); }
 
 bool& piece::operator()(uint32_t i, uint32_t j)
 {
@@ -373,8 +370,8 @@ tetris::~tetris()
 //non safe, cosa succede se la copia fallisce? Usa try catch
 tetris& tetris::operator=(tetris const& rhs)
 {
-    if(*this ==  rhs) return *this;
-
+    if(this == &rhs) return *this;
+    
     node* tail_field = m_field;
     while(tail_field)
     {
@@ -387,7 +384,7 @@ tetris& tetris::operator=(tetris const& rhs)
     m_score = rhs.m_score;
     m_width = rhs.m_width;
     m_height = rhs.m_height;
-    for(node* it = rhs.m_field; it != nullptr; it = it->next)
+    for(node* it = rhs.m_field; it != nullptr; it = it->next)      //Probabile errore ricostruzione lista
     {
         node* new_field = new node{it->tp, nullptr};
         if(!m_field) m_field = tail_field = new_field;

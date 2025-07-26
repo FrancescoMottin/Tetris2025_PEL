@@ -100,17 +100,21 @@ bool test_piece_move_assignment() {
         piece p_original(2, 10);
         p_original(0,0) = true;
         piece p_original_copy = p_original; // Copia per confronto
+        std::cout << "Copia per confronto fatta" << std::endl;
 
         piece p_move = std::move(p_original); // Costruttore di move
         if (!(p_move == p_original_copy)) passed = false; // p_move deve essere uguale alla copia dell'originale
         if (!p_original.empty() || p_original.side() != 0) passed = false; // p_original deve essere in stato valido ma vuoto
+        std::cout << "Move constructor funzionante" << std::endl;
 
         piece p_assign_target(4, 50);
         p_assign_target = std::move(p_move); // Operatore di move assignment
         if (!(p_assign_target == p_original_copy)) passed = false; // p_assign_target deve essere uguale alla copia dell'originale
         if (!p_move.empty() || p_move.side() != 0) passed = false; // p_move deve essere in stato valido ma vuoto
-
-    } catch (const tetris_exception& e) {
+        std::cout << "Move assignment utilizzato" << std::endl;
+    } 
+    catch (const tetris_exception& e) 
+    {
         std::cerr << "Eccezione in test_piece_move_assignment: " << e.what() << std::endl;
         passed = false;
     }
@@ -186,34 +190,41 @@ bool test_piece_rotate() {
         p(0,1) = true; // Forma a 'L' rovesciata nella parte superiore sinistra
         p(1,0) = true;
 
+        std::cout << "Creazione pezzo fatta" << std::endl;
+
         // 0 gradi:
         // # #
         // # .
         if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
+        std::cout << "0 gradi" << std::endl;
 
         p.rotate(); // 90 gradi orario
         // . #
         // # #
         if (!p(0,1) || !p(1,0) || !p(1,1) || p(0,0)) passed = false;
         if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
+        std::cout << "90 gradi" << std::endl;
 
         p.rotate(); // 180 gradi
         // . #
         // # #
         if (!p(0,1) || !p(1,0) || !p(1,1) || p(0,0)) passed = false; // La forma è la stessa per questo esempio specifico di rotazione
         if (!passed) { std::cout << "Rotate 180 failed." << std::endl; return false; }
+        std::cout << "180 gradi" << std::endl;
 
         p.rotate(); // 270 gradi
         // # #
         // # .
         if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
         if (!passed) { std::cout << "Rotate 270 failed." << std::endl; return false; }
+        std::cout << "270 gradi" << std::endl;
 
         p.rotate(); // 360 gradi (torna all'originale)
         // # #
         // # .
         if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
         if (!passed) { std::cout << "Rotate 360 failed." << std::endl; return false; }
+        std::cout << "360 gradi" << std::endl;
 
 
     } catch (const tetris_exception& e) {
