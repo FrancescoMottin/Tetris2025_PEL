@@ -237,6 +237,7 @@ bool test_piece_rotate() {
     return passed;
 }
 
+/*
 // Test cut_row()
 bool test_piece_cut_row() {
     bool passed = true;
@@ -275,7 +276,98 @@ bool test_piece_cut_row() {
     }
     return passed;
 }
+*/
 
+bool test_piece_cut_row() {
+    bool passed = true;
+    try {
+        piece p(4, 100); // Crea un pezzo 4x4
+        // Riempi le prime due righe
+        for(uint32_t j=0; j<4; ++j) { p(0,j)=true; p(1,j)=true; }
+        p(2,0)=true; // Una cella nella terza riga
+
+        // Stato iniziale del pezzo (4x4):
+        // # # # #  (Riga 0)
+        // # # # #  (Riga 1)
+        // # . . .  (Riga 2)
+        // . . . .  (Riga 3)
+        std::cout << "DEBUG: Test cut_row - Pezzo iniziale:" << std::endl;
+        // p.print_ascii_art(std::cout); // Se hai implementato print_ascii_art per piece
+
+        p.cut_row(0); // Taglia la riga 0
+
+        // Stato atteso dopo p.cut_row(0) (m_side non cambia):
+        // La vecchia riga 1 si sposta alla riga 0
+        // La vecchia riga 2 si sposta alla riga 1
+        // La vecchia riga 3 si sposta alla riga 2
+        // La riga 3 (l'ultima) diventa vuota
+
+        // Stato atteso visualmente:
+        // # # # #  (Ex Riga 1)
+        // # . . .  (Ex Riga 2)
+        // . . . .  (Ex Riga 3)
+        // . . . .  (Nuova Riga Vuota)
+        std::cout << "DEBUG: Test cut_row - Pezzo dopo cut_row(0):" << std::endl;
+        // p.print_ascii_art(std::cout); // Se hai implementato print_ascii_art per piece
+
+        // Verifica che la nuova Riga 0 (ex Riga 1) sia tutta true
+        for(uint32_t j=0; j<4; ++j) {
+            if(!p(0,j)) {
+                passed = false;
+                std::cerr << "Cut row failed: Nuova Riga 0 (ex Riga 1) non corretta a colonna " << j << std::endl;
+                break;
+            }
+        }
+        if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
+
+
+        // Verifica che la nuova Riga 1 (ex Riga 2) abbia solo p(1,0)=true
+        if(!p(1,0) || p(1,1) || p(1,2) || p(1,3)) {
+            passed = false;
+            std::cerr << "Cut row failed: Nuova Riga 1 (ex Riga 2) non corretta." << std::endl;
+        }
+        if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
+
+
+        // Verifica che la nuova Riga 2 (ex Riga 3) sia tutta false
+        for(uint32_t j=0; j<4; ++j) {
+            if(p(2,j)) {
+                passed = false;
+                std::cerr << "Cut row failed: Nuova Riga 2 (ex Riga 3) non corretta a colonna " << j << std::endl;
+                break;
+            }
+        }
+        if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
+
+        // Verifica che la nuova Riga 3 (l'ultima, ora svuotata) sia tutta false
+        for(uint32_t j=0; j<4; ++j) {
+            if(p(3,j)) {
+                passed = false;
+                std::cerr << "Cut row failed: Nuova Riga 3 (svuotata) non corretta a colonna " << j << std::endl;
+                break;
+            }
+        }
+        if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
+
+        std::cout << "DEBUG: Cut row passed for valid index." << std::endl;
+
+        // Test cut_row su riga invalida (questo è già corretto e lancia eccezione)
+        try {
+            p.cut_row(p.side()); // Fuori limite (p.side() è ancora 4)
+            passed = false; // Fallisce se non lancia eccezione
+        } catch (const tetris_exception& e) {
+            // Eccezione attesa
+            std::cout << "DEBUG: Cut row invalid index test passed: " << e.what() << std::endl;
+        } catch (...) {
+            passed = false;
+        }
+
+    } catch (const tetris_exception& e) {
+        std::cerr << "Eccezione in test_piece_cut_row: " << e.what() << std::endl;
+        passed = false;
+    }
+    return passed;
+}
 
 // Test operator<< e operator>> per piece (round-trip)
 bool test_piece_stream_operators() {
