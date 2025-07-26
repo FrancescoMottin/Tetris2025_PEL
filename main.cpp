@@ -204,7 +204,7 @@ bool test_piece_rotate() {
         // # #
         // . #
         //if (!p(0,1) || !p(1,0) || !p(1,1) || p(0,0)) passed = false;
-        if (!p(0,0) || !p(0,1) || p(1,0) || !p(1,1)) passed = false;
+        if (!p(0,0) || !p(0,1) || p(1,0) || !p(1,1)) passed = false;    //Test modificato
         if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
         std::cout << "90 gradi" << std::endl;
 
