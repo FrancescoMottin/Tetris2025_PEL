@@ -190,6 +190,7 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
 
 bool piece::empty() const
 {
+    if(m_grid == nullptr && m_side == 0 || m_side == 0) return true;
     if(m_grid == nullptr) throw tetris_exception("ERROR! - empty() - Accesso a griglia non inizializzata (nullptr).");
     for(uint32_t i = 0; i < m_side; i++)
         for(uint32_t j = 0; j < m_side; j++)
