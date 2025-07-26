@@ -100,20 +100,20 @@ bool test_piece_move_assignment() {
         piece p_original(2, 10);
         p_original(0,0) = true;
         piece p_original_copy = p_original; // Copia per confronto
-        std::cout << "Copia per confronto fatta" << std::endl;
+        //std::cout << "Copia per confronto fatta" << std::endl;
 
         piece p_move = std::move(p_original); // Costruttore di move
-        std::cout << "Failstate 1" << std::endl;
+        //std::cout << "Failstate 1" << std::endl;
         if (!(p_move == p_original_copy)) passed = false; // p_move deve essere uguale alla copia dell'originale
-        std::cout << "Failstate 2" << std::endl;
+        //std::cout << "Failstate 2" << std::endl;
         if (!p_original.empty() || p_original.side() != 0) passed = false; // p_original deve essere in stato valido ma vuoto
-        std::cout << "Move constructor funzionante" << std::endl;
+        //std::cout << "Move constructor funzionante" << std::endl;
 
         piece p_assign_target(4, 50);
         p_assign_target = std::move(p_move); // Operatore di move assignment
         if (!(p_assign_target == p_original_copy)) passed = false; // p_assign_target deve essere uguale alla copia dell'originale
         if (!p_move.empty() || p_move.side() != 0) passed = false; // p_move deve essere in stato valido ma vuoto
-        std::cout << "Move assignment utilizzato" << std::endl;
+        //std::cout << "Move assignment utilizzato" << std::endl;
     } 
     catch (const tetris_exception& e) 
     {
