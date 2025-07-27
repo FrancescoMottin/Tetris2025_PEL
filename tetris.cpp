@@ -1030,7 +1030,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
         is.setstate(std::ios_base::failbit);
         return is;
     }
-    catch (const std::bad_alloc& e) 
+    catch (const tetris_exception& e) 
     {
         is.setstate(std::ios_base::failbit);
         return is;
@@ -1081,7 +1081,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
             is.setstate(std::ios_base::failbit);
             return is;
         }
-        catch (const std::bad_alloc& e) 
+        catch (const tetris_exception& e) 
         {
             is.setstate(std::ios_base::failbit);
             return is;
