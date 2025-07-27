@@ -755,13 +755,7 @@ uint32_t tetris::score() const { return m_score; }
 uint32_t tetris::width() const { return m_width; }
 uint32_t tetris::height() const { return m_height; }
 
-/*
-private:
-uint32_t m_score;
-uint32_t m_width;
-uint32_t m_height;
-node* m_field;
-};*/
+//crea handler stato p.empty() e p.full()
 void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
 {
     if(is.fail()) return ;
@@ -863,8 +857,20 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
     }
     else if(curr_side > 1)
     {
+        if(p.empty(row_offset, col_offset, curr_side))
+        {
+            os << '[] ';
+            return ;
+        } 
+        else if(p.full(row_offset, col_offset, curr_side)) 
+        {
+            os << '() ';
+            return ;
+        }
+
+        os << '(';
+
         uint32_t half_side = curr_side / 2;
-        
         struct SubQuadrant { uint32_t r_off, c_off; };
         SubQuadrant sub_quadrants[4] = 
         {
@@ -878,16 +884,13 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
         {
             uint32_t new_row = row_offset + sub_quadrants[i].r_off;
             uint32_t new_col = col_offset + sub_quadrants[i].c_off;
-        
-            if(p.empty(new_row, new_col, half_side)) os << '[]';
-            else if(p.full(new_row, new_col, half_side)) os << '()';
-            else
-            {
-                os << '('; 
-                output_grid_rec(os, p, half_side, new_row, new_col);
-                os << ')';
-            } 
+    
+            output_grid_rec(os, p, half_side, new_row, new_col);
+            
+            if(i < 3) os << ' ';
         }
+
+        os << ') ';
     }
 }
 
@@ -903,8 +906,14 @@ std::istream& operator>>(std::istream& is, piece& p)
     {
         is.setstate(std::ios_base::failbit);
         return is;
-    }                       
-    piece temp_piece(val_side, val_color);
+    }      
+    piece temp_piece;                 
+    try{ temp_piece = piece(val_side, val_color); }  //try catch in caso fallisca allocaziones
+    catch(const tetris_exception& e)
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
 
     char c;
     is >> std::skipws >> c;
@@ -922,7 +931,6 @@ std::istream& operator>>(std::istream& is, piece& p)
             is.setstate(std::ios_base::failbit);
             return is;
         }
-        //else return is;
     }
     else if(c == '(')
     {
@@ -935,7 +943,6 @@ std::istream& operator>>(std::istream& is, piece& p)
             is.setstate(std::ios_base::failbit);
             return is;
         }
-        //else return is;
     }
     else if(c != '[' && c != '(')
     {

@@ -383,8 +383,10 @@ bool test_piece_stream_operators() {
         std::stringstream ss;
         ss << p_original; // Scrivi il pezzo nello stringstream
 
+        std::cout << "DEBUG: Contenuto di stringstream ss: '" << ss.str() << "'" << std::endl; // <--- AGGIUNGI QUESTO
+
         piece p_read;
-        ss >> p_read; // Leggi il pezzo dallo stringstream
+        ss >> p_read; // Leggi il pezzo dallo stringstream      --> Il problema è in operator>>
 
         if (ss.fail()) {
             std::cerr << "Stream failed during piece read." << std::endl;
