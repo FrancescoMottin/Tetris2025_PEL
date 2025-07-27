@@ -354,15 +354,30 @@ tetris::tetris(tetris const& rhs)
     m_field = nullptr;          //Devo utilzizare tail_field per navigare la struttura, m_field rimane alla testa della lista
 
     node* tail_field = m_field;
-    for(node* it = rhs.m_field; it != nullptr; it = it->next) //copia solo il primo nodo
+
+    try
     {
-        node* new_field = new node{it->tp, nullptr};
-        if(!tail_field) m_field = tail_field = new_field;
-        else 
+        for(node* it = rhs.m_field; it != nullptr; it = it->next) //copia solo il primo nodo
         {
-            tail_field->next = new_field;
-            tail_field = tail_field->next;
+            node* new_field = new node{it->tp, nullptr};
+            if(!tail_field) m_field = tail_field = new_field;
+            else 
+            {
+                tail_field->next = new_field;
+                tail_field = tail_field->next;
+            }
         }
+    }
+    catch(const std::bad_alloc& e) 
+    {
+        node* curr_node = m_field;
+        while(curr_node)
+        {
+            node* tmp_field = curr_node;
+            curr_node = curr_node->next;
+            delete tmp_field; 
+        }
+        m_field = nullptr;
     }
 }
 
@@ -824,7 +839,6 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         {
             is >> std::skipws >> c;
 
-
             if(c == ')')
             {
                 for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
@@ -949,7 +963,6 @@ std::istream& operator>>(std::istream& is, piece& p)
     }
     else if(c == '(')
     {
-        //FUNZIONE HELPER RICORSIVA PER LEGGERE LA GRIGLIA (???)
         input_grid_rec(is, temp_piece, val_side, 0, 0);
 
         is >> std::skipws >> c;
@@ -959,7 +972,7 @@ std::istream& operator>>(std::istream& is, piece& p)
             return is;
         }
     }
-    else if(c != '[' && c != '(')
+    else
     {
         is.setstate(std::ios_base::failbit);
         return is;
@@ -1053,4 +1066,3 @@ std::ostream& operator<<(std::ostream& os, tetris const& t)
 
     return os;
 }
-
