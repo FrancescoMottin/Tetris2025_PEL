@@ -239,6 +239,7 @@ bool test_piece_rotate() {
 
 
 // Test cut_row()
+/*
 bool test_piece_cut_row() {
     bool passed = true;
     try {
@@ -276,8 +277,8 @@ bool test_piece_cut_row() {
     }
     return passed;
 }
+*/
 
-/*
 bool test_piece_cut_row() {
     bool passed = true;
     try {
@@ -368,7 +369,7 @@ bool test_piece_cut_row() {
     }
     return passed;
 }
-*/
+
 // Test operator<< e operator>> per piece (round-trip)
 bool test_piece_stream_operators() {
     bool passed = true;
