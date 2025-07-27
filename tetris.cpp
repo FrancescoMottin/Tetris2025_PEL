@@ -814,34 +814,48 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 is.setstate(std::ios_base::failbit);
                 return ;
             }
-
+    
             for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
                 for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
                     p(i,j) = false;
         }
         else if (c == '(')
         {
-            //Top-Lefts
-            input_grid_rec(is, p, half_side, row_offset, col_offset);
-            if(is.fail()) return ;
-            
-            //Top-rigth
-            input_grid_rec(is, p, half_side, row_offset, col_offset + half_side);
-            if(is.fail()) return ;
-            
-            //Bottom-left
-            input_grid_rec(is, p, half_side, row_offset + half_side, col_offset);
-            if(is.fail()) return ;
-            
-            //Bottom-right
-            input_grid_rec(is, p, half_side, row_offset + half_side, col_offset + half_side);
-            if(is.fail()) return ;
-
             is >> std::skipws >> c;
-            if(is.fail() || c != ')')
+
+
+            if(c == ')')
             {
-                is.setstate(std::ios_base::failbit);
-                return ;
+                for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
+                    for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
+                        p(i,j) = true;
+            }
+            else
+            {
+                is.unget(); //Riporta il carattere indietro nello stream per la prossima lettura ricorsiva
+
+                //Top-Lefts
+                input_grid_rec(is, p, half_side, row_offset, col_offset);
+                if(is.fail()) return ;
+            
+                //Top-rigth
+                input_grid_rec(is, p, half_side, row_offset, col_offset + half_side);
+                if(is.fail()) return ;
+            
+                //Bottom-left
+                input_grid_rec(is, p, half_side, row_offset + half_side, col_offset);
+                if(is.fail()) return ;
+            
+                //Bottom-right
+                input_grid_rec(is, p, half_side, row_offset + half_side, col_offset + half_side);
+                if(is.fail()) return ;
+
+                is >> std::skipws >> c;
+                if(is.fail() || c != ')')
+                {
+                    is.setstate(std::ios_base::failbit);
+                    return ;
+                }
             }
         }
     }
@@ -851,24 +865,24 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
 {
     if(curr_side == 1) 
     {
-        if(p(row_offset, col_offset) == false) os << '[]';
-        else os << '()';
+        if(p(row_offset, col_offset) == false) os << "[]";
+        else os << "()";
         return ;
     }
     else if(curr_side > 1)
     {
         if(p.empty(row_offset, col_offset, curr_side))
         {
-            os << '[] ';
+            os << "[] ";
             return ;
         } 
         else if(p.full(row_offset, col_offset, curr_side)) 
         {
-            os << '() ';
+            os << "() ";
             return ;
         }
 
-        os << '(';
+        os << "(";
 
         uint32_t half_side = curr_side / 2;
         struct SubQuadrant { uint32_t r_off, c_off; };
@@ -887,10 +901,10 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
     
             output_grid_rec(os, p, half_side, new_row, new_col);
             
-            if(i < 3) os << ' ';
+            if(i < 3) os << " ";
         }
 
-        os << ') ';
+        os << ") ";
     }
 }
 
@@ -957,13 +971,13 @@ std::istream& operator>>(std::istream& is, piece& p)
 
 std::ostream& operator<<(std::ostream& os, piece const& p)  //empty(i,j,s) and full(i,j,s) are useful to write the piece is the recursive format to an output stream
 {
-    os << p.side() << ' ' << p.color() << ' ';
-    if(p.empty() == true) os << '[]';
+    os << p.side() << " " << p.color() << " ";
+    if(p.empty() == true) os << "[]";
     else
     {
-        os << '(' ;
+        os << "(" ;
         output_grid_rec(os, p , p.side(), 0, 0);
-        os << ')';
+        os << ")";
     }
 
     return os;
@@ -1025,7 +1039,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
 
 std::ostream& operator<<(std::ostream& os, tetris const& t)
 {
-    os << t.width() << ' ' << t.height() << ' ' << t.score() << std::endl;  //Dimensioni e Punteggio
+    os << t.width() << " " << t.height() << " " << t.score() << std::endl;  //Dimensioni e Punteggio
 
     t.print_ascii_art(os);
 
@@ -1034,7 +1048,7 @@ std::ostream& operator<<(std::ostream& os, tetris const& t)
     os << piece_count << std::endl;                     //Numero pezzi
 
     for(auto it = t.begin(); it != t.end(); ++it)
-        os << it->x << ' ' << it->y << ' ' << it->p << std::endl;  //X, Y e Piece
+        os << it->x << " " << it->y << " " << it->p << std::endl;  //X, Y e Piece
 
     return os;
 }
