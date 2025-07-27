@@ -378,6 +378,8 @@ tetris::tetris(tetris const& rhs)
             delete tmp_field; 
         }
         m_field = nullptr;
+
+        throw tetris_exception("ERROR! - tetris(tetris const& rhs) - Errore di allocazione memoria.");
     }
 }
 
@@ -429,17 +431,33 @@ tetris& tetris::operator=(tetris const& rhs)
     m_score = rhs.m_score;
     m_width = rhs.m_width;
     m_height = rhs.m_height;
-    for(node* it = rhs.m_field; it != nullptr; it = it->next)      //Probabile errore ricostruzione lista
+    try 
     {
-        node* new_field = new node{it->tp, nullptr};
-        if(!m_field) m_field = tail_field = new_field;
-        else 
+        for(node* it = rhs.m_field; it != nullptr; it = it->next)      //Probabile errore ricostruzione lista
         {
-            tail_field->next = new_field;
-            tail_field = tail_field->next;
+            node* new_field = new node{it->tp, nullptr};
+            if(!m_field) m_field = tail_field = new_field;
+            else 
+            {
+                tail_field->next = new_field;
+                tail_field = tail_field->next;
+            }
         }
     }
+    catch(const std::bad_alloc& e) 
+    {
+        node* curr_node = m_field;
+        while(curr_node)
+        {
+            node* tmp_field = curr_node;
+            curr_node = curr_node->next;
+            delete tmp_field; 
+        }
+        m_field = nullptr;
 
+        throw tetris_exception("ERROR! - operator=(tetris const& rhs) - Errore di allocazione memoria.");
+    }
+    
     return *this;
 }
 
@@ -1004,8 +1022,21 @@ std::istream& operator>>(std::istream& is, tetris& t)
     uint32_t score;
     is >> std::skipws >> width >> height >> score;
     if(is.fail()) return is;
-    tetris temp_t(width, height, score);
 
+    tetris temp_t(0, 0, 0);
+    try { temp_t = tetris(width, height, score); }
+    catch(const std::bad_alloc& e)
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
+    catch (const std::bad_alloc& e) 
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }    
+
+    /*  NON DEVE LEGGERE IL GRAFICO!
     std::string dummy_line;
     std::getline(is, dummy_line);
     for(uint32_t i = 0; i < height + 2; ++i)
@@ -1015,6 +1046,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
         is.setstate(std::ios_base::failbit);
         return is;
     }
+    */
 
     uint32_t num_pieces;
     is >> std::skipws >> num_pieces;
@@ -1043,9 +1075,18 @@ std::istream& operator>>(std::istream& is, tetris& t)
             return is;
         }
 
-        temp_t.add(p_data, x, y);   //Prima era insert
+        try { temp_t.add(p_data, x, y); }   //Prima era insert
+        catch(const std::bad_alloc& e)
+        {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
+        catch (const std::bad_alloc& e) 
+        {
+            is.setstate(std::ios_base::failbit);
+            return is;
+        }
     }
-
 
     t = std::move(temp_t);
     return is;
@@ -1055,7 +1096,7 @@ std::ostream& operator<<(std::ostream& os, tetris const& t)
 {
     os << t.width() << " " << t.height() << " " << t.score() << std::endl;  //Dimensioni e Punteggio
 
-    t.print_ascii_art(os);
+    //t.print_ascii_art(os);
 
     uint32_t piece_count = 0;
     for(auto it = t.begin(); it != t.end(); ++it)   piece_count++;
