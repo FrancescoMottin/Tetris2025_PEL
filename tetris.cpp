@@ -134,6 +134,7 @@ piece& piece::operator=(piece&& rhs)
 bool piece::operator==(piece const& rhs) const
 {
     if(m_side != rhs.m_side || m_color != rhs.m_color) return false;
+    if(m_side == 0) return true;
 
     for(uint32_t i = 0; i < m_side; i++)
         for(uint32_t j = 0; j < m_side; j++)
