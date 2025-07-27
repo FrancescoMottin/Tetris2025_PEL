@@ -510,7 +510,7 @@ void tetris::insert(piece const& p, int x)
     }
 
     // ogni riga di ogni pezzo è stata computata. Avviene in controllo se alcune righe sono interamente occupate
-    for(uint32_t i = 0; i < m_height; i++) 
+    for(int i = 0; i < m_height; i++) 
     {
         if(arr[i] == m_width) 
         {
@@ -547,7 +547,7 @@ void tetris::insert(piece const& p, int x)
         while (curr_piece)
         {
             int fall_size = 0;
-            for(uint32_t i = 0; i < cleared_rows; i++)
+            for(int i = 0; i < cleared_rows; i++)
             {
                 int global_row = cleared_index[i];
                 if(global_row < curr_piece->tp.y) fall_size++;
