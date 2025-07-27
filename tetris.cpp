@@ -21,14 +21,23 @@ piece::piece(uint32_t s, uint8_t c)
     m_side = s;
     m_color = c;
     
-    m_grid = new bool*[m_side]; //initialize a s*s matrix with all cells at false, must be an empty piece
-    for(uint32_t i = 0; i < s; i++)
+    try
     {
-        m_grid[i] = new bool[s];
-        for(uint32_t j = 0; j < s; j++)
-            m_grid[i][j] = false;
+        m_grid = new bool*[m_side]; //initialize a s*s matrix with all cells at false, must be an empty piece
+        for(uint32_t i = 0; i < s; i++)
+        {
+            m_grid[i] = new bool[s];
+            for(uint32_t j = 0; j < s; j++)
+                m_grid[i][j] = false;
+        }
     }
-    //assert(empty() == true);
+    catch(const std::bad_alloc& e)
+    {
+        for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
+            delete[] m_grid[i];                 
+        delete[] m_grid;                        //deallocazione righe
+        m_grid = nullptr;
+    }
 }
 
 //Copy constructor
@@ -39,16 +48,27 @@ piece::piece(piece const& rhs)
 
     if(m_side > 0)
     {   
-        m_grid = new bool*[m_side];
-        for(uint32_t i = 0; i < m_side; i++)
+        try
         {
-            m_grid[i] = new bool[m_side];
-            for(uint32_t j = 0; j < m_side; j++)
-                m_grid[i][j] = rhs.m_grid[i][j];
+            m_grid = new bool*[m_side];
+            for(uint32_t i = 0; i < m_side; i++)
+            {
+                m_grid[i] = new bool[m_side];
+                for(uint32_t j = 0; j < m_side; j++)
+                    m_grid[i][j] = rhs.m_grid[i][j];
+            }
         }
+        catch(const std::bad_alloc& e)
+        {
+            for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
+                delete[] m_grid[i];                 
+            delete[] m_grid;                        //deallocazione righe
+            m_grid = nullptr;
+            
+            throw tetris_exception("ERROR! - piece(piece const& rhs) - Errore di allocazione memoria.");
+        }    
     }
     else m_grid = nullptr;
-    //assert(empty() == true);
 }
 
 //Move constructor
@@ -148,7 +168,7 @@ bool piece::operator!=(piece const& rhs) const { return !(operator==(rhs)); }
 bool& piece::operator()(uint32_t i, uint32_t j)
 {
     //tetris_exception if (i,j) is out of bounds.
-    if(m_grid == nullptr || i >= m_side || j >= m_side) throw tetris_exception("ERROR! - operator()(uint32_t i, uint32_t j) - Accesso a griglia non inizializzata (nullptr).");     
+    if(m_grid == nullptr || i >= m_side || j >= m_side) throw tetris_exception("ERROR! - operator()(uint32_t i, uint32_t j) - Indici (" + std::to_string(i) + ", " + std::to_string(j) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");     
     return m_grid[i][j];
 }  
 
@@ -513,34 +533,44 @@ bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 void tetris::insert(piece const& p, int x)
 {
     //that p is the piece whose bottom-left corner is at position (x,y) in the tetris field
-    if(m_field == nullptr) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Impossibile aggiungere il pezzo Visto che il lo spazio dove aggiungere non è allocato");
+    if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
 
     //compute "y" coordinate throught containment
     int y = -1;
     for(uint32_t i = 0; i < m_height; i++)
     {
         if(containment(p, x, i)) y = i;
+        else if(y != -1) break ;
     }
     if(y == -1) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
 
     add(p, x, y); //aggiungere piece all'inizio della lista
 
     // array usato per contare le celle occupate per riga
-    uint32_t* arr = new uint32_t[m_height];
-    for(uint32_t i = 0; i < m_height; i++) {
-        arr[i] = 0;
+    uint32_t* arr;
+    try
+    {
+        arr = new uint32_t[m_height];
+        for(uint32_t i = 0; i < m_height; i++) 
+            arr[i] = 0;
     }
+    catch(const std::bad_alloc& e)
+    { throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per cleared_index."); }
 
     // si scorre la lista pezzo per pezzo
-    node* tmp = m_field;
-    while(tmp != nullptr) {
-        for(uint32_t i = 0; i < tmp->tp.p.side(); i++) {
-            for(uint32_t j = 0; j < tmp->tp.p.side(); j++) {
-                if(tmp->tp.p(i,j)) arr[tmp->tp.y + (tmp->tp.p.side() - 1 - i)]++;
-            }
-        }
+    node* curr = m_field;
+    while(curr != nullptr) 
+    {
+        piece const& curr_piece = curr->tp.p;
+        int piece_y = curr->tp.y;
 
-        tmp = tmp->next;
+        for(uint32_t i = 0; i < curr_piece.side(); i++) 
+        {
+            uint32_t tot_row = piece_y + i;
+            for(uint32_t j = 0; j < curr_piece.side(); j++) 
+                if(curr_piece(i,j) || (tot_row < m_height)) arr[piece_y + (curr->tp.p.side() - 1 - i)]++;
+        }
+        curr = curr->next;
     }
 
     // ogni riga di ogni pezzo è stata computata. Avviene in controllo se alcune righe sono interamente occupate
@@ -548,11 +578,16 @@ void tetris::insert(piece const& p, int x)
     {
         if(arr[i] == m_width) 
         {
+            m_score += 100;
             node* tmp = m_field;
             while(tmp != nullptr) 
             {
-                if(i >= tmp->tp.y && i <= tmp->tp.y + tmp->tp.p.side()) 
-                    tmp->tp.p.cut_row((tmp->tp.p.side() - 1) - (i - tmp->tp.y));                           //Cut_row non gestice la gravità del tabellone
+                piece& to_cut = tmp->tp.p;
+                int pos_y = tmp->tp.y; 
+
+                // Modificare la forma di un piece può portare a comportamenti inaspettati e complessi da gestire. Sicuri questa sia la soluzione?
+                if(i >= pos_y && i < pos_y + to_cut.side()) 
+                    to_cut.cut_row((to_cut.side() - 1) - (i - pos_y));                           
                 tmp = tmp->next;
             }
         }
@@ -563,7 +598,13 @@ void tetris::insert(piece const& p, int x)
     uint32_t* cleared_index = nullptr;
     for(uint32_t i = 0; i < m_height; i++)
         if(arr[i] == m_width) cleared_rows++;
-    if(cleared_rows > 0) cleared_index = new uint32_t[cleared_rows];
+
+    try{ if(cleared_rows > 0) cleared_index = new uint32_t[cleared_rows]; }
+    catch(const std::bad_alloc& e)
+    {
+        delete[] arr; 
+        throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per cleared_index.");
+    }
 
     int curr_index = 0;
     for(uint32_t i = 0; i < m_height; i++)
@@ -584,18 +625,14 @@ void tetris::insert(piece const& p, int x)
             for(int i = 0; i < cleared_rows; i++)
             {
                 int global_row = cleared_index[i];
-                if(global_row < curr_piece->tp.y) fall_size++;
+                if(global_row > curr_piece->tp.y) fall_size++; // precedentemente  <
             }
-            curr_piece->tp.y -= fall_size;
+            curr_piece->tp.y += fall_size;  //prima -= fall_size
             curr_piece = curr_piece->next;
         }
     }
 
-    if(cleared_index)
-    {
-        delete[] cleared_index;
-        cleared_rows = 0;
-    }
+    if(cleared_index) delete[] cleared_index;
     delete[] arr;
 
     //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
@@ -628,7 +665,7 @@ void tetris::insert(piece const& p, int x)
 
 void tetris::add(piece const& p, int x, int y)
 {
-    if(!containment(p,x,y)) return ;
+    if(!containment(p,x,y)) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Le coordinate non sono valide per il pezzo dato");
 
     tetris_piece new_tp;
     new_tp.p = p;
@@ -636,7 +673,11 @@ void tetris::add(piece const& p, int x, int y)
     new_tp.y = y;
 
     node* new_node = nullptr;
-    new_node = new node{new_tp, nullptr};   //try-catch?
+    try{ new_node = new node{new_tp, nullptr}; }   //try-catch?
+    catch(const std::bad_alloc& e)
+    { 
+        throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Errore di allocazione memoria durante l'aggiunta di un pezzo."); 
+    }
 
     if(!m_field) m_field = new_node;
     else
@@ -686,12 +727,27 @@ bool tetris::containment(piece const& p, int x, int y) const
 //NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
 {
-    char** tmp_mat = new char*[m_height];
-    for(uint32_t i = 0; i < m_height; i++)
+    char** tmp_mat = nullptr;
+    try
     {
-        tmp_mat[i] = new char[m_width];
-        for(uint32_t j = 0; j < m_width; j++)
-            tmp_mat[i][j] = ' ';
+        tmp_mat = new char*[m_height];
+        for(uint32_t i = 0; i < m_height; i++)
+        {
+            tmp_mat[i] = new char[m_width];
+            for(uint32_t j = 0; j < m_width; j++)
+                tmp_mat[i][j] = ' ';
+        }
+    }
+    catch(const std::bad_alloc& e)
+    {
+        if(tmp_mat)
+        {
+            for(uint32_t i = 0; i < m_height; i++)
+                delete tmp_mat[i];
+            delete[] tmp_mat;
+        }
+
+        throw tetris_exception("ERROR! - print_ascii_art(std::ostream& os) const - Errore di allocazione memoria per la matrice ASCII.");
     }
 
     piece p;
