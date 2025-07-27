@@ -874,12 +874,12 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
     {
         if(p.empty(row_offset, col_offset, curr_side))
         {
-            os << "[] ";
+            os << "[]";
             return ;
         } 
         else if(p.full(row_offset, col_offset, curr_side)) 
         {
-            os << "() ";
+            os << "()";
             return ;
         }
 
