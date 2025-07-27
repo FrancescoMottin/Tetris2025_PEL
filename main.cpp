@@ -293,7 +293,7 @@ bool test_piece_cut_row() {
         // # . . .  (Riga 2)
         // . . . .  (Riga 3)
         std::cout << "DEBUG: Test cut_row - Pezzo iniziale:" << std::endl;
-        p.print_ascii_art(std::cout); // Se hai implementato print_ascii_art per piece
+        //p.print_ascii_art(std::cout); // Se hai implementato print_ascii_art per piece
 
         p.cut_row(0); // Taglia la riga 0
 
@@ -309,7 +309,7 @@ bool test_piece_cut_row() {
         // . . . .  (Ex Riga 3)
         // . . . .  (Nuova Riga Vuota)
         std::cout << "DEBUG: Test cut_row - Pezzo dopo cut_row(0):" << std::endl;
-        p.print_ascii_art(std::cout); // Se hai implementato print_ascii_art per piece
+        //p.print_ascii_art(std::cout); // Se hai implementato print_ascii_art per piece
 
         // Verifica che la nuova Riga 0 (ex Riga 1) sia tutta true
         for(uint32_t j=0; j<4; ++j) {
