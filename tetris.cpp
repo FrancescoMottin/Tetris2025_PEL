@@ -941,7 +941,7 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
     
             output_grid_rec(os, p, half_side, new_row, new_col);
             
-            if(i < 3) os << " ";
+            //if(i < 3) os << " ";
         }
 
         os << ")";
