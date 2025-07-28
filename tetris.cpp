@@ -874,6 +874,8 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             }
             else
             {
+                is.unget();
+
                 //Top-Lefts
                 input_grid_rec(is, p, half_side, row_offset, col_offset);
                 if(is.fail()) return ;
@@ -940,8 +942,6 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
             uint32_t new_col = col_offset + sub_quadrants[i].c_off;
     
             output_grid_rec(os, p, half_side, new_row, new_col);
-            
-            //if(i < 3) os << " ";
         }
 
         os << ")";
