@@ -993,10 +993,10 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
 {
     if(curr_side == 1) 
     {
-        os << "(";
+        //os << "(";
         if(p(row_offset, col_offset) == false) os << "[]";
         else os << "()";
-        os << ")";
+        //os << ")";
         return ;
     }
     else if(curr_side > 1)

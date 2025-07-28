@@ -239,46 +239,6 @@ bool test_piece_rotate() {
 
 
 // Test cut_row()
-/*
-bool test_piece_cut_row() {
-    bool passed = true;
-    try {
-        piece p(4, 100); // 4x4
-        // Riempi le prime due righe
-        for(int j=0; j<4; ++j) { p(0,j)=true; p(1,j)=true; }
-        p(2,0)=true; // Una cella nella terza riga
-
-        p.cut_row(0); // Taglia la riga 0
-
-        // La riga 0 dovrebbe essere vuota
-        for(int j=0; j<4; ++j) if(p(0,j)) passed = false;
-        // La riga 1 dovrebbe essere la vecchia riga 0
-        for(int j=0; j<4; ++j) if(!p(1,j)) passed = false;
-        // La riga 2 dovrebbe essere la vecchia riga 1
-        for(int j=0; j<4; ++j) if(!p(2,j)) passed = false;
-        // La riga 3 dovrebbe essere la vecchia riga 2
-        if(!p(3,0) || p(3,1) || p(3,2) || p(3,3)) passed = false;
-
-        if (!passed) { std::cout << "Cut row failed." << std::endl; return false; }
-
-        // Test cut_row su riga invalida
-        try {
-            p.cut_row(p.side()); // Fuori limite
-            passed = false; // Fallisce se non lancia eccezione
-        } catch (const tetris_exception& e) {
-            // Eccezione attesa
-        } catch (...) {
-            passed = false;
-        }
-
-    } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_piece_cut_row: " << e.what() << std::endl;
-        passed = false;
-    }
-    return passed;
-}
-*/
-
 bool test_piece_cut_row() {
     bool passed = true;
     try {
