@@ -1122,10 +1122,15 @@ std::istream& operator>>(std::istream& is, tetris& t)
     uint32_t height;
     uint32_t score;
     is >> std::skipws >> width >> height >> score;
-    if(is.fail()) return is;
+    //if(is.fail()) return is;
+    std::cerr << "DEBUG_TETRIS_IN: Read dimensions and score: " << width << " " << height << " " << score << ". is.fail()=" << is.fail() << std::endl;
+    if(is.fail()) {
+        std::cerr << "DEBUG_TETRIS_IN: Failed after reading dimensions/score." << std::endl;
+        return is;
+    }
 
     tetris temp_t(width, height, score);
-    
+
     /*  NON DEVE LEGGERE IL GRAFICO!
     std::string dummy_line;
     std::getline(is, dummy_line);
@@ -1140,27 +1145,39 @@ std::istream& operator>>(std::istream& is, tetris& t)
 
     uint32_t num_pieces;
     is >> std::skipws >> num_pieces;
+    /*if(is.fail())
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }*/
+    std::cerr << "DEBUG_TETRIS_IN: Read num_pieces: " << num_pieces << ". is.fail()=" << is.fail() << std::endl;
     if(is.fail())
     {
+        std::cerr << "DEBUG_TETRIS_IN: Failed after reading num_pieces." << std::endl;
         is.setstate(std::ios_base::failbit);
         return is;
     }
 
     for(uint32_t i = 0; i < num_pieces; i++)
     {
+        std::cerr << "DEBUG_TETRIS_IN: Reading piece " << i << std::endl;
         piece p_data;
         int x = 0;
         int y = 0;
         is >> std::skipws >> x >> y;
+        std::cerr << "DEBUG_TETRIS_IN: Read x, y: " << x << " " << y << ". is.fail()=" << is.fail() << std::endl;
         if(is.fail())
         {
+            std::cerr << "DEBUG_TETRIS_IN: Failed after reading x, y for piece " << i << std::endl;
             is.setstate(std::ios_base::failbit);
             return is;
         }
 
         is >> std::skipws >> p_data;
+        std::cerr << "DEBUG_TETRIS_IN: Read piece data. is.fail()=" << is.fail() << std::endl;
         if(is.fail())
         {
+            std::cerr << "DEBUG_TETRIS_IN: Failed after reading piece data for piece " << i << std::endl;
             is.setstate(std::ios_base::failbit);
             return is;
         }
@@ -1168,17 +1185,20 @@ std::istream& operator>>(std::istream& is, tetris& t)
         try { temp_t.add(p_data, x, y); }   //Prima era insert
         catch(const std::bad_alloc& e)
         {
+            std::cerr << "DEBUG_TETRIS_IN: bad_alloc during add for piece " << i << std::endl;
             is.setstate(std::ios_base::failbit);
             return is;
         }
         catch (const tetris_exception& e) 
         {
+            std::cerr << "DEBUG_TETRIS_IN: tetris_exception during add for piece " << i << ": " << e.what() << std::endl;
             is.setstate(std::ios_base::failbit);
             return is;
         }
     }
 
     t = std::move(temp_t);
+    std::cerr << "DEBUG_TETRIS_IN: Successfully read tetris object." << std::endl;
     return is;
 }
 
