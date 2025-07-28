@@ -280,19 +280,6 @@ void piece::rotate()
 void piece::cut_row(uint32_t i)
 {
     /*
-    if(m_grid == nullptr || m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
-    if(m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Impossibile tagliare riga su un pezzo di dimensione 0.");
-    if(i >= m_side) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Indice di riga (" + std::to_string(i) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
-    if(m_side == 1) 
-    {
-        delete[] m_grid[0];
-        delete[] m_grid;
-        m_side = 0;
-        m_grid = nullptr;
-
-        return ;
-    }
-
     uint32_t new_side = m_side-1;
 
     bool** tmp_grid = new bool*[new_side]; // (m_side-1) x (m_side-1) oppure (m_side-1) x m_side
