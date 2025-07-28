@@ -1124,19 +1124,8 @@ std::istream& operator>>(std::istream& is, tetris& t)
     is >> std::skipws >> width >> height >> score;
     if(is.fail()) return is;
 
-    tetris temp_t(0, 0, 0);
-    try { temp_t = tetris(width, height, score); }
-    catch(const std::bad_alloc& e)
-    {
-        is.setstate(std::ios_base::failbit);
-        return is;
-    }
-    catch (const tetris_exception& e) 
-    {
-        is.setstate(std::ios_base::failbit);
-        return is;
-    }    
-
+    tetris temp_t(width, height, score);
+    
     /*  NON DEVE LEGGERE IL GRAFICO!
     std::string dummy_line;
     std::getline(is, dummy_line);
