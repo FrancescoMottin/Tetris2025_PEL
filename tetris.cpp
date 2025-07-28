@@ -1206,7 +1206,7 @@ std::ostream& operator<<(std::ostream& os, tetris const& t)
 {
     os << t.width() << " " << t.height() << " " << t.score() << std::endl;  //Dimensioni e Punteggio
 
-    //t.print_ascii_art(os);
+    t.print_ascii_art(os);
 
     uint32_t piece_count = 0;
     for(auto it = t.begin(); it != t.end(); ++it)   piece_count++;
