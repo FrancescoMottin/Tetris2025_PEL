@@ -1131,7 +1131,8 @@ std::istream& operator>>(std::istream& is, tetris& t)
 
     tetris temp_t(width, height, score);
 
-    /*  NON DEVE LEGGERE IL GRAFICO!
+    
+    //NON DEVE LEGGERE IL GRAFICO!
     std::string dummy_line;
     std::getline(is, dummy_line);
     for(uint32_t i = 0; i < height + 2; ++i)
@@ -1141,7 +1142,6 @@ std::istream& operator>>(std::istream& is, tetris& t)
         is.setstate(std::ios_base::failbit);
         return is;
     }
-    */
 
     uint32_t num_pieces;
     is >> std::skipws >> num_pieces;
