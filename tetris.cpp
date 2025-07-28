@@ -279,36 +279,6 @@ void piece::rotate()
 //Probabilmente mal implementato
 void piece::cut_row(uint32_t i)
 {
-    /*
-    uint32_t new_side = m_side-1;
-
-    bool** tmp_grid = new bool*[new_side]; // (m_side-1) x (m_side-1) oppure (m_side-1) x m_side
-    for(uint32_t r = 0; r < new_side; ++r)
-        tmp_grid[r] = new bool[new_side];
-    
-    uint32_t curr_row = 0;
-    for(uint32_t r = 0; r < new_side; ++r)
-    {
-        if(curr_row == i) curr_row++;
-        uint32_t curr_col = 0;
-        for(uint32_t c = 0; c < new_side; ++c)
-        {
-            tmp_grid[r][c] = m_grid[curr_row][curr_col];
-            curr_col++;
-        }   
-    }
-
-    if(m_grid != nullptr && m_side > 0)
-    {
-        for(uint32_t i = 0; i < m_side; i++)    
-            delete[] m_grid[i];                   
-        delete[] m_grid;                        
-        m_grid = nullptr;                       
-    }
-
-    m_side = new_side;
-    m_grid = tmp_grid;
-    */
     if(m_grid == nullptr || m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
     if(m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Impossibile tagliare riga su un pezzo di dimensione 0.");
     if(i >= m_side) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Indice di riga (" + std::to_string(i) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
@@ -910,7 +880,9 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             }
             else
             {
-                is.unget(); //Riporta il carattere indietro nello stream per la prossima lettura ricorsiva
+                //è un po' fragile. È meglio leggere esplicitamente il carattere ( iniziale per ogni sotto-quadrante ricorsivo.
+                //is.unget(); //Riporta il carattere indietro nello stream per la prossima lettura ricorsiva
+                is >> std::skipws >> c;
 
                 //Top-Lefts
                 input_grid_rec(is, p, half_side, row_offset, col_offset);
@@ -982,7 +954,7 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
             if(i < 3) os << " ";
         }
 
-        os << ") ";
+        os << ")";
     }
 }
 
