@@ -517,8 +517,8 @@ bool test_tetris_stream_operators() {
         if (!(t_original == t_read)) {
             std::cerr << "Original and read tetris objects are not equal." << std::endl;
             // Per debug, puoi stampare entrambi per vedere le differenze
-            // std::cout << "Original:\n" << t_original << std::endl;
-            // std::cout << "Read:\n" << t_read << std::endl;
+            std::cout << "Original:\n" << t_original << std::endl;
+            std::cout << "Read:\n" << t_read << std::endl;
             passed = false;
         }
 
