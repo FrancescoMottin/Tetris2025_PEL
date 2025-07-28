@@ -1020,9 +1020,9 @@ std::ostream& operator<<(std::ostream& os, piece const& p)  //empty(i,j,s) and f
     if(p.empty() == true) os << "[]";
     else
     {
-        os << "(" ;
+        //os << "(" ;
         output_grid_rec(os, p , p.side(), 0, 0);
-        os << ")";
+        //os << ")";
     }
 
     return os;
