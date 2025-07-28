@@ -998,7 +998,7 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
             return ;
         }
 
-        //os << "(";
+        os << "(";
 
         uint32_t half_side = curr_side / 2;
         struct SubQuadrant { uint32_t r_off, c_off; };
@@ -1018,7 +1018,7 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
             output_grid_rec(os, p, half_side, new_row, new_col);
         }
 
-        //os << ")";
+        os << ")";
     }
 }
 
