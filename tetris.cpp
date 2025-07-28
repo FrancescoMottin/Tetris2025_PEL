@@ -882,7 +882,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             {
                 //è un po' fragile. È meglio leggere esplicitamente il carattere ( iniziale per ogni sotto-quadrante ricorsivo.
                 //is.unget(); //Riporta il carattere indietro nello stream per la prossima lettura ricorsiva
-                is >> std::skipws >> c;
+                //is >> std::skipws >> c;
 
                 //Top-Lefts
                 input_grid_rec(is, p, half_side, row_offset, col_offset);
@@ -999,9 +999,7 @@ std::istream& operator>>(std::istream& is, piece& p)
     else if(c == '(')
     {
         input_grid_rec(is, temp_piece, val_side, 0, 0);
-
-        is >> std::skipws >> c;
-        if(is.fail() || c != ')')
+        if(is.fail())
         {
             is.setstate(std::ios_base::failbit);
             return is;
