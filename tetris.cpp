@@ -864,9 +864,12 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         }
         else if (c == '(')
         {
-            is >> std::skipws >> c;
+            //is >> std::skipws >> c;
+            char next_c;
+            is >> std::skipws >> next_c;
+            if(is.fail()) { is.setstate(std::ios_base::failbit); return ; }
 
-            if(c == ')')
+            if(next_c == ')')
             {
                 for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
                     for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
