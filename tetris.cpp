@@ -890,6 +890,18 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
     if(curr_side == 1) 
     {
+        if(c != '(') 
+        { 
+            is.setstate(std::ios_base::failbit); 
+            return; 
+        }
+
+        is >> std::skipws >> c;
+        if(is.fail() || c != ']')
+        {
+            is.setstate(std::ios_base::failbit);
+            return ;
+        }
         if(c == '[') 
         {
             is >> std::skipws >> c;
