@@ -810,15 +810,15 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
     if(is.fail()) return ;
     
     char c;
+    is >> std::skipws >> c;
+    if(is.fail()) 
+    {
+        is.setstate(std::ios_base::failbit);
+        return ;
+    }
+
     if(curr_side == 1) 
     {
-        is >> std::skipws >> c;
-        if(is.fail()) 
-        {
-            is.setstate(std::ios_base::failbit);
-            return ;
-        }
-
         if(c == '[') 
         {
             is >> std::skipws >> c;
@@ -848,12 +848,6 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
     else if(curr_side > 1)
     {
         int half_side = curr_side / 2;
-        is >> std::skipws >> c;
-        if(is.fail()) 
-        {
-            is.setstate(std::ios_base::failbit);
-            return ;
-        }
 
         if(c == '[')
         {
@@ -880,10 +874,6 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             }
             else
             {
-                //è un po' fragile. È meglio leggere esplicitamente il carattere ( iniziale per ogni sotto-quadrante ricorsivo.
-                //is.unget(); //Riporta il carattere indietro nello stream per la prossima lettura ricorsiva
-                //is >> std::skipws >> c;
-
                 //Top-Lefts
                 input_grid_rec(is, p, half_side, row_offset, col_offset);
                 if(is.fail()) return ;
@@ -966,7 +956,7 @@ std::istream& operator>>(std::istream& is, piece& p)
     if(is.fail()) return is;
 
     //Controlliamo se val_side è 2^n
-    if((val_side & (val_side - 1)) != 0 || val_side == 0 || val_color == 0)   //throw tetris_exception("");
+    if((val_side & (val_side - 1)) != 0 || val_side == 0 || val_color == 0)   
     {
         is.setstate(std::ios_base::failbit);
         return is;
@@ -979,6 +969,7 @@ std::istream& operator>>(std::istream& is, piece& p)
         return is;
     }
 
+    /*
     char c;
     is >> std::skipws >> c;
     if(is.fail())
@@ -998,20 +989,24 @@ std::istream& operator>>(std::istream& is, piece& p)
     }
     else if(c == '(')
     {
-        input_grid_rec(is, temp_piece, val_side, 0, 0);
-        if(is.fail())
-        {
-            is.setstate(std::ios_base::failbit);
-            return is;
-        }
+        
     }
     else
     {
         is.setstate(std::ios_base::failbit);
         return is;
     }
+    */
+    //Commentata tutta la logica in operator>>: verrà tutta gestita da input_grid_rec
+    input_grid_rec(is, temp_piece, val_side, 0, 0);
+    if(is.fail())
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
 
-    p = std::move(temp_piece); //Usa il move constructor (?)
+
+    p = std::move(temp_piece); //Usa il move constructor
     return is;
 }
 
