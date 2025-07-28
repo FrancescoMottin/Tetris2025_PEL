@@ -1131,18 +1131,6 @@ std::istream& operator>>(std::istream& is, tetris& t)
 
     tetris temp_t(width, height, score);
 
-    
-    //NON DEVE LEGGERE IL GRAFICO!
-    std::string dummy_line;
-    std::getline(is, dummy_line);
-    for(uint32_t i = 0; i < height + 2; ++i)
-        std::getline(is, dummy_line);
-    if(is.fail())
-    {
-        is.setstate(std::ios_base::failbit);
-        return is;
-    }
-
     uint32_t num_pieces;
     is >> std::skipws >> num_pieces;
     /*if(is.fail())
@@ -1205,8 +1193,6 @@ std::istream& operator>>(std::istream& is, tetris& t)
 std::ostream& operator<<(std::ostream& os, tetris const& t)
 {
     os << t.width() << " " << t.height() << " " << t.score() << std::endl;  //Dimensioni e Punteggio
-
-    t.print_ascii_art(os);
 
     uint32_t piece_count = 0;
     for(auto it = t.begin(); it != t.end(); ++it)   piece_count++;
