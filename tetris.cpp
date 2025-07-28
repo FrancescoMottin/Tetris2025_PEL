@@ -1088,6 +1088,7 @@ std::istream& operator>>(std::istream& is, piece& p)
 
 std::ostream& operator<<(std::ostream& os, piece const& p)  //empty(i,j,s) and full(i,j,s) are useful to write the piece is the recursive format to an output stream
 {
+    std::cerr << "DEBUG: operator<< for piece is executing." << std::endl;
     os << p.side() << " " << p.color() << " ";
     output_grid_rec(os, p, p.side(), 0, 0);
     /*
