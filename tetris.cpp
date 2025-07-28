@@ -1198,8 +1198,12 @@ std::ostream& operator<<(std::ostream& os, tetris const& t)
     for(auto it = t.begin(); it != t.end(); ++it)   piece_count++;
     os << piece_count << std::endl;                     //Numero pezzi
 
+    uint32_t curr_piece = 0;
     for(auto it = t.begin(); it != t.end(); ++it)
+    {
         os << it->x << " " << it->y << " " << it->p << std::endl;  //X, Y e Piece
-
+        if(curr_piece < piece_count - 1) os << std::endl;
+        curr_piece++;
+    }
     return os;
 }
