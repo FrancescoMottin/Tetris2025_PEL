@@ -890,6 +890,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
     if(curr_side == 1) 
     {
+        /*
         if(c != '(') 
         { 
             is.setstate(std::ios_base::failbit); 
@@ -902,7 +903,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         {
             is.setstate(std::ios_base::failbit);
             return ;
-        }
+        }*/
         if(c == '[') 
         {
             is >> std::skipws >> c;
@@ -936,6 +937,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             return ;
         }
         */
+        return ;
     }
     else if(curr_side > 1)
     {
@@ -969,7 +971,11 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             }
             else
             {
-                is.unget();
+                if (!is.putback(next_c)) 
+                {
+                    is.setstate(std::ios_base::failbit);
+                    return;
+                }
 
                 //Top-Lefts
                 input_grid_rec(is, p, half_side, row_offset, col_offset);
