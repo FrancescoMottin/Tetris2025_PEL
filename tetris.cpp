@@ -1039,7 +1039,7 @@ std::istream& operator>>(std::istream& is, piece& p)
 {
     uint32_t val_side;
     uint8_t val_color;
-    is >> std::skipws >> val_side >> val_color;
+    is >> std::skipws >> val_side >> std::skipws >> val_color;
     if(is.fail()) return is;
 
     //Controlliamo se val_side è 2^n
