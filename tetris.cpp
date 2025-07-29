@@ -1056,6 +1056,7 @@ std::istream& operator>>(std::istream& is, piece& p)
     uint8_t val_color;
     is >> std::skipws >> val_side >> std::skipws >> val_color;
     if(is.fail()) return is;
+    std::cerr << "DEBUG_COLOR_READ: " << (uint32_t)val_color << std::endl;
 
     //Controlliamo se val_side è 2^n
     if((val_side & (val_side - 1)) != 0 || val_side == 0 || val_color == 0)   
