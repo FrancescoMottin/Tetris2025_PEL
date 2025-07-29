@@ -504,7 +504,7 @@ bool test_tetris_stream_operators() {
         std::stringstream ss;
         ss << t_original; // Scrivi il tabellone nello stringstream
 
-        std::cout << "Output serializzato:\n" << ss.str() << std::endl; // Per debug: stampa l'output serializzato
+        //std::cout << "Output serializzato:\n" << ss.str() << std::endl; // Per debug: stampa l'output serializzato
 
         tetris t_read; // Crea un nuovo oggetto vuoto
         ss >> t_read; // Leggi il tabellone dallo stringstream
