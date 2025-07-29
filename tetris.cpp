@@ -191,33 +191,6 @@ bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
             if(m_grid[i2][j2] == true) return false;
 
     return true;
-    
-    /*
-    if(s == 0) 
-    {
-        std::cout << "DEBUG_EMPTY_START: (" << i << "," << j << "," << s << ") -> TRUE (s=0)" << std::endl;
-        return true;
-    }
-    if(m_grid == nullptr) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Accesso a griglia non inizializzata (nullptr).");    //tetris_exception if out of bounds
-    if(i + s > m_side || j + s > m_side) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
-
-    bool result = true; // Assumiamo che sia vuoto
-    for(uint32_t i2 = i; i2 < i+s; i2++) 
-    {
-        for(uint32_t j2 = j; j2 < j+s; j2++) 
-        {
-            if(m_grid[i2][j2] == true) // Se troviamo una cella piena
-            { 
-                result = false; // Non è vuoto
-                break; // Usciamo dal ciclo interno
-            }
-        }
-        if (!result) break; // Se non è vuoto, usciamo anche dal ciclo esterno
-    }
-
-    //std::cout << "DEBUG_EMPTY: (" << i << "," << j << "," << s << ") -> " << (result ? "TRUE" : "FALSE") << std::endl;
-    return result;
-    */
 }
 
 bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
@@ -235,35 +208,6 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
     }
 
     return true;
-    
-
-    /*
-    if(s == 0) 
-    {
-        std::cout << "DEBUG_FULL: (" << i << "," << j << "," << s << ") -> TRUE (s=0)" << std::endl;
-        return true;
-    }
-
-    if(m_grid == nullptr) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Accesso a griglia non inizializzata (nullptr).");    //tetris_exception if out of bounds
-    if(i + s > m_side || j + s > m_side) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
-
-    bool result = true; // Assumiamo che sia vuoto
-    for(uint32_t i2 = i; i2 < i+s; i2++) 
-    {
-        for(uint32_t j2 = j; j2 < j+s; j2++) 
-        {
-            if(m_grid[i2][j2] == true) // Se troviamo una cella piena
-            { 
-                result = false; // Non è vuoto
-                break; // Usciamo dal ciclo interno
-            }
-        }
-        if (!result) break; // Se non è vuoto, usciamo anche dal ciclo esterno
-    }
-
-    //std::cout << "DEBUG_FULL: (" << i << "," << j << "," << s << ") -> " << (result ? "TRUE" : "FALSE") << std::endl;
-    return result;
-    */
 }
 
 bool piece::empty() const
@@ -584,7 +528,7 @@ void tetris::insert(piece const& p, int x)
         {
             uint32_t tot_row = piece_y + i;
             for(uint32_t j = 0; j < curr_piece.side(); j++) 
-                if(curr_piece(i,j) && (tot_row < m_height)) arr[piece_y + (curr_piece.side() - 1 - i)]++;
+                if(curr_piece(i,j) && (tot_row < m_height)) arr[piece_y + (curr_piece.side() - 1 - i)]++;   //Bastava cambiare && per evitare le le invalid read/write
         }
         curr = curr->next;
     }
