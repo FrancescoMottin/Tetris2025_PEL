@@ -584,7 +584,7 @@ void tetris::insert(piece const& p, int x)
         {
             uint32_t tot_row = piece_y + i;
             for(uint32_t j = 0; j < curr_piece.side(); j++) 
-                if(curr_piece(i,j) || (tot_row < m_height)) arr[piece_y + (curr_piece.side() - 1 - i)]++;
+                if(curr_piece(i,j) && (tot_row < m_height)) arr[piece_y + (curr_piece.side() - 1 - i)]++;
         }
         curr = curr->next;
     }
