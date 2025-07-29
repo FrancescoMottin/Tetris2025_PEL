@@ -500,15 +500,15 @@ bool test_tetris_stream_operators() {
         t_original.insert(p1, 0); // Inserisci un altro pezzo
 
         std::stringstream ss;
-        ss << t_original << std::endl; // Scrivi il tabellone nello stringstream
+        ss << t_original; // Scrivi il tabellone nello stringstream
 
-        // std::cout << ss.str() << std::endl; // Per debug: stampa l'output serializzato
+        std::cout << "Output serializzato:\n" << ss.str() << std::endl; // Per debug: stampa l'output serializzato
 
         tetris t_read; // Crea un nuovo oggetto vuoto
         ss >> t_read; // Leggi il tabellone dallo stringstream
 
         if (ss.fail()) {
-            std::cerr << "Stream failed during tetris read." << std::endl;
+            std::cerr << "Stream failed during tetris read.";
             passed = false;
         }
 
