@@ -1053,11 +1053,16 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
 std::istream& operator>>(std::istream& is, piece& p)
 {
     uint32_t val_side;
-    uint8_t val_color;
-    is >> std::skipws >> val_side >> std::skipws >> val_color;
+    uint32_t val_color_32;
+    is >> std::skipws >> val_side >> std::skipws >> val_color_32;
     if(is.fail()) return is;
-    std::cerr << "DEBUG_COLOR_READ: " << (uint32_t)val_color << std::endl;
 
+    if (val_color_32 > 255) {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
+    uint8_t val_color = static_cast<uint8_t>(val_color_32); // <-- Converte
+    
     //Controlliamo se val_side è 2^n
     if((val_side & (val_side - 1)) != 0 || val_side == 0 || val_color == 0)   
     {
