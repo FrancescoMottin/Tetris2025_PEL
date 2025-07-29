@@ -252,7 +252,7 @@ bool test_piece_cut_row() {
         // # # # #  (Riga 1)
         // # . . .  (Riga 2)
         // . . . .  (Riga 3)
-        std::cout << "DEBUG: Test cut_row - Pezzo iniziale:" << std::endl;
+        //std::cout << "DEBUG: Test cut_row - Pezzo iniziale:" << std::endl;
         //p.print_ascii_art(std::cout); // Se hai implementato print_ascii_art per piece
 
         p.cut_row(0); // Taglia la riga 0
@@ -268,7 +268,7 @@ bool test_piece_cut_row() {
         // # . . .  (Ex Riga 2)
         // . . . .  (Ex Riga 3)
         // . . . .  (Nuova Riga Vuota)
-        std::cout << "DEBUG: Test cut_row - Pezzo dopo cut_row(0):" << std::endl;
+        //std::cout << "DEBUG: Test cut_row - Pezzo dopo cut_row(0):" << std::endl;
         //p.print_ascii_art(std::cout); // Se hai implementato print_ascii_art per piece
 
         // Verifica che la nuova Riga 0 (ex Riga 1) sia tutta true
@@ -310,7 +310,7 @@ bool test_piece_cut_row() {
         }
         if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
 
-        std::cout << "DEBUG: Cut row passed for valid index." << std::endl;
+        //std::cout << "DEBUG: Cut row passed for valid index." << std::endl;
 
         // Test cut_row su riga invalida (questo è già corretto e lancia eccezione)
         try {
@@ -318,7 +318,7 @@ bool test_piece_cut_row() {
             passed = false; // Fallisce se non lancia eccezione
         } catch (const tetris_exception& e) {
             // Eccezione attesa
-            std::cout << "DEBUG: Cut row invalid index test passed: " << e.what() << std::endl;
+            //std::cout << "DEBUG: Cut row invalid index test passed: " << e.what() << std::endl;
         } catch (...) {
             passed = false;
         }
@@ -344,12 +344,12 @@ bool test_piece_stream_operators() {
         std::stringstream ss;
         ss << p_original; // Scrivi il pezzo nello stringstream
 
-        std::cout << "DEBUG: Contenuto di stringstream ss: '" << ss.str() << "'" << std::endl; // <--- AGGIUNGI QUESTO
+        //std::cout << "DEBUG: Contenuto di stringstream ss: '" << ss.str() << "'" << std::endl; // <--- AGGIUNGI QUESTO
 
         piece p_read;
         ss >> p_read; // Leggi il pezzo dallo stringstream      --> Il problema è in operator>>
 
-        std::cout << "DEBUG: Contenuto di stringstream ss: '" << ss.str() << "'" << std::endl;
+        //std::cout << "DEBUG: Contenuto di stringstream ss: '" << ss.str() << "'" << std::endl;
 
         if (ss.fail()) {
             std::cerr << "Stream failed during piece read." << std::endl;

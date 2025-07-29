@@ -223,7 +223,7 @@ bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
         if (!result) break; // Se non è vuoto, usciamo anche dal ciclo esterno
     }
 
-    std::cout << "DEBUG_EMPTY: (" << i << "," << j << "," << s << ") -> " << (result ? "TRUE" : "FALSE") << std::endl;
+    //std::cout << "DEBUG_EMPTY: (" << i << "," << j << "," << s << ") -> " << (result ? "TRUE" : "FALSE") << std::endl;
     return result;
 }
 
@@ -276,7 +276,7 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
         if (!result) break; // Se non è vuoto, usciamo anche dal ciclo esterno
     }
 
-    std::cout << "DEBUG_FULL: (" << i << "," << j << "," << s << ") -> " << (result ? "TRUE" : "FALSE") << std::endl;
+    //std::cout << "DEBUG_FULL: (" << i << "," << j << "," << s << ") -> " << (result ? "TRUE" : "FALSE") << std::endl;
     return result;
 }
 
@@ -890,20 +890,6 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
     if(curr_side == 1) 
     {
-        /*
-        if(c != '(') 
-        { 
-            is.setstate(std::ios_base::failbit); 
-            return; 
-        }
-
-        //char inner_c;
-        //is >> std::skipws >> inner_c;
-        if(is.fail())
-        {
-            is.setstate(std::ios_base::failbit);
-            return ;
-        }*/
         if(c == '[') 
         {
             is >> std::skipws >> c;
@@ -929,14 +915,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             is.setstate(std::ios_base::failbit);
             return ;
         }
-        /*
-        is >> std::skipws >> c;
-        if(is.fail() || c != ')')
-        {
-            is.setstate(std::ios_base::failbit);
-            return ;
-        }
-        */
+        
         return ;
     }
     else if(curr_side > 1)
@@ -958,7 +937,6 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         }
         else if (c == '(')
         {
-            //is >> std::skipws >> c;
             char next_c;
             is >> std::skipws >> next_c;
             if(is.fail()) { is.setstate(std::ios_base::failbit); return ; }
@@ -1061,7 +1039,7 @@ std::istream& operator>>(std::istream& is, piece& p)
         is.setstate(std::ios_base::failbit);
         return is;
     }
-    uint8_t val_color = static_cast<uint8_t>(val_color_32); // <-- Converte
+    uint8_t val_color = static_cast<uint8_t>(val_color_32); 
     
     //Controlliamo se val_side è 2^n
     if((val_side & (val_side - 1)) != 0 || val_side == 0 || val_color == 0)   
@@ -1077,34 +1055,6 @@ std::istream& operator>>(std::istream& is, piece& p)
         return is;
     }
 
-    /*
-    char c;
-    is >> std::skipws >> c;
-    if(is.fail())
-    {
-        is.setstate(std::ios_base::failbit);
-        return is;
-    }
-
-    if(c == '[')
-    {
-        is >> std::skipws >> c;
-        if(is.fail() || c != ']')
-        {
-            is.setstate(std::ios_base::failbit);
-            return is;
-        }
-    }
-    else if(c == '(')
-    {
-        
-    }
-    else
-    {
-        is.setstate(std::ios_base::failbit);
-        return is;
-    }
-    */
     //Commentata tutta la logica in operator>>: verrà tutta gestita da input_grid_rec
     input_grid_rec(is, temp_piece, val_side, 0, 0);
     if(is.fail())
@@ -1121,18 +1071,8 @@ std::istream& operator>>(std::istream& is, piece& p)
 
 std::ostream& operator<<(std::ostream& os, piece const& p)  //empty(i,j,s) and full(i,j,s) are useful to write the piece is the recursive format to an output stream
 {
-    //std::cerr << "DEBUG: operator<< for piece is executing." << std::endl;
     os << p.side() << " " << static_cast<uint32_t>(p.color()) << " ";
     output_grid_rec(os, p, p.side(), 0, 0);
-    /*
-    if(p.empty() == true) os << "[]";
-    else
-    {
-        //os << "(" ;
-        output_grid_rec(os, p , p.side(), 0, 0);
-        //os << ")";
-    }
-    */
 
     return os;
 }
@@ -1143,22 +1083,18 @@ std::istream& operator>>(std::istream& is, tetris& t)
     uint32_t height;
     uint32_t score;
     is >> std::skipws >> width >> height >> score;
-    //if(is.fail()) return is;
-    std::cerr << "DEBUG_TETRIS_IN: Read dimensions and score: " << width << " " << height << " " << score << ". is.fail()=" << is.fail() << std::endl;
-    if(is.fail()) {
-        std::cerr << "DEBUG_TETRIS_IN: Failed after reading dimensions/score." << std::endl;
-        return is;
-    }
+    if(is.fail()) return is;
 
     tetris temp_t(width, height, score);
 
     uint32_t num_pieces;
     is >> std::skipws >> num_pieces;
-    /*if(is.fail())
+    if(is.fail())
     {
         is.setstate(std::ios_base::failbit);
         return is;
-    }*/
+    }
+    /*
     std::cerr << "DEBUG_TETRIS_IN: Read num_pieces: " << num_pieces << ". is.fail()=" << is.fail() << std::endl;
     if(is.fail())
     {
@@ -1166,14 +1102,16 @@ std::istream& operator>>(std::istream& is, tetris& t)
         is.setstate(std::ios_base::failbit);
         return is;
     }
+    */
 
     for(uint32_t i = 0; i < num_pieces; i++)
     {
-        std::cerr << "DEBUG_TETRIS_IN: Reading piece " << i << std::endl;
+        //std::cerr << "DEBUG_TETRIS_IN: Reading piece " << i << std::endl;
         piece p_data;
         int x = 0;
         int y = 0;
         is >> std::skipws >> x >> y;
+        /*
         std::cerr << "DEBUG_TETRIS_IN: Read x, y: " << x << " " << y << ". is.fail()=" << is.fail() << std::endl;
         if(is.fail())
         {
@@ -1181,12 +1119,12 @@ std::istream& operator>>(std::istream& is, tetris& t)
             is.setstate(std::ios_base::failbit);
             return is;
         }
-
+        */
         is >> std::skipws >> p_data;
-        std::cerr << "DEBUG_TETRIS_IN: Read piece data. is.fail()=" << is.fail() << std::endl;
+        //std::cerr << "DEBUG_TETRIS_IN: Read piece data. is.fail()=" << is.fail() << std::endl;
         if(is.fail())
         {
-            std::cerr << "DEBUG_TETRIS_IN: Failed after reading piece data for piece " << i << std::endl;
+            //std::cerr << "DEBUG_TETRIS_IN: Failed after reading piece data for piece " << i << std::endl;
             is.setstate(std::ios_base::failbit);
             return is;
         }
@@ -1194,20 +1132,20 @@ std::istream& operator>>(std::istream& is, tetris& t)
         try { temp_t.add(p_data, x, y); }   //Prima era insert
         catch(const std::bad_alloc& e)
         {
-            std::cerr << "DEBUG_TETRIS_IN: bad_alloc during add for piece " << i << std::endl;
+            //std::cerr << "DEBUG_TETRIS_IN: bad_alloc during add for piece " << i << std::endl;
             is.setstate(std::ios_base::failbit);
             return is;
         }
         catch (const tetris_exception& e) 
         {
-            std::cerr << "DEBUG_TETRIS_IN: tetris_exception during add for piece " << i << ": " << e.what() << std::endl;
+            //std::cerr << "DEBUG_TETRIS_IN: tetris_exception during add for piece " << i << ": " << e.what() << std::endl;
             is.setstate(std::ios_base::failbit);
             return is;
         }
     }
 
     t = std::move(temp_t);
-    std::cerr << "DEBUG_TETRIS_IN: Successfully read tetris object." << std::endl;
+    //std::cerr << "DEBUG_TETRIS_IN: Successfully read tetris object." << std::endl;
     return is;
 }
 
