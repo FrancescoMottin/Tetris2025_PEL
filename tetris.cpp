@@ -896,26 +896,27 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             return; 
         }
 
-        is >> std::skipws >> c;
+        char inner_c;
+        is >> std::skipws >> inner_c;
         if(is.fail())
         {
             is.setstate(std::ios_base::failbit);
             return ;
         }
-        if(c == '[') 
+        if(inner_c == '[') 
         {
-            is >> std::skipws >> c;
-            if(is.fail() || c != ']')
+            is >> std::skipws >> inner_c;
+            if(is.fail() || inner_c != ']')
             {
                 is.setstate(std::ios_base::failbit);
                 return ;
             }
             else p(row_offset, col_offset) = false;
         }
-        else if(c == '(') 
+        else if(inner_c == '(') 
         {
-            is >> std::skipws >> c;
-            if(is.fail() || c != ')')
+            is >> std::skipws >> inner_c;
+            if(is.fail() || inner_c != ')')
             {
                 is.setstate(std::ios_base::failbit);
                 return ;
@@ -923,6 +924,13 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             else p(row_offset, col_offset) = true;
         }
         else                    //failing state
+        {
+            is.setstate(std::ios_base::failbit);
+            return ;
+        }
+
+        is >> std::skipws >> c;
+        if(is.fail() || c != ')')
         {
             is.setstate(std::ios_base::failbit);
             return ;
