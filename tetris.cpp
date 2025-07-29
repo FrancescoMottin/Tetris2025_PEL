@@ -181,13 +181,6 @@ bool piece::operator()(uint32_t i, uint32_t j) const
 
 bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
 {
-    /*
-    if(s == 0) 
-    {
-        std::cout << "DEBUG_EMPTY_START: (" << i << "," << j << "," << s << ") -> TRUE (s=0)" << std::endl;
-        return true;
-    }
-
     if(s == 0) return true;
     if(m_grid == nullptr) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Accesso a griglia non inizializzata (nullptr).");    //tetris_exception if out of bounds
     if(i + s > m_side || j + s > m_side) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
@@ -197,10 +190,9 @@ bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
         for(uint32_t j2 = j; j2 < j+s; j2++)
             if(m_grid[i2][j2] == true) return false;
 
-    std::cout << "DEBUG_EMPTY_END: (" << i << "," << j << "," << s << ") -> TRUE" << std::endl;
     return true;
-    */
-
+    
+    /*
     if(s == 0) 
     {
         std::cout << "DEBUG_EMPTY_START: (" << i << "," << j << "," << s << ") -> TRUE (s=0)" << std::endl;
@@ -225,17 +217,11 @@ bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
 
     //std::cout << "DEBUG_EMPTY: (" << i << "," << j << "," << s << ") -> " << (result ? "TRUE" : "FALSE") << std::endl;
     return result;
+    */
 }
 
 bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
 {
-    /*
-    if(s == 0) 
-    {
-        std::cout << "DEBUG_FULL_START: (" << i << "," << j << "," << s << ") -> TRUE (s=0)" << std::endl;
-        return true;
-    }
-
     if(s == 0) return true;
     if(m_grid == nullptr ) throw tetris_exception("ERROR! - full(uint32_t i, uint32_t j, uint32_t s) - Accesso a griglia non inizializzata (nullptr).");    //tetris_exception if out of bounds
     if(i + s > m_side || j + s > m_side) throw tetris_exception("ERROR! - full(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
@@ -247,12 +233,11 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
             if(m_grid[i2][j2] == false) return false;
 
     }
-        
-    std::cout << "DEBUG_FULL_END: (" << i << "," << j << "," << s << ") -> TRUE" << std::endl;
 
     return true;
-    */
+    
 
+    /*
     if(s == 0) 
     {
         std::cout << "DEBUG_FULL: (" << i << "," << j << "," << s << ") -> TRUE (s=0)" << std::endl;
@@ -278,6 +263,7 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
 
     //std::cout << "DEBUG_FULL: (" << i << "," << j << "," << s << ") -> " << (result ? "TRUE" : "FALSE") << std::endl;
     return result;
+    */
 }
 
 bool piece::empty() const
