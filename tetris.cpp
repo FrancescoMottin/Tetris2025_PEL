@@ -201,11 +201,8 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
     
 
     for(uint32_t i2 = i; i2 < i+s; i2++)
-    {
         for(uint32_t j2 = j; j2 < j+s; j2++)
             if(m_grid[i2][j2] == false) return false;
-
-    }
 
     return true;
 }
@@ -936,6 +933,11 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
         os << "(";
 
         uint32_t half_side = curr_side / 2;
+        output_grid_rec(os, p, half_side, row_offset, col_offset);
+        output_grid_rec(os, p, half_side, row_offset, col_offset + half_side);
+        output_grid_rec(os, p, half_side, row_offset + half_side, col_offset);
+        output_grid_rec(os, p, half_side, row_offset + half_side, col_offset + half_side);
+        /*
         struct SubQuadrant { uint32_t r_off, c_off; };
         SubQuadrant sub_quadrants[4] = 
         {
@@ -953,6 +955,7 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
             output_grid_rec(os, p, half_side, new_row, new_col);
             if(i < 3) os << " ";
         }
+        */
 
         os << ")";
     }
