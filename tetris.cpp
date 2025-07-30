@@ -937,25 +937,6 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
         output_grid_rec(os, p, half_side, row_offset, col_offset + half_side);
         output_grid_rec(os, p, half_side, row_offset + half_side, col_offset);
         output_grid_rec(os, p, half_side, row_offset + half_side, col_offset + half_side);
-        /*
-        struct SubQuadrant { uint32_t r_off, c_off; };
-        SubQuadrant sub_quadrants[4] = 
-        {
-            {0, 0},                 // Top-Left
-            {0, half_side},         // Top-Right
-            {half_side, 0},         // Bottom-Left
-            {half_side, half_side}  // Bottom-Right
-        };
-        
-        for(int i = 0; i < 4; i++)
-        {
-            uint32_t new_row = row_offset + sub_quadrants[i].r_off;
-            uint32_t new_col = col_offset + sub_quadrants[i].c_off;
-    
-            output_grid_rec(os, p, half_side, new_row, new_col);
-            if(i < 3) os << " ";
-        }
-        */
 
         os << ")";
     }
