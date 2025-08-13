@@ -294,11 +294,11 @@ void piece::cut_row(uint32_t i)
     // Y=0 è la riga superiore del pezzo, Y cresce verso il basso.
     for(uint32_t r = i; r < m_side - 1; r++)
         for(uint32_t c = 0; c < m_side; c++)    
-            m_grid[r][c] = m_grid[r+1][c];
+            m_grid[r][c] = m_grid[r-1][c];      //m_grid[r][c] = m_grid[r+1][c];
 
     //la riga 0 (la più in alto) conterrà una copia della sua versione originale. Deve essere svuotata
     for(uint32_t c = 0; c < m_side; c++)
-        m_grid[m_side-1][c] = false;
+        m_grid[0][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
 }
 
 uint32_t piece::side() const { return m_side; }
@@ -525,7 +525,7 @@ void tetris::insert(piece const& p, int x)
         {
             uint32_t tot_row = piece_y + i;
             for(uint32_t j = 0; j < curr_piece.side(); j++) 
-                if(curr_piece(i,j) && (tot_row < m_height)) arr[piece_y + (curr_piece.side() - 1 - i)]++;   //Bastava cambiare && per evitare le le invalid read/write
+                if(curr_piece(i,j) && (tot_row < m_height)) arr[tot_row]++;   //Bastava cambiare && per evitare le le invalid read/write
         }
         curr = curr->next;
     }
@@ -544,7 +544,7 @@ void tetris::insert(piece const& p, int x)
 
                 // Modificare la forma di un piece può portare a comportamenti inaspettati e complessi da gestire. Sicuri questa sia la soluzione?
                 if(i >= pos_y && i < pos_y + to_cut.side()) 
-                    to_cut.cut_row((to_cut.side() - 1) - (i - pos_y));                           
+                    to_cut.cut_row(i - pos_y);  //prima (to_cut.side() - 1) - (i - pos_y)                    
                 tmp = tmp->next;
             }
         }
@@ -582,9 +582,9 @@ void tetris::insert(piece const& p, int x)
             for(int i = 0; i < cleared_rows; i++)
             {
                 int global_row = cleared_index[i];
-                if(global_row > curr_piece->tp.y) fall_size++; // precedentemente  <
+                if(global_row < curr_piece->tp.y) fall_size++; // precedentemente  <
             }
-            curr_piece->tp.y += fall_size;  //prima -= fall_size
+            curr_piece->tp.y -= fall_size;  //prima += fall_size
             curr_piece = curr_piece->next;
         }
     }
@@ -817,27 +817,50 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
     if(curr_side == 1) 
     {
-        if(c == '[') 
+        if(c == '(')
         {
             is >> std::skipws >> c;
-            if(is.fail() || c != ']')
+            if(is.fail() || (c != '(' && c != '['))
             {
                 is.setstate(std::ios_base::failbit);
                 return ;
             }
-            else p(row_offset, col_offset) = false;
-        }
-        else if(c == '(') 
-        {
-            is >> std::skipws >> c;
-            if(is.fail() || c != ')')
+            
+            if(c == '(')
+            {
+                is >> std::skipws >> c;
+                if(is.fail() || c != ')')
+                {
+                    is.setstate(std::ios_base::failbit);
+                    return ;
+                }
+                else p(row_offset, col_offset) = true;
+            }
+            else if(c == '[')
+            {
+                is >> std::skipws >> c;
+                if(is.fail() || c != ']')
+                {
+                    is.setstate(std::ios_base::failbit);
+                    return ;
+                }
+                else p(row_offset, col_offset) = false;
+            }
+            else 
             {
                 is.setstate(std::ios_base::failbit);
                 return ;
             }
-            else p(row_offset, col_offset) = true;
+
         }
-        else                    //failing state
+        else
+        {
+            is.setstate(std::ios_base::failbit);
+            return ;
+        }
+
+        is >> std::skipws >> c;
+        if(is.fail() || c != ')')
         {
             is.setstate(std::ios_base::failbit);
             return ;
@@ -866,7 +889,11 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         {
             char next_c;
             is >> std::skipws >> next_c;
-            if(is.fail()) { is.setstate(std::ios_base::failbit); return ; }
+            if(is.fail()) 
+            { 
+                is.setstate(std::ios_base::failbit); 
+                return ; 
+            }
 
             if(next_c == ')')
             {
