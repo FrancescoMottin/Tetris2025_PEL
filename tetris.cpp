@@ -493,14 +493,17 @@ void tetris::insert(piece const& p, int x)
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
 
     //compute "y" coordinate throught containment
-    int y = -1;
+    /*
     for(uint32_t i = 0; i < m_height; i++)
     {
         if(containment(p, x, i)) y = i;
         else if(y != -1) break ;
     }
     if(y == -1) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-
+    */
+    int y = 0;
+    while(y < m_height && containment(p, x, y+1)) {y++;}
+    if(!containment(p,x,y)) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
     add(p, x, y); //aggiungere piece all'inizio della lista
 
     // array usato per contare le celle occupate per riga
@@ -529,7 +532,7 @@ void tetris::insert(piece const& p, int x)
         }
         curr = curr->next;
     }
-
+    /*
     // ogni riga di ogni pezzo è stata computata. Avviene in controllo se alcune righe sono interamente occupate
     for(int i = 0; i < m_height; i++) 
     {
@@ -591,31 +594,82 @@ void tetris::insert(piece const& p, int x)
 
     if(cleared_index) delete[] cleared_index;
     delete[] arr;
+    */
+
+    uint32_t clear_rows = 0;
+    bool* row_full = new bool[m_height];
+    try
+    {
+        for(uint32_t i = 0; i < m_height; i++)
+        {
+            row_full[i] = true;
+            for(uint32_t j = 0; j < m_width; j++)
+            {
+                if(!containment(p,x,y)) //Devi controllare 
+                {
+                    row_full[i] = false;
+                    break ;
+                }
+            }
+            if(row_full)  clear_rows++;
+        }
+    }
+    catch(const std::bad_alloc& e)
+    {
+        delete[] row_full;
+        throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per row_full");
+    }
+
+    if(clear_rows > 0)
+    {
+        m_score += clear_rows * 100;
+        
+        node* tmp = m_field;
+        while(tmp != nullptr) 
+        {
+            int fall = 0;
+            piece& to_cut = tmp->tp.p;
+            int pos_y = tmp->tp.y;
+            for(uint32_t i = 0; i < m_height; ++i)
+                if(row_full[i] && i < pos_y + to_cut.side()) fall++;
+             
+            if(pos_y < m_height && (pos_y + to_cut.side()) > 0) pos_y -= fall;
+            
+            // Modificare la forma di un piece può portare a comportamenti inaspettati e complessi da gestire. Sicuri questa sia la soluzione?
+            for(uint32_t i = 0; i < m_height; ++i)
+            {    
+                if(i >= pos_y && i < pos_y + to_cut.side()) 
+                    to_cut.cut_row(i - pos_y);  //prima (to_cut.side() - 1) - (i - pos_y)                    
+            }
+
+            tmp = tmp->next;
+        }
+    }
 
     //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
     node* new_head = nullptr;
     node* new_tail = nullptr;
-    node* curr_node = m_field;
-    while (curr_node)
+    node* curr = m_field;
+    while (curr)
     {
-        node* tmp = curr_node->next;
-        if((curr_node->tp.p).empty()) delete curr_node;
+        node* tmp = curr->next;
+        if((curr->tp.p).empty()) delete curr;
         else 
         {
-            curr_node->next = nullptr;
+            curr->next = nullptr;
             if(new_head == nullptr) 
             {
-                new_head = curr_node;
-                new_tail = curr_node;
+                new_head = curr;
+                new_tail = curr;
             }
             else
             {
-                new_tail->next = curr_node;     
-                new_tail = curr_node;
+                new_tail->next = curr;     
+                new_tail = curr;
             }
         }
 
-        curr_node = tmp;
+        curr = tmp;
     }
     m_field = new_head;
 }
@@ -648,6 +702,7 @@ void tetris::add(piece const& p, int x, int y)
 
 bool tetris::containment(piece const& p, int x, int y) const
 {
+    /*
     uint32_t p_side = p.side();
     for(uint32_t r = 0; r < p_side; r++)
     {
@@ -655,7 +710,7 @@ bool tetris::containment(piece const& p, int x, int y) const
         {
             if(p.operator()(r,c))    
             {
-                uint32_t abs_x = x + c;
+                int abs_x = x + c;
                 uint32_t abs_y = y + r;
             
                 if(abs_x >= m_width || abs_y >= m_height) return false;
@@ -679,7 +734,50 @@ bool tetris::containment(piece const& p, int x, int y) const
         }
     }
     return true;
+    */
+
+    uint32_t p_side = p.side();
+    for(uint32_t r = 0; r < p_side; r++)
+    {
+        for(uint32_t c = 0; c < p_side; c++)
+        {
+            if(p.operator()(r,c))    
+            {
+                int abs_x = x + c;
+                int abs_y = y + r;
+            
+                if(abs_x < 0 || abs_y < 0 || abs_x >= m_width || abs_y >= m_height) return false;
+            }
+        }
+    }
+    
+    node* curr = m_field;
+    while(curr)
+    {
+        piece const& curr_piece = curr->tp.p;
+        uint32_t curr_x = curr->tp.x;
+        uint32_t curr_y = curr->tp.y;
+    
+        for(uint32_t r = 0; r < p.side(); r++)
+        {
+            for(uint32_t c = 0; c < p.side(); c++)
+            {
+                int abs_x = x + c;
+                int abs_y = y + r;
+
+                uint32_t rel_x = abs_x - curr_x;
+                uint32_t rel_y = abs_y - curr_y;
+
+                if(rel_x < curr_piece.side() && rel_y < curr_piece.side())
+                    if(curr_piece.operator()(rel_y,rel_x)) return false;
+            }
+        }
+        
+        curr = curr->next;
+    }
+    return true;
 }
+
 
 //NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
@@ -1054,7 +1152,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
             return is;
         }
 
-        try { temp_t.add(p_data, x, y); }   //Prima era insert
+        try { temp_t.insert(p_data, x); }   //temp_t.add(p_data, x, y);
         catch(const std::bad_alloc& e)
         {
             is.setstate(std::ios_base::failbit);
@@ -1073,13 +1171,13 @@ std::istream& operator>>(std::istream& is, tetris& t)
 
 std::ostream& operator<<(std::ostream& os, tetris const& t)
 {
-    os << t.width() << " " << t.height() << " " << t.score() << std::endl;  //Dimensioni e Punteggio
+    os << t.width() << " " << t.height() << " " << t.score(); //std::endl //Dimensioni e Punteggio
 
     uint32_t piece_count = 0;
     for(auto it = t.begin(); it != t.end(); ++it)  { piece_count++; }
-    os << piece_count << std::endl;                     //Numero pezzi
+    os << piece_count << " ";   //std::endl                  //Numero pezzi
 
     for(auto it = t.begin(); it != t.end(); ++it)
-        os << it->x << " " << it->y << " " << it->p << std::endl;  //X, Y e Piece
+        os << it->x << " " << it->y << " " << it->p << " ";  //X, Y e Piece
     return os;
 }
