@@ -517,6 +517,7 @@ void tetris::insert(piece const& p, int x)
     catch(const std::bad_alloc& e)
     { throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per cleared_index."); }
 
+    /*
     // si scorre la lista pezzo per pezzo
     node* curr = m_field;
     while(curr != nullptr) 
@@ -532,7 +533,7 @@ void tetris::insert(piece const& p, int x)
         }
         curr = curr->next;
     }
-    /*
+    
     // ogni riga di ogni pezzo è stata computata. Avviene in controllo se alcune righe sono interamente occupate
     for(int i = 0; i < m_height; i++) 
     {
