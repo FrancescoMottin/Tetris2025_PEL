@@ -492,19 +492,8 @@ void tetris::insert(piece const& p, int x)
     //that p is the piece whose bottom-left corner is at position (x,y) in the tetris field
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
 
-    //compute "y" coordinate throught containment
-    
-    /*
-    for(uint32_t i = 0; i < m_height; i++)
-    {
-        if(containment(p, x, i)) y = i;
-        else if(y != -1) break ;
-    }
-    if(y == -1) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-    */
-
     int y = 0;
-    while(y < m_height && containment(p, x, y+1)) {y++;}
+    while(y + p.side() < m_height && containment(p, x, y+1)) {y++;} //eventualmente elimina p
     if(!containment(p,x,y)) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
     add(p, x, y); //aggiungere piece all'inizio della lista
 
@@ -518,88 +507,7 @@ void tetris::insert(piece const& p, int x)
     }
     catch(const std::bad_alloc& e)
     { throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per cleared_index."); }
-
-    ///*
-    // si scorre la lista pezzo per pezzo
-    node* curr = m_field;
-    while(curr != nullptr) 
-    {
-        piece const& curr_piece = curr->tp.p;
-        int piece_y = curr->tp.y;
-
-        for(uint32_t i = 0; i < curr_piece.side(); i++) 
-        {
-            uint32_t tot_row = piece_y + i;
-            for(uint32_t j = 0; j < curr_piece.side(); j++) 
-                if(curr_piece(i,j) && (tot_row < m_height)) arr[tot_row]++;   //Bastava cambiare && per evitare le le invalid read/write
-        }
-        curr = curr->next;
-    }
     
-    // ogni riga di ogni pezzo è stata computata. Avviene in controllo se alcune righe sono interamente occupate
-    for(int i = 0; i < m_height; i++) 
-    {
-        if(arr[i] == m_width) 
-        {
-            m_score += 100;
-            node* tmp = m_field;
-            while(tmp != nullptr) 
-            {
-                piece& to_cut = tmp->tp.p;
-                int pos_y = tmp->tp.y; 
-
-                // Modificare la forma di un piece può portare a comportamenti inaspettati e complessi da gestire. Sicuri questa sia la soluzione?
-                if(i >= pos_y && i < pos_y + to_cut.side()) 
-                    to_cut.cut_row(i - pos_y);  //prima (to_cut.side() - 1) - (i - pos_y)                    
-                tmp = tmp->next;
-            }
-        }
-    }
-
-    //gravity system per i pezzi sopra
-    int cleared_rows = 0;
-    uint32_t* cleared_index = nullptr;
-    for(uint32_t i = 0; i < m_height; i++)
-        if(arr[i] == m_width) cleared_rows++;
-
-    try{ if(cleared_rows > 0) cleared_index = new uint32_t[cleared_rows]; }
-    catch(const std::bad_alloc& e)
-    {
-        delete[] arr; 
-        throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per cleared_index.");
-    }
-
-    int curr_index = 0;
-    for(uint32_t i = 0; i < m_height; i++)
-    {
-        if(arr[i] == m_width && curr_index < cleared_rows)
-        {
-            cleared_index[curr_index] = i;
-            curr_index++;
-        }
-    }
-
-    if(cleared_rows > 0)
-    {
-        node* curr_piece = m_field;
-        while (curr_piece)
-        {
-            int fall_size = 0;
-            for(int i = 0; i < cleared_rows; i++)
-            {
-                int global_row = cleared_index[i];
-                if(global_row < curr_piece->tp.y) fall_size++; // precedentemente  <
-            }
-            curr_piece->tp.y -= fall_size;  //prima += fall_size
-            curr_piece = curr_piece->next;
-        }
-    }
-
-    if(cleared_index) delete[] cleared_index;
-    delete[] arr;
-    //*/
-
-    /*
     uint32_t clear_rows = 0;
     bool* row_full = new bool[m_height];
     try
@@ -664,7 +572,8 @@ void tetris::insert(piece const& p, int x)
                 if(row_full[i] && i < pos_y + to_cut.side()) fall++;
              
             //if(pos_y < m_height && (pos_y + to_cut.side()) > 0) pos_y -= fall;
-            
+            pos_y -= fall;
+
             // Modificare la forma di un piece può portare a comportamenti inaspettati e complessi da gestire. Sicuri questa sia la soluzione?
             for(uint32_t i = 0; i < m_height; ++i)
             {    
@@ -676,13 +585,13 @@ void tetris::insert(piece const& p, int x)
         }
     }
     delete[] row_full;
-    */
+    
 
     //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
     node* new_head = nullptr;
     node* new_tail = nullptr;
     node* curr_node = m_field;
-    while (curr)
+    while (curr_node)
     {
         node* tmp = curr_node->next;
         if((curr_node->tp.p).empty()) delete curr_node;
