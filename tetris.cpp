@@ -1186,7 +1186,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
             return is;
         }
 
-        try { temp_t.insert(p_data, x); }   //temp_t.add(p_data, x, y);
+        try { temp_t.add(p_data, x, y); }   //temp_t.insert(p_data, x);
         catch(const std::bad_alloc& e)
         {
             is.setstate(std::ios_base::failbit);
