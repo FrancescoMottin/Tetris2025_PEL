@@ -494,14 +494,14 @@ void tetris::insert(piece const& p, int x)
 
     //compute "y" coordinate throught containment
     
-    ///*
+    /*
     for(uint32_t i = 0; i < m_height; i++)
     {
         if(containment(p, x, i)) y = i;
         else if(y != -1) break ;
     }
     if(y == -1) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-    //*/
+    */
 
     int y = 0;
     while(y < m_height && containment(p, x, y+1)) {y++;}
