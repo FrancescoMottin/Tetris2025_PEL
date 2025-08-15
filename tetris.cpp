@@ -497,19 +497,6 @@ void tetris::insert(piece const& p, int x)
     if(!containment(p,x,y)) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
     add(p, x, y); //aggiungere piece all'inizio della lista
 
-    /*
-    // array usato per contare le celle occupate per riga
-    uint32_t* arr;
-    try
-    {
-        arr = new uint32_t[m_height];
-        for(uint32_t i = 0; i < m_height; i++) 
-            arr[i] = 0;
-    }
-    catch(const std::bad_alloc& e)
-    { throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per cleared_index."); }
-    */
-   
     uint32_t clear_rows = 0;
     bool* row_full = new bool[m_height];
     try
@@ -519,13 +506,6 @@ void tetris::insert(piece const& p, int x)
             row_full[i] = true;
             for(uint32_t j = 0; j < m_width; j++)
             {
-                
-                //if(!containment(p,x,y)) //Devi controllare 
-                //{
-                //    row_full[i] = false;
-                //    break ;
-                //}
-            
                 bool cell_occupied = false;
                 node* curr = m_field;
                 while (curr != nullptr)
