@@ -493,14 +493,16 @@ void tetris::insert(piece const& p, int x)
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
 
     //compute "y" coordinate throught containment
-    /*
+    
+    ///*
     for(uint32_t i = 0; i < m_height; i++)
     {
         if(containment(p, x, i)) y = i;
         else if(y != -1) break ;
     }
     if(y == -1) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-    */
+    //*/
+
     int y = 0;
     while(y < m_height && containment(p, x, y+1)) {y++;}
     if(!containment(p,x,y)) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
@@ -517,7 +519,7 @@ void tetris::insert(piece const& p, int x)
     catch(const std::bad_alloc& e)
     { throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per cleared_index."); }
 
-    /*
+    ///*
     // si scorre la lista pezzo per pezzo
     node* curr = m_field;
     while(curr != nullptr) 
@@ -595,8 +597,9 @@ void tetris::insert(piece const& p, int x)
 
     if(cleared_index) delete[] cleared_index;
     delete[] arr;
-    */
+    //*/
 
+    /*
     uint32_t clear_rows = 0;
     bool* row_full = new bool[m_height];
     try
@@ -606,13 +609,13 @@ void tetris::insert(piece const& p, int x)
             row_full[i] = true;
             for(uint32_t j = 0; j < m_width; j++)
             {
-                /*
-                if(!containment(p,x,y)) //Devi controllare 
-                {
-                    row_full[i] = false;
-                    break ;
-                }
-                */
+                
+                //if(!containment(p,x,y)) //Devi controllare 
+                //{
+                //    row_full[i] = false;
+                //    break ;
+                //}
+            
                 bool cell_occupied = false;
                 node* curr = m_field;
                 while (curr != nullptr)
@@ -673,6 +676,7 @@ void tetris::insert(piece const& p, int x)
         }
     }
     delete[] row_full;
+    */
 
     //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
     node* new_head = nullptr;
@@ -1197,16 +1201,15 @@ std::istream& operator>>(std::istream& is, tetris& t)
     return is;
 }
 
-//std::endl o spazio " "
 std::ostream& operator<<(std::ostream& os, tetris const& t)
 {
-    os << t.width() << " " << t.height() << " " << t.score() << std::endl; //Dimensioni e Punteggio
+    os << t.width() << " " << t.height() << " " << t.score() << " "; //std::endl //Dimensioni e Punteggio
 
     uint32_t piece_count = 0;
     for(auto it = t.begin(); it != t.end(); ++it)  { piece_count++; }
-    os << piece_count << std::endl ;                  //Numero pezzi
+    os << piece_count << " ";   //std::endl                  //Numero pezzi
 
     for(auto it = t.begin(); it != t.end(); ++it)
-        os << it->x << " " << it->y << " " << it->p << std::endl;  //X, Y e Piece
+        os << it->x << " " << it->y << " " << it->p << " ";  //X, Y e Piece
     return os;
 }
