@@ -612,7 +612,7 @@ void tetris::insert(piece const& p, int x)
                     break ;
                 }
             }
-            if(row_full)  clear_rows++;
+            if(row_full[i])  clear_rows++;
         }
     }
     catch(const std::bad_alloc& e)
