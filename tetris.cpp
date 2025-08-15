@@ -606,10 +606,36 @@ void tetris::insert(piece const& p, int x)
             row_full[i] = true;
             for(uint32_t j = 0; j < m_width; j++)
             {
+                /*
                 if(!containment(p,x,y)) //Devi controllare 
                 {
                     row_full[i] = false;
                     break ;
+                }
+                */
+                bool cell_occupied = false;
+                node* curr = m_field;
+                while (curr != nullptr)
+                {
+                    int rel_x = j - curr->tp.x;
+                    int rel_y = i - curr->tp.y;
+
+                    if(rel_x >= 0 && rel_y >= 0 && rel_x < curr->tp.p.side() && rel_y < curr->tp.p.side())
+                    {
+                        if(curr->tp.p.operator()(rel_y, rel_x))
+                        {
+                            cell_occupied = true;
+                            break;
+                        }
+                    }
+                    curr = curr->next;
+                }
+                
+
+                if(!cell_occupied)
+                {
+                    row_full[i] = false;
+                    break;
                 }
             }
             if(row_full[i])  clear_rows++;
@@ -634,7 +660,7 @@ void tetris::insert(piece const& p, int x)
             for(uint32_t i = 0; i < m_height; ++i)
                 if(row_full[i] && i < pos_y + to_cut.side()) fall++;
              
-            if(pos_y < m_height && (pos_y + to_cut.side()) > 0) pos_y -= fall;
+            //if(pos_y < m_height && (pos_y + to_cut.side()) > 0) pos_y -= fall;
             
             // Modificare la forma di un piece può portare a comportamenti inaspettati e complessi da gestire. Sicuri questa sia la soluzione?
             for(uint32_t i = 0; i < m_height; ++i)
@@ -646,6 +672,7 @@ void tetris::insert(piece const& p, int x)
             tmp = tmp->next;
         }
     }
+    delete[] row_full;
 
     //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
     node* new_head = nullptr;
