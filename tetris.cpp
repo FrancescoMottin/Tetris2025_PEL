@@ -734,7 +734,7 @@ void tetris::add(piece const& p, int x, int y)
 
 bool tetris::containment(piece const& p, int x, int y) const
 {
-    /*
+    ///*
     uint32_t p_side = p.side();
     for(uint32_t r = 0; r < p_side; r++)
     {
@@ -766,8 +766,9 @@ bool tetris::containment(piece const& p, int x, int y) const
         }
     }
     return true;
-    */
+    //*/
 
+    /*
     uint32_t p_side = p.side();
     for(uint32_t r = 0; r < p_side; r++)
     {
@@ -808,6 +809,7 @@ bool tetris::containment(piece const& p, int x, int y) const
         curr = curr->next;
     }
     return true;
+    */
 }
 
 
