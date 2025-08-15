@@ -1197,15 +1197,16 @@ std::istream& operator>>(std::istream& is, tetris& t)
     return is;
 }
 
+//std::endl o spazio " "
 std::ostream& operator<<(std::ostream& os, tetris const& t)
 {
-    os << t.width() << " " << t.height() << " " << t.score(); //std::endl //Dimensioni e Punteggio
+    os << t.width() << " " << t.height() << " " << t.score() << std::endl; //Dimensioni e Punteggio
 
     uint32_t piece_count = 0;
     for(auto it = t.begin(); it != t.end(); ++it)  { piece_count++; }
-    os << piece_count << " ";   //std::endl                  //Numero pezzi
+    os << piece_count << std::endl ;                  //Numero pezzi
 
     for(auto it = t.begin(); it != t.end(); ++it)
-        os << it->x << " " << it->y << " " << it->p << " ";  //X, Y e Piece
+        os << it->x << " " << it->y << " " << it->p << std::endl;  //X, Y e Piece
     return os;
 }
