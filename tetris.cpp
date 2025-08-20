@@ -840,50 +840,27 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
     if(curr_side == 1) 
     {
-        if(c == '(')
+        if(c == '[') 
         {
             is >> std::skipws >> c;
-            if(is.fail() || (c != '(' && c != '['))
+            if(is.fail() || c != ']')
             {
                 is.setstate(std::ios_base::failbit);
                 return ;
             }
-            
-            if(c == '(')
-            {
-                is >> std::skipws >> c;
-                if(is.fail() || c != ')')
-                {
-                    is.setstate(std::ios_base::failbit);
-                    return ;
-                }
-                else p(row_offset, col_offset) = true;
-            }
-            else if(c == '[')
-            {
-                is >> std::skipws >> c;
-                if(is.fail() || c != ']')
-                {
-                    is.setstate(std::ios_base::failbit);
-                    return ;
-                }
-                else p(row_offset, col_offset) = false;
-            }
-            else 
-            {
-                is.setstate(std::ios_base::failbit);
-                return ;
-            }
-
+            else p(row_offset, col_offset) = false;
         }
-        else
+        else if(c == '(') 
         {
-            is.setstate(std::ios_base::failbit);
-            return ;
+            is >> std::skipws >> c;
+            if(is.fail() || c != ')')
+            {
+                is.setstate(std::ios_base::failbit);
+                return ;
+            }
+            else p(row_offset, col_offset) = true;
         }
-
-        is >> std::skipws >> c;
-        if(is.fail() || c != ')')
+        else                    //failing state
         {
             is.setstate(std::ios_base::failbit);
             return ;
@@ -912,11 +889,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         {
             char next_c;
             is >> std::skipws >> next_c;
-            if(is.fail()) 
-            { 
-                is.setstate(std::ios_base::failbit); 
-                return ; 
-            }
+            if(is.fail()) { is.setstate(std::ios_base::failbit); return ; }
 
             if(next_c == ')')
             {
@@ -959,14 +932,15 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
     }
 }
 
+
 void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
 {
     if(curr_side == 1) 
     {
-        os <<  "(";
+        //os <<  "(";   --> Formato non accettato
         if(p(row_offset, col_offset) == false) os << "[]";
         else os << "()";
-        os << ")";
+        //os << ")";
         return ;
     }
     else if(curr_side > 1)
@@ -1096,13 +1070,13 @@ std::istream& operator>>(std::istream& is, tetris& t)
 
 std::ostream& operator<<(std::ostream& os, tetris const& t)
 {
-    os << t.width() << " " << t.height() << " " << t.score() << " "; //std::endl //Dimensioni e Punteggio
+    os << t.width() << " " << t.height() << " " << t.score() << std::endl;  //Dimensioni e Punteggio
 
     uint32_t piece_count = 0;
     for(auto it = t.begin(); it != t.end(); ++it)  { piece_count++; }
-    os << piece_count << " ";   //std::endl                  //Numero pezzi
+    os << piece_count << std::endl;                     //Numero pezzi
 
     for(auto it = t.begin(); it != t.end(); ++it)
-        os << it->x << " " << it->y << " " << it->p << " ";  //X, Y e Piece
+        os << it->x << " " << it->y << " " << it->p << std::endl;  //X, Y e Piece
     return os;
 }
