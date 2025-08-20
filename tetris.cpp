@@ -907,19 +907,35 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
                 //Top-Lefts
                 input_grid_rec(is, p, half_side, row_offset, col_offset);
-                if(is.fail()) return ;
+                if(is.fail())
+                {
+                    is.setstate(std::ios_base::failbit);
+                    return;
+                }
             
                 //Top-rigth
                 input_grid_rec(is, p, half_side, row_offset, col_offset + half_side);
-                if(is.fail()) return ;
+                if(is.fail()) 
+                {
+                    is.setstate(std::ios_base::failbit);
+                    return;
+                }
             
                 //Bottom-left
                 input_grid_rec(is, p, half_side, row_offset + half_side, col_offset);
-                if(is.fail()) return ;
+                if(is.fail()) 
+                {
+                    is.setstate(std::ios_base::failbit);
+                    return;
+                }
             
                 //Bottom-right
                 input_grid_rec(is, p, half_side, row_offset + half_side, col_offset + half_side);
-                if(is.fail()) return ;
+                if(is.fail()) 
+                {
+                    is.setstate(std::ios_base::failbit);
+                    return;
+                }
 
                 is >> std::skipws >> c;
                 if(is.fail() || c != ')')
@@ -973,9 +989,13 @@ std::istream& operator>>(std::istream& is, piece& p)
     uint32_t val_side;
     uint32_t val_color_32;
     is >> std::skipws >> val_side >> std::skipws >> val_color_32;
-    if(is.fail()) return is;
-
-    if (val_color_32 > 255) {
+    if(is.fail()) 
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
+    if (val_color_32 > 255) 
+    {
         is.setstate(std::ios_base::failbit);
         return is;
     }
@@ -1023,7 +1043,11 @@ std::istream& operator>>(std::istream& is, tetris& t)
     uint32_t height;
     uint32_t score;
     is >> std::skipws >> width >> height >> score;
-    if(is.fail()) return is;
+    if(is.fail()) 
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
 
     tetris temp_t(width, height, score);
 
