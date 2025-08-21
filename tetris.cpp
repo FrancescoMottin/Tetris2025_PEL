@@ -574,12 +574,10 @@ void tetris::insert(piece const& p, int x)
         
             tmp->tp.y += fall;
             tmp = tmp->next;
-        }
-        
+        } 
     }
     delete[] row_full;
     
-
     //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
     node* new_head = nullptr;
     node* new_tail = nullptr;
