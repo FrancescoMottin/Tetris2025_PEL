@@ -545,26 +545,37 @@ void tetris::insert(piece const& p, int x)
         m_score += clear_rows * 100;
         
         node* tmp = m_field;
-        while(tmp != nullptr) 
+        while(tmp) 
         {
-            int fall = 0;
             piece& to_cut = tmp->tp.p;
             int pos_y = tmp->tp.y;
-            for(uint32_t i = 0; i < m_height; ++i)
-                if(row_full[i] && i < pos_y + to_cut.side()) fall++;
-             
-            //if(pos_y < m_height && (pos_y + to_cut.side()) > 0) pos_y -= fall;
-            pos_y -= fall;
-
-            // Modificare la forma di un piece può portare a comportamenti inaspettati e complessi da gestire. Sicuri questa sia la soluzione?
-            for(uint32_t i = 0; i < m_height; ++i)
-            {    
-                if(i >= pos_y && i < pos_y + to_cut.side()) 
-                    to_cut.cut_row(i - pos_y);  //prima (to_cut.side() - 1) - (i - pos_y)                    
-            }
+            
+            for(uint32_t i = 0; i < m_height; i++)
+            {
+                if(row_full[i] && i >= pos_y && i < pos_y + to_cut.side()) 
+                {
+                    uint32_t rel_row = i - pos_y;
+                    to_cut.cut_row(rel_row);
+                }
+            } 
 
             tmp = tmp->next;
         }
+
+        //Aggiorna coordinate y dei pezzi dopo il taglio
+        tmp = m_field;
+        while(tmp)
+        {
+            int fall = 0;
+            int pos_y = tmp->tp.y;
+
+            for(uint32_t i = 0; i < m_height; i++)
+                if(row_full[i] && i >= pos_y) fall++; 
+        
+            tmp->tp.y += fall;
+            tmp = tmp->next;
+        }
+        
     }
     delete[] row_full;
     
@@ -633,7 +644,7 @@ bool tetris::containment(piece const& p, int x, int y) const
         {
             if(p.operator()(r,c))    
             {
-                int abs_x = x + c;
+                uint32_t abs_x = x + c;
                 uint32_t abs_y = y + r;
             
                 if(abs_x >= m_width || abs_y >= m_height) return false;
