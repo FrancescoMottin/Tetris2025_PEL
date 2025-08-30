@@ -862,7 +862,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
     if(is.fail()) 
     {
         is.setstate(std::ios_base::failbit);
-        return ;
+        throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore di sintassi inziale");
     }
 
     if(curr_side == 1) 
@@ -873,7 +873,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             if(is.fail() || c != ']')
             {
                 is.setstate(std::ios_base::failbit);
-                return ;
+                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso side=1 vuoto, sintassi non rispettata");
             }
             else p(row_offset, col_offset) = false;
         }
@@ -883,7 +883,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             if(is.fail() || c != ')')
             {
                 is.setstate(std::ios_base::failbit);
-                return ;
+                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso side=1 pieno, sintassi non rispettata");
             }
             else p(row_offset, col_offset) = true;
         }
@@ -905,7 +905,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             if(is.fail() || c != ']')
             {
                 is.setstate(std::ios_base::failbit);
-                return ;
+                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso vuoto, sintassi non rispettata");
             }
     
             for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
@@ -929,7 +929,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 if (!is.putback(next_c)) 
                 {
                     is.setstate(std::ios_base::failbit);
-                    return;
+                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore lettura flusso (putback)");
                 }
 
                 //Top-Lefts
@@ -937,7 +937,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 if(is.fail())
                 {
                     is.setstate(std::ios_base::failbit);
-                    return;
+                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore gestione ricorsione 1");
                 }
             
                 //Top-rigth
@@ -945,7 +945,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 if(is.fail()) 
                 {
                     is.setstate(std::ios_base::failbit);
-                    return;
+                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore gestione ricorsione 2");
                 }
             
                 //Bottom-left
@@ -953,7 +953,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 if(is.fail()) 
                 {
                     is.setstate(std::ios_base::failbit);
-                    return;
+                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore gestione ricorsione 3");
                 }
             
                 //Bottom-right
@@ -961,14 +961,14 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 if(is.fail()) 
                 {
                     is.setstate(std::ios_base::failbit);
-                    return;
+                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore gestione ricorsione 4");
                 }
 
                 is >> std::skipws >> c;
                 if(is.fail() || c != ')')
                 {
                     is.setstate(std::ios_base::failbit);
-                    return ;
+                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Ultima parentesi di chiusura ')' non rispettata ");
                 }
             }
         }
@@ -1019,12 +1019,12 @@ std::istream& operator>>(std::istream& is, piece& p)
     if(is.fail()) 
     {
         is.setstate(std::ios_base::failbit);
-        return is;
+        throw tetris_exception("ERROR! - operator>>(std::istream& is, piece& p) - Formato input invalido (inzio funzione).");
     }
-    if (val_color_32 > 255) 
+    if (val_color_32 < 0 || val_color_32 > 255) 
     {
         is.setstate(std::ios_base::failbit);
-        return is;
+        throw tetris_exception("ERROR! - operator>>(std::istream& is, piece& p) - Colore dato in input non valido");
     }
     uint8_t val_color = static_cast<uint8_t>(val_color_32); 
     
@@ -1032,14 +1032,14 @@ std::istream& operator>>(std::istream& is, piece& p)
     if((val_side & (val_side - 1)) != 0 || val_side == 0 || val_color == 0)   
     {
         is.setstate(std::ios_base::failbit);
-        return is;
+        throw tetris_exception("ERROR! - operator>>(std::istream& is, piece& p) - Side o color non validi.");
     }      
     piece temp_piece;                 
     try{ temp_piece = piece(val_side, val_color); }  //try catch in caso fallisca allocaziones
     catch(const tetris_exception& e)
     {
         is.setstate(std::ios_base::failbit);
-        return is;
+        throw tetris_exception("ERROR! - operator>>(std::istream& is, piece& p) - Errore di allocazione.");
     }
 
     //Commentata tutta la logica in operator>>: verrà tutta gestita da input_grid_rec
@@ -1047,9 +1047,8 @@ std::istream& operator>>(std::istream& is, piece& p)
     if(is.fail())
     {
         is.setstate(std::ios_base::failbit);
-        return is;
+        throw tetris_exception("ERROR! - operator>>(std::istream& is, piece& p) - Formato input invalido (fine funzione).");
     }
-
 
     p = std::move(temp_piece); //Usa il move constructor
     return is;
@@ -1073,7 +1072,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
     if(is.fail()) 
     {
         is.setstate(std::ios_base::failbit);
-        return is;
+        throw tetris_exception("ERROR! - operator>>(std::istream& is, tetris& t) - Formato input invalido (lettura fallita).");
     }
 
     tetris temp_t(width, height, score);
@@ -1083,7 +1082,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
     if(is.fail())
     {
         is.setstate(std::ios_base::failbit);
-        return is;
+        throw tetris_exception("ERROR! - operator>>(std::istream& is, tetris& t) - Formato input invalido (lettura fallita).");
     }
 
     for(uint32_t i = 0; i < num_pieces; i++)
@@ -1098,19 +1097,19 @@ std::istream& operator>>(std::istream& is, tetris& t)
         if(is.fail())
         {
             is.setstate(std::ios_base::failbit);
-            return is;
+            throw tetris_exception("ERROR! - operator>>(std::istream& is, tetris& t) - Formato input invalido (lettura fallita).");
         }
 
         try { temp_t.add(p_data, x, y); }   //temp_t.insert(p_data, x);
         catch(const std::bad_alloc& e)
         {
             is.setstate(std::ios_base::failbit);
-            return is;
+            throw tetris_exception("ERROR! - operator>>(std::istream& is, tetris& t) - Errore di allocazione nella lista (causa add)");
         }
         catch (const tetris_exception& e) 
         {
             is.setstate(std::ios_base::failbit);
-            return is;
+            throw tetris_exception("ERROR! - operator>>(std::istream& is, tetris& t) - Errore causato da add()");
         }
     }
 
