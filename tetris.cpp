@@ -542,8 +542,7 @@ void tetris::insert(piece const& p, int x)
     if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
     add(p,x, pos_y);
 
-    //2. Identifica le righe piene che dovremo rimuovere
-    
+    //2. Identifica le righe piene che dovremo rimuovere  
     bool* row_full = new bool[m_height];  //new bool[m_height];
     bool** table_state = new bool*[m_height]{}; //{} dovrebbe permettere una deallocazione più sciura
     try
@@ -559,7 +558,6 @@ void tetris::insert(piece const& p, int x)
     catch(const std::bad_alloc& e)
     {
         delete[] row_full;
-
         if(table_state != nullptr)
         {
             for(uint32_t i = 0; i < m_height; i++)
@@ -632,6 +630,15 @@ void tetris::insert(piece const& p, int x)
         curr = curr->next;
     }
     
+    //Poniamo il codice per deallocare manualmente la memoria dinamica
+    delete[] row_full;
+    if(table_state != nullptr)
+    {
+        for(uint32_t i = 0; i < m_height; i++)
+            delete[] table_state[i];
+        delete[] table_state;
+    }
+
     //4. Rimozione dalla lista dei pezzi
     //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
     node* prev_node = nullptr;
