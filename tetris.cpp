@@ -513,7 +513,7 @@ void tetris::insert(piece const& p, int x)
                         int rel_x = global_x - curr->tp.x;
                         int rel_y = global_y - curr->tp.y;
 
-                        if(rel_x >= 0 && rel_y >= 0 && rel_x < curr->tp.p.side() && rel_y < curr->tp.p.side())
+                        if(rel_x >= 0 && rel_y >= 0 && rel_x < ((int) curr->tp.p.side()) && rel_y < ((int) curr->tp.p.side()))
                         {
                             if(curr->tp.p.operator()(rel_y, rel_x))
                             {
