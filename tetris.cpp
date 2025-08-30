@@ -1,9 +1,6 @@
 #include <cstdint>
 #include "tetris.hpp"
 
-//forse non serve definire un impl* impl
-
-/* Your implementation goes here! */
 piece::piece()
 {
     m_side = 0;
@@ -731,49 +728,6 @@ bool tetris::containment(piece const& p, int x, int y) const
     }
     return true;
     //*/
-
-    /*
-    uint32_t p_side = p.side();
-    for(uint32_t r = 0; r < p_side; r++)
-    {
-        for(uint32_t c = 0; c < p_side; c++)
-        {
-            if(p.operator()(r,c))    
-            {
-                int abs_x = x + c;
-                int abs_y = y + r;
-            
-                if(abs_x < 0 || abs_y < 0 || abs_x >= m_width || abs_y >= m_height) return false;
-            }
-        }
-    }
-    
-    node* curr = m_field;
-    while(curr)
-    {
-        piece const& curr_piece = curr->tp.p;
-        uint32_t curr_x = curr->tp.x;
-        uint32_t curr_y = curr->tp.y;
-    
-        for(uint32_t r = 0; r < p.side(); r++)
-        {
-            for(uint32_t c = 0; c < p.side(); c++)
-            {
-                int abs_x = x + c;
-                int abs_y = y + r;
-
-                uint32_t rel_x = abs_x - curr_x;
-                uint32_t rel_y = abs_y - curr_y;
-
-                if(rel_x < curr_piece.side() && rel_y < curr_piece.side())
-                    if(curr_piece.operator()(rel_y,rel_x)) return false;
-            }
-        }
-        
-        curr = curr->next;
-    }
-    return true;
-    */
 }
 
 
