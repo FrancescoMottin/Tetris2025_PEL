@@ -287,62 +287,6 @@ void piece::cut_row(uint32_t i)
         return ;
     }
 
-    bool** temp_grid = nullptr;
-    try 
-    {
-        temp_grid = new bool*[m_side - 1];
-        for (uint32_t j = 0; j < m_side - 1; j++)
-            temp_grid[j] = new bool[m_side];
-    }
-
-    catch (const std::bad_alloc& e) 
-    {
-        // Pulisce la memoria in caso di errore di allocazione
-        if (temp_grid) 
-        {
-            for (uint32_t j = 0; j < m_side - 1; j++) 
-            {
-                if(temp_grid[j])
-                    delete[] temp_grid[j];
-            }
-            delete[] temp_grid;
-        }
-        throw tetris_exception("ERROR! - cut_row(uint32_t i) - Errore di allocazione per la griglia temporanea.");
-    }
-
-    for (uint32_t r = 0; r < i; r++)
-    {
-        for (uint32_t c = 0; c < m_side; c++)
-            temp_grid[r][c] = m_grid[r][c];
-    }
-
-    for(uint32_t r = i; r < m_side - 1; r++)    //se i = 0, r-1 porta ad un errore di underflow
-        for(uint32_t c = 0; c < m_side; c++)    
-            temp_grid[r-1][c] = m_grid[r][c];      //m_grid[r][c] = m_grid[r-1][c];
-
-    for (uint32_t r = 0; r < m_side; r++)
-        delete[] m_grid[r];
-    delete[] m_grid;
-
-    // Aggiorna i membri della classe con la nuova griglia
-    m_grid = temp_grid;
-    m_side--;
-    
-    /*
-    if(m_grid == nullptr || m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
-    if(m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Impossibile tagliare riga su un pezzo di dimensione 0.");
-    if(i >= m_side) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Indice di riga (" + std::to_string(i) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
-    if(m_side == 1) 
-    {
-        delete[] m_grid[0];
-        delete[] m_grid;
-        m_side = 0;
-        m_grid = nullptr;
-
-        return ;
-    }
-
-
     //Logica per lo scorrimento delle righe verso il basso (gravità interna al pezzo).
     // Y=0 è la riga superiore del pezzo, Y cresce verso il basso.
     for(uint32_t r = i; r < m_side - 1; r++)    //se i = 0, r-1 porta ad un errore di underflow
@@ -352,7 +296,6 @@ void piece::cut_row(uint32_t i)
     //la riga 0 (la più in alto) conterrà una copia della sua versione originale. Deve essere svuotata
     for(uint32_t c = 0; c < m_side; c++)
         m_grid[m_side-1][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
-    */
 }
 
 uint32_t piece::side() const { return m_side; }
