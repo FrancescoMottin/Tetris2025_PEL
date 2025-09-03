@@ -1107,7 +1107,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
             throw tetris_exception("ERROR! - operator>>(std::istream& is, tetris& t) - Formato input invalido (lettura fallita).");
         }
 
-        try { temp_t.insert(p_data, x); }   //temp_t.insert(p_data, x); //temp_t.add(p_data, x, y);
+        try { temp_t.add(p_data, x, y); }  
         catch(const std::bad_alloc& e)
         {
             is.setstate(std::ios_base::failbit);
