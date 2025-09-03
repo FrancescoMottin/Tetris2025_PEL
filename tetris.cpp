@@ -854,8 +854,12 @@ uint32_t tetris::height() const { return m_height; }
 //crea handler stato p.empty() e p.full()
 void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
 {
-    if(is.fail()) return ;
-    
+    if(is.fail()) 
+    {
+        is.setstate(std::ios_base::failbit);
+        throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore di lettura iniziale");
+    }
+
     char c;
     is >> std::skipws >> c;
     if(is.fail()) 
@@ -889,10 +893,10 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         else                    //failing state
         {
             is.setstate(std::ios_base::failbit);
-            return ;
+            throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Stato fallimentare");
         }
         
-        return ;
+        return;
     }
     else if(curr_side > 1)
     {
@@ -915,7 +919,11 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         {
             char next_c;
             is >> std::skipws >> next_c;
-            if(is.fail()) { is.setstate(std::ios_base::failbit); return ; }
+            if(is.fail()) 
+            { 
+                is.setstate(std::ios_base::failbit); 
+                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Sintassi non rispettata");
+            }
 
             if(next_c == ')')
             {
