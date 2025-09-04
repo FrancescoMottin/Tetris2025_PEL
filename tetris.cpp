@@ -11,7 +11,7 @@ piece::piece()
 //Throws "tetris_exception" se side != 2^n OR color = 0
 piece::piece(uint32_t s, uint8_t c)
 {
-    if((s & (s - 1)) != 0) throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  La dimensione del pezzo (side) deve essere una potenza di 2.");
+    if((s & (s - 1)) != 0) throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  La dimensione del pezzo (m_side) deve essere una potenza di 2.");
     if(s == 0)  throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  La dimensione del pezzo (side) non puo' essere 0.");
     if(c == 0)  throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  Il colore del pezzo (color) non puo' essere 0.");
 
@@ -96,6 +96,7 @@ piece::~piece()
 //assignment operator
 piece& piece::operator=(piece const& rhs)
 {
+    //Se rhs è nulltptr? Forse una throw exception necessaria
     if(this == &rhs) return *this;
 
     //se la grandezza è differente tra this.m_grid e rhs.m_grid, avremmo errori!
@@ -151,7 +152,6 @@ piece& piece::operator=(piece&& rhs)
 bool piece::operator==(piece const& rhs) const
 {
     if(m_side != rhs.m_side || m_color != rhs.m_color) return false;
-    if(m_side == 0) return true;
 
     for(uint32_t i = 0; i < m_side; i++)
         for(uint32_t j = 0; j < m_side; j++)
@@ -273,7 +273,7 @@ void piece::rotate()
 //Probabilmente mal implementato
 void piece::cut_row(uint32_t i)
 {
-    if(m_grid == nullptr || m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
+    if(m_grid == nullptr) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
     if(m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Impossibile tagliare riga su un pezzo di dimensione 0.");
     if(i >= m_side) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Indice di riga (" + std::to_string(i) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
     if(m_side == 1) 
@@ -286,7 +286,6 @@ void piece::cut_row(uint32_t i)
         return ;
     }
 
-
     //Logica per lo scorrimento delle righe verso il basso (gravità interna al pezzo).
     // Y=0 è la riga superiore del pezzo, Y cresce verso il basso.
     for(uint32_t r = i; r < m_side - 1; r++)    //se i = 0, r-1 porta ad un errore di underflow
@@ -295,7 +294,7 @@ void piece::cut_row(uint32_t i)
 
     //la riga 0 (la più in alto) conterrà una copia della sua versione originale. Deve essere svuotata
     for(uint32_t c = 0; c < m_side; c++)
-        m_grid[m_side-1][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
+        m_grid[0][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
 }
 
 uint32_t piece::side() const { return m_side; }
