@@ -294,7 +294,7 @@ void piece::cut_row(uint32_t i)
 
     //la riga 0 (la più in alto) conterrà una copia della sua versione originale. Deve essere svuotata
     for(uint32_t c = 0; c < m_side; c++)
-        m_grid[0][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
+        m_grid[m_side - 1][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
 }
 
 uint32_t piece::side() const { return m_side; }
