@@ -159,7 +159,6 @@ bool piece::operator==(piece const& rhs) const
     
     return true;
 }
-
 bool piece::operator!=(piece const& rhs) const { return !(operator==(rhs)); }
 
 bool& piece::operator()(uint32_t i, uint32_t j)
@@ -289,13 +288,13 @@ void piece::cut_row(uint32_t i)
 
     //Logica per lo scorrimento delle righe verso il basso (gravità interna al pezzo).
     // Y=0 è la riga superiore del pezzo, Y cresce verso il basso.
-    for(uint32_t r = i; r < m_side - 1; r++)    //se i = 0, r-1 porta ad un errore di underflow
+    for(int r = ((int) i); r > 0; r--)             //uint32_t r = i; r < m_side - 1; r++ //se i = 0, r-1 porta ad un errore di underflow
         for(uint32_t c = 0; c < m_side; c++)    
-            m_grid[r][c] = m_grid[r+1][c];      //m_grid[r][c] = m_grid[r-1][c];
+            m_grid[r][c] = m_grid[r-1][c];      //m_grid[r][c] = m_grid[r-1][c];
 
     //la riga 0 (la più in alto) conterrà una copia della sua versione originale. Deve essere svuotata
     for(uint32_t c = 0; c < m_side; c++)
-        m_grid[m_side-1][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
+        m_grid[0][c] = false;                                    //m_grid[m_side-1][c] = false;    //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
 }
 
 uint32_t piece::side() const { return m_side; }
