@@ -252,73 +252,51 @@ bool test_piece_cut_row() {
         // # # # #  (Riga 1)
         // # . . .  (Riga 2)
         // . . . .  (Riga 3)
-        //std::cout << "DEBUG: Test cut_row - Pezzo iniziale:" << std::endl;
-        //p.print_ascii_art(std::cout); // Se hai implementato print_ascii_art per piece
 
-        p.cut_row(0); // Taglia la riga 0
+        p.cut_row(1); // Taglia la riga 1
 
-        // Stato atteso dopo p.cut_row(0) (m_side non cambia):
-        // La vecchia riga 1 si sposta alla riga 0
-        // La vecchia riga 2 si sposta alla riga 1
-        // La vecchia riga 3 si sposta alla riga 2
-        // La riga 3 (l'ultima) diventa vuota
+        // Stato atteso dopo cut_row(1):
+        // . . . .  (Nuova riga 0 vuota)
+        // # # # #  (Ex riga 0 scesa)
+        // # . . .  (Riga 2 invariata)
+        // . . . .  (Riga 3 invariata)
 
-        // Stato atteso visualmente:
-        // # # # #  (Ex Riga 1)
-        // # . . .  (Ex Riga 2)
-        // . . . .  (Ex Riga 3)
-        // . . . .  (Nuova Riga Vuota)
-        //std::cout << "DEBUG: Test cut_row - Pezzo dopo cut_row(0):" << std::endl;
-        //p.print_ascii_art(std::cout); // Se hai implementato print_ascii_art per piece
-
-        // Verifica che la nuova Riga 0 (ex Riga 1) sia tutta true
+        // Verifica nuova riga 0 vuota
         for(uint32_t j=0; j<4; ++j) {
-            if(!p(0,j)) {
+            if(p(0,j)) {
                 passed = false;
-                std::cerr << "Cut row failed: Nuova Riga 0 (ex Riga 1) non corretta a colonna " << j << std::endl;
-                break;
+                std::cerr << "Cut row failed: Riga 0 non vuota a colonna " << j << std::endl;
             }
         }
-        if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
 
+        // Verifica nuova riga 1 = ex riga 0 (tutta true)
+        for(uint32_t j=0; j<4; ++j) {
+            if(!p(1,j)) {
+                passed = false;
+                std::cerr << "Cut row failed: Riga 1 non corretta a colonna " << j << std::endl;
+            }
+        }
 
-        // Verifica che la nuova Riga 1 (ex Riga 2) abbia solo p(1,0)=true
-        if(!p(1,0) || p(1,1) || p(1,2) || p(1,3)) {
+        // Verifica riga 2 invariata (solo colonna 0 true)
+        if(!p(2,0) || p(2,1) || p(2,2) || p(2,3)) {
             passed = false;
-            std::cerr << "Cut row failed: Nuova Riga 1 (ex Riga 2) non corretta." << std::endl;
+            std::cerr << "Cut row failed: Riga 2 non invariata." << std::endl;
         }
-        if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
 
-
-        // Verifica che la nuova Riga 2 (ex Riga 3) sia tutta false
-        for(uint32_t j=0; j<4; ++j) {
-            if(p(2,j)) {
-                passed = false;
-                std::cerr << "Cut row failed: Nuova Riga 2 (ex Riga 3) non corretta a colonna " << j << std::endl;
-                break;
-            }
-        }
-        if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
-
-        // Verifica che la nuova Riga 3 (l'ultima, ora svuotata) sia tutta false
+        // Verifica riga 3 invariata (tutta false)
         for(uint32_t j=0; j<4; ++j) {
             if(p(3,j)) {
                 passed = false;
-                std::cerr << "Cut row failed: Nuova Riga 3 (svuotata) non corretta a colonna " << j << std::endl;
-                break;
+                std::cerr << "Cut row failed: Riga 3 non corretta a colonna " << j << std::endl;
             }
         }
-        if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
 
-        //std::cout << "DEBUG: Cut row passed for valid index." << std::endl;
-
-        // Test cut_row su riga invalida (questo è già corretto e lancia eccezione)
+        // Test cut_row su riga invalida
         try {
             p.cut_row(p.side()); // Fuori limite (p.side() è ancora 4)
-            passed = false; // Fallisce se non lancia eccezione
+            passed = false;
         } catch (const tetris_exception& e) {
             // Eccezione attesa
-            //std::cout << "DEBUG: Cut row invalid index test passed: " << e.what() << std::endl;
         } catch (...) {
             passed = false;
         }
@@ -329,6 +307,7 @@ bool test_piece_cut_row() {
     }
     return passed;
 }
+
 
 // Test operator<< e operator>> per piece (round-trip)
 bool test_piece_stream_operators() {

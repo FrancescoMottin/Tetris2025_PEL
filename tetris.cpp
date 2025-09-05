@@ -269,34 +269,24 @@ void piece::rotate()
     m_grid = tmp_grid;
 }
 
-//maybe implement try-catch for std::bad_alloc
-//Probabilmente mal implementato
+//Mal implementato, totalmente da rivedere
 void piece::cut_row(uint32_t i)
 {
     if(m_grid == nullptr) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
     if(m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Impossibile tagliare riga su un pezzo di dimensione 0.");
     if(i >= m_side) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Indice di riga (" + std::to_string(i) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
-    if(m_side == 1) 
-    {
-        delete[] m_grid[0];
-        delete[] m_grid;
-        m_side = 0;
-        m_grid = nullptr;
-
-        return ;
-    }
 
     //Logica per lo scorrimento delle righe verso il basso (gravità interna al pezzo).
     // Y=0 è la riga superiore del pezzo, Y cresce verso il basso.
-    for(uint32_t r = i; r < m_side - 1; r++)    //se i = 0, r-1 porta ad un errore di underflow
+    for(uint32_t r = i; r > 0; r--)    //se i = 0, r-1 porta ad un errore di underflow
         for(uint32_t c = 0; c < m_side; c++)    
-            m_grid[r][c] = m_grid[r+1][c];      //m_grid[r][c] = m_grid[r-1][c];
+            m_grid[r][c] = m_grid[r-1][c];      //m_grid[r][c] = m_grid[r-1][c];
 
     //la riga 0 (la più in alto) conterrà una copia della sua versione originale. Deve essere svuotata
     for(uint32_t c = 0; c < m_side; c++)
-        m_grid[m_side - 1][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
+        m_grid[0][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
 }
-
+ 
 uint32_t piece::side() const { return m_side; }
 int piece::color() const { return m_color; }
 
@@ -319,7 +309,7 @@ tetris::tetris(uint32_t w, uint32_t h, uint32_t s)  //: m_width(0), m_height(0),
     m_field = nullptr; //m_field rappresenta i diversi pezzi, non il tabellone stesso
 }
 
-//try_catch per ciclo (nel caso si fallisse l'allcoazione)
+//try_catch per ciclo (nel caso si fallisse l'allocazione)
 tetris::tetris(tetris const& rhs)
 {
     m_score = rhs.m_score;
@@ -479,11 +469,12 @@ bool tetris::operator==(tetris const& rhs) const
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
-void tetris::insert(piece const& p, int x)
+void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
-    //1. Trovare posizione di caduta
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
+    //Se il il piece è più grande del campo di gioco? throw_exception
 
+    //1. Trovare posizione di caduta
     int pos_y;
     bool pos_found = false;
     
@@ -497,7 +488,7 @@ void tetris::insert(piece const& p, int x)
             {
                 if(p.operator()(grid_y, grid_x))   //p.operator()(grid_x, grid_y)
                 {
-                    int global_x = x + grid_x;
+                    int global_x = x + grid_x;  //Coordinate della tabella tetris
                     int global_y = i + grid_y;
 
                     //Bisogna assicurarsi che p.side() abbia abbastanza spazio
@@ -508,7 +499,7 @@ void tetris::insert(piece const& p, int x)
                     node* curr = m_field;
                     while (curr != nullptr)
                     {
-                        int rel_x = global_x - curr->tp.x;
+                        int rel_x = global_x - curr->tp.x;  //Coordinate nelle grigle del singolo pezzo
                         int rel_y = global_y - curr->tp.y;
 
                         if(rel_x >= 0 && rel_y >= 0 && rel_x < ((int) curr->tp.p.side()) && rel_y < ((int) curr->tp.p.side()))
@@ -534,7 +525,8 @@ void tetris::insert(piece const& p, int x)
             break;
         }
     }
-    if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
+    //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
+    if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
     add(p,x, pos_y);
 
     //2. Identifica le righe piene che dovremo rimuovere  
@@ -618,7 +610,7 @@ void tetris::insert(piece const& p, int x)
             if(row_full[i] && i >= pos_y && i < pos_y + to_cut.side()) //Controlla se la riga è da eliminare
             {
                 int rel_row = i - pos_y;
-                to_cut.cut_row(rel_row);
+                to_cut.cut_row(rel_row); //Aggiungere un possibile try catch per errori
             }
         }
         curr->tp.y += fall;
@@ -634,7 +626,7 @@ void tetris::insert(piece const& p, int x)
         delete[] table_state;
     }
 
-    //4. Rimozione dalla lista dei pezzi
+    //4. Rimozione dalla lista dei pezzi vuoti
     //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
     node* prev_node = nullptr;
     node* curr_node = m_field;
@@ -665,7 +657,7 @@ void tetris::insert(piece const& p, int x)
     }
 }
 
-void tetris::add(piece const& p, int x, int y)
+void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
     if(!containment(p,x,y)) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Le coordinate non sono valide per il pezzo dato");
 
@@ -691,6 +683,7 @@ void tetris::add(piece const& p, int x, int y)
     }
 }
 
+//controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
 bool tetris::containment(piece const& p, int x, int y) const
 {
     ///*
@@ -889,8 +882,9 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             }
             else p(row_offset, col_offset) = true;
         }
-        else                    //failing state
+        else //failing state
         {
+            //forse stampare?
             is.setstate(std::ios_base::failbit);
             throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Stato fallimentare");
         }
@@ -1069,6 +1063,7 @@ std::ostream& operator<<(std::ostream& os, piece const& p)  //empty(i,j,s) and f
     return os;
 }
 
+//Errori non arrivano?
 std::istream& operator>>(std::istream& is, tetris& t)
 {
     uint32_t width;
