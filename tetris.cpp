@@ -480,45 +480,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     
     for(int i = m_height - ((int) p.side()); i >= 0; i--) 
     {
-        bool fit = true;
-
-        for(uint32_t grid_x = 0; grid_x < p.side(); grid_x++)
-        {
-            for(uint32_t grid_y = 0; grid_y < p.side(); grid_y++)
-            {
-                if(p.operator()(grid_y, grid_x))   //p.operator()(grid_x, grid_y)
-                {
-                    int global_x = x + grid_x;  //Coordinate della tabella tetris
-                    int global_y = i + grid_y;
-
-                    //Bisogna assicurarsi che p.side() abbia abbastanza spazio
-                    //global_x < 0 || global_y < 0
-                    if(global_x < 0 || global_y < 0 || global_x >= ((int) m_width) || global_y >= ((int) m_height)) fit = false;
-
-                    //Controllare se curr ...
-                    node* curr = m_field;
-                    while (curr != nullptr)
-                    {
-                        int rel_x = global_x - curr->tp.x;  //Coordinate nelle grigle del singolo pezzo
-                        int rel_y = global_y - curr->tp.y;
-
-                        if(rel_x >= 0 && rel_y >= 0 && rel_x < ((int) curr->tp.p.side()) && rel_y < ((int) curr->tp.p.side()))
-                        {
-                            if(curr->tp.p.operator()(rel_y, rel_x))
-                            {
-                                fit = false;
-                                break;
-                            }
-                        }
-                        curr = curr->next;
-                    }
-                }
-                if (!fit) break;
-            }
-            if (!fit) break;
-        }
-
-        if(fit) 
+        if(containment(p, x , i)) 
         {
             pos_y = i;
             pos_found = true;
@@ -673,9 +635,7 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
     node* new_node = nullptr;
     try{ new_node = new node{new_tp, nullptr}; }   //try-catch?
     catch(const std::bad_alloc& e)
-    { 
-        throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Errore di allocazione memoria durante l'aggiunta di un pezzo."); 
-    }
+    { throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Errore di allocazione memoria durante l'aggiunta di un pezzo."); }
 
     if(!m_field) m_field = new_node;
     else
