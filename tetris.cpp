@@ -527,7 +527,9 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     }
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
     if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
-    add(p,x, pos_y);
+    
+    try { add(p,x, pos_y); }
+    catch (const tetris_exception& e) { throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore causato da add()"); }
 
     //2. Identifica le righe piene che dovremo rimuovere  
     bool* row_full = new bool[m_height];  //new bool[m_height];
@@ -610,7 +612,9 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             if(row_full[i] && i >= pos_y && i < pos_y + to_cut.side()) //Controlla se la riga è da eliminare
             {
                 int rel_row = i - pos_y;
-                to_cut.cut_row(rel_row); //Aggiungere un possibile try catch per errori
+                
+                try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
+                catch (const tetris_exception& e) { throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore causato da cut_row()"); }
             }
         }
         curr->tp.y += fall;
