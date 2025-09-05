@@ -481,7 +481,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     for(int i = m_height - ((int) p.side()); i >= 0; i--) 
     {
         bool contained; 
-        try{ contained = containment(p,x,i); } catch(const tetris_exception& e){throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di containment()");};
+        try{ contained = containment(p,x,i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
         if(contained) 
         {
             pos_y = i;
@@ -493,7 +493,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
     
     try { add(p,x, pos_y); }
-    catch (const tetris_exception& e) { throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore causato da add()"); }
+    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
     //2. Identifica le righe piene che dovremo rimuovere  
     bool* row_full = new bool[m_height];  //new bool[m_height];
@@ -578,7 +578,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                 int rel_row = i - pos_y;
                 
                 try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
-                catch (const tetris_exception& e) { throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore causato da cut_row()"); }
+                catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
             }
         }
         curr->tp.y += fall;
@@ -628,7 +628,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
     bool contained; 
-    try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Errore di containment()");};
+    try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
     if(!contained) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Le coordinate non sono valide per il pezzo dato");
 
     tetris_piece new_tp;
@@ -902,7 +902,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 catch(const tetris_exception& e)
                 {
                     is.setstate(std::ios_base::failbit);
-                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore gestione ricorsione 1");
+                    throw tetris_exception(e.what() + "1");
                 }
             
                 //Top-rigth
@@ -910,15 +910,15 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 catch(const tetris_exception& e)
                 {
                     is.setstate(std::ios_base::failbit);
-                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore gestione ricorsione 2");
+                    throw tetris_exception(e.what() + "2");
                 }
-            
+                
                 //Bottom-left
                 try{ input_grid_rec(is, p, half_side, row_offset + half_side, col_offset); }
                 catch(const tetris_exception& e) 
                 {
                     is.setstate(std::ios_base::failbit);
-                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore gestione ricorsione 3");
+                    throw tetris_exception(e.what() + "3");
                 }
             
                 //Bottom-right
@@ -926,7 +926,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 catch(const tetris_exception& e)
                 {
                     is.setstate(std::ios_base::failbit);
-                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore gestione ricorsione 4");
+                    throw tetris_exception(e.what() + "4");
                 }
 
                 is >> std::skipws >> c;
@@ -1004,15 +1004,15 @@ std::istream& operator>>(std::istream& is, piece& p)
     catch(const tetris_exception& e)
     {
         is.setstate(std::ios_base::failbit);
-        throw tetris_exception("ERROR! - operator>>(std::istream& is, piece& p) - Errore di allocazione.");
+        throw tetris_exception(e.what());
     }
 
     //Commentata tutta la logica in operator>>: verrà tutta gestita da input_grid_rec
     try { input_grid_rec(is, temp_piece, val_side, 0, 0); }
-    catch(const tetris_exception& e)
+    catch( const tetris_exception& e)
     {
         is.setstate(std::ios_base::failbit);
-        throw tetris_exception("ERROR! - operator>>(std::istream& is, piece& p) - Formato input invalido (fine funzione).");
+        throw tetris_exception(e.what());
     }
 
     p = std::move(temp_piece); //Usa il move constructor
@@ -1075,7 +1075,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
         catch (const tetris_exception& e) 
         {
             is.setstate(std::ios_base::failbit);
-            throw tetris_exception("ERROR! - operator>>(std::istream& is, tetris& t) - Errore causato da add()");
+            throw tetris_exception(e.what());;
         }
     }
 

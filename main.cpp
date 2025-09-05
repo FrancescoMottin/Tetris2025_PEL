@@ -9,6 +9,18 @@ void print_test_result(const std::string& test_name, bool passed) {
     std::cout << "Test: " << test_name << " - " << (passed ? "PASSED" : "FAILED") << std::endl;
 }
 
+void piece::print_ascii_art(std::ostream& os) const
+{
+    os << "Piece (side=" << m_side << ", color=" << (int)m_color << ")\n";
+    for (uint32_t i = 0; i < m_side; i++) {
+        for (uint32_t j = 0; j < m_side; j++) {
+            os << (m_grid[i][j] ? '#' : '.');
+        }
+        os << '\n';
+    }
+}
+
+
 // --- Test per la classe Piece ---
 
 // Test dei costruttori validi
@@ -322,14 +334,14 @@ bool test_piece_stream_operators() {
 
         std::stringstream ss;
         ss << p_original; // Scrivi il pezzo nello stringstream
-
-        //std::cout << "DEBUG: Contenuto di stringstream ss: '" << ss.str() << "'" << std::endl; // <--- AGGIUNGI QUESTO
+        std::cout << "ASCII Art del pezzo originale:\n";
+        p_original.print_ascii_art(std::cout);
 
         piece p_read;
         ss >> p_read; // Leggi il pezzo dallo stringstream      --> Il problema è in operator>>
-
-        //std::cout << "DEBUG: Contenuto di stringstream ss: '" << ss.str() << "'" << std::endl;
-
+        std::cout << "ASCII Art del pezzo letto dallo stream:\n";
+        p_read.print_ascii_art(std::cout);
+        
         if (ss.fail()) {
             std::cerr << "Stream failed during piece read." << std::endl;
             passed = false;
@@ -482,11 +494,15 @@ bool test_tetris_stream_operators() {
 
         std::stringstream ss;
         ss << t_original; // Scrivi il tabellone nello stringstream
-
+        std::cout << "ASCII Art del tetris originale:\n";
+        t_original.print_ascii_art(std::cout);
+        
         //std::cout << "Output serializzato:\n" << ss.str() << std::endl; // Per debug: stampa l'output serializzato
 
         tetris t_read; // Crea un nuovo oggetto vuoto
         ss >> t_read; // Leggi il tabellone dallo stringstream
+        std::cout << "ASCII Art del tetris letto dallo stream:\n";
+        t_read.print_ascii_art(std::cout);
 
         if (ss.fail()) {
             std::cerr << "Stream failed during tetris read.";
