@@ -732,7 +732,7 @@ void tetris::print_ascii_art(std::ostream& os) const
                 {
                     abs_x = x + j;
                     abs_y = y + i;
-                    tmp_mat[abs_y][abs_x] = '#';
+                    tmp_mat[abs_y][abs_x] = p.color();  //tmp_mat[abs_y][abs_x] = '#';
                 } 
             }
         }
@@ -748,7 +748,7 @@ void tetris::print_ascii_art(std::ostream& os) const
     {
         os << '|';
         for(uint32_t j = 0; j < m_width; j++)
-            os << tmp_mat[i][j];
+            os << "\033[38;5;" << tmp_mat[i][j] << "m#\033[0m"; //os << tmp_mat[i][j];
         os << '|' << std::endl;
     }
 
