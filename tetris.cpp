@@ -698,7 +698,7 @@ void tetris::print_ascii_art(std::ostream& os) const
         {
             tmp_mat[i] = new int[m_width];
             for(uint32_t j = 0; j < m_width; j++)
-                tmp_mat[i][j] = ' ';
+                tmp_mat[i][j] = -1;
         }
     }
     catch(const std::bad_alloc& e)
