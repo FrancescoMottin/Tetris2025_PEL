@@ -12,12 +12,16 @@ void print_test_result(const std::string& test_name, bool passed) {
 void piece::print_ascii_art(std::ostream& os) const
 {
     os << "Piece (side=" << m_side << ", color=" << (int)m_color << ")\n";
+    os << "\033[38;5;" << static_cast<int>(m_color) << "m";
+
     for (uint32_t i = 0; i < m_side; i++) {
         for (uint32_t j = 0; j < m_side; j++) {
             os << (m_grid[i][j] ? '#' : '.');
         }
         os << '\n';
     }
+
+    os << "\033[0m";
 }
 
 
