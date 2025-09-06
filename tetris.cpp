@@ -748,7 +748,10 @@ void tetris::print_ascii_art(std::ostream& os) const
     {
         os << '|';
         for(uint32_t j = 0; j < m_width; j++)
-            os << "\033[38;5;" << tmp_mat[i][j] << "m#\033[0m"; //os << tmp_mat[i][j];
+        {
+            if (tmp_mat[i][j] != -1) os << "\033[38;5;" << tmp_mat[i][j] << "m#\033[0m"; //os << tmp_mat[i][j];
+            else os << " ";
+        }
         os << '|' << std::endl;
     }
 
