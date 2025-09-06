@@ -856,7 +856,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         {
             //forse stampare?
             is.setstate(std::ios_base::failbit);
-            throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Stato fallimentare");
+            throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Stato fallimentare (side == 1)");
         }
         
         return;
@@ -907,7 +907,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 catch(const tetris_exception& e)
                 {
                     is.setstate(std::ios_base::failbit);
-                    throw tetris_exception(e.what() + "1");
+                    throw tetris_exception(e.what() + " 1");
                 }
             
                 //Top-rigth
@@ -915,7 +915,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 catch(const tetris_exception& e)
                 {
                     is.setstate(std::ios_base::failbit);
-                    throw tetris_exception(e.what() + "2");
+                    throw tetris_exception(e.what() + " 2");
                 }
                 
                 //Bottom-left
@@ -923,7 +923,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 catch(const tetris_exception& e) 
                 {
                     is.setstate(std::ios_base::failbit);
-                    throw tetris_exception(e.what() + "3");
+                    throw tetris_exception(e.what() + " 3");
                 }
             
                 //Bottom-right
@@ -931,7 +931,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
                 catch(const tetris_exception& e)
                 {
                     is.setstate(std::ios_base::failbit);
-                    throw tetris_exception(e.what() + "4");
+                    throw tetris_exception(e.what() + " 4");
                 }
 
                 is >> std::skipws >> c;
