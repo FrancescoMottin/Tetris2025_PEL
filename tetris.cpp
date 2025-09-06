@@ -690,13 +690,13 @@ bool tetris::containment(piece const& p, int x, int y) const
 //NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
 {
-    char** tmp_mat = nullptr;
+    int** tmp_mat = nullptr;
     try
     {
-        tmp_mat = new char*[m_height];
+        tmp_mat = new int*[m_height];
         for(uint32_t i = 0; i < m_height; i++)
         {
-            tmp_mat[i] = new char[m_width];
+            tmp_mat[i] = new int[m_width];
             for(uint32_t j = 0; j < m_width; j++)
                 tmp_mat[i][j] = ' ';
         }
@@ -732,7 +732,8 @@ void tetris::print_ascii_art(std::ostream& os) const
                 {
                     abs_x = x + j;
                     abs_y = y + i;
-                    tmp_mat[abs_y][abs_x] = p.color();  //tmp_mat[abs_y][abs_x] = '#';
+                    //tmp_mat[abs_y][abs_x] = '#';  
+                    tmp_mat[abs_y][abs_x] = p.color();
                 } 
             }
         }
@@ -749,7 +750,8 @@ void tetris::print_ascii_art(std::ostream& os) const
         os << '|';
         for(uint32_t j = 0; j < m_width; j++)
         {
-            if (tmp_mat[i][j] != -1) os << "\033[38;5;" << tmp_mat[i][j] << "m#\033[0m"; //os << tmp_mat[i][j];
+            //os << tmp_mat[i][j];
+            if(tmp_mat[i][j] != -1) os << "\033[38;5;" << tmp_mat[i][j] << "m#\033[0m"; 
             else os << " ";
         }
         os << '|' << std::endl;
