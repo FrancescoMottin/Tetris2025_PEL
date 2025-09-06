@@ -885,14 +885,14 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         }
         else if (c == '(')
         {
-            is >> std::skipws >> c;
+            char next_c = is.peek();
             if(is.fail()) 
             { 
                 is.setstate(std::ios_base::failbit); 
                 throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Sintassi non rispettata");
             }
 
-            if(c == ')')
+            if(next_c == ')')
             {
                 is.get();
                 for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
@@ -949,7 +949,6 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         }
     }
 }
-
 
 void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
 {
