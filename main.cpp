@@ -328,7 +328,8 @@ bool test_piece_cut_row() {
 // Test operator<< e operator>> per piece (round-trip)
 bool test_piece_stream_operators() {
     bool passed = true;
-    try {
+    try 
+    {
         piece p_original(4, 123);
         p_original(0,0) = true;
         p_original(1,1) = true;
@@ -338,13 +339,25 @@ bool test_piece_stream_operators() {
 
         std::stringstream ss;
         ss << p_original; // Scrivi il pezzo nello stringstream
+
+        std::cout << "DEBUG operator<< stringa pre-serializzazione: " << ss.str() << std::endl;
+        std::cout << "Posizione iniziale cursore: " << ss.tellg() << std::endl;
         std::cout << "ASCII Art del pezzo originale:\n";
         p_original.print_ascii_art(std::cout);
 
         piece p_read;
         ss >> p_read; // Leggi il pezzo dallo stringstream      --> Il problema è in operator>>
+        
+        std::cout << "DEBUG operator<< stringa serializzata: " << ss.str() << std::endl;
+        std::cout << "Posizione cursore dopo lettura: " << ss.tellg() << std::endl;
         std::cout << "ASCII Art del pezzo letto dallo stream:\n";
         p_read.print_ascii_art(std::cout);
+
+        
+        // Mostra cosa resta da leggere
+        //std::string rest;
+        //std::getline(ss, rest, '\0');
+        //std::cout << "DEBUG residuo nel buffer dopo lettura: '" << rest << "'" << std::endl;
         
         if (ss.fail()) {
             std::cerr << "Stream failed during piece read." << std::endl;
