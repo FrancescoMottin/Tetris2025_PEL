@@ -983,6 +983,12 @@ void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint3
 
 std::istream& operator>>(std::istream& is, piece& p)
 {
+    if (is.peek() == EOF) 
+    {
+        is.setstate(std::ios_base::failbit);
+        return is;
+    }
+
     uint32_t val_side;
     uint32_t val_color_32;
     is >> std::skipws >> val_side >> std::skipws >> val_color_32;
