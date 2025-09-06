@@ -885,8 +885,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         }
         else if (c == '(')
         {
-            char next_c;
-            is >> std::skipws >> next_c;
+            char next_c = is.peek();
             if(is.fail()) 
             { 
                 is.setstate(std::ios_base::failbit); 
@@ -895,17 +894,18 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
             if(next_c == ')')
             {
+                is.get();
                 for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
                     for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
                         p(i,j) = true;
             }
             else
             {
-                if (!is.putback(next_c)) 
+                /*if (!is.putback(next_c)) 
                 {
                     is.setstate(std::ios_base::failbit);
                     throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore lettura flusso (putback)");
-                }
+                }*/
 
                 //Top-Left
                 try{ input_grid_rec(is, p, half_side, row_offset, col_offset); }

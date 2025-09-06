@@ -368,6 +368,7 @@ bool test_piece_stream_operators() {
             passed = false;
         }
 
+        std::cout << "" << std::endl;
         // Test input malformato
         std::stringstream ss_bad;
         ss_bad << "2 100 ([])"; // Formato valido, ma poi un carattere extra
