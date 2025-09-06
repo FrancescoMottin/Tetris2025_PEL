@@ -824,11 +824,6 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
     char c;
     is >> std::skipws >> c;
-    if(is.eof()) 
-    {
-        is.setstate(std::ios_base::failbit);
-        throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - EOF prematuro nello stream");
-    }
     if(is.fail()) 
     {
         is.setstate(std::ios_base::failbit);
@@ -866,89 +861,94 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         
         return;
     }
-    else if(curr_side > 1)
-    {
-        int half_side = curr_side / 2;
+        
+    int half_side = curr_side / 2;
 
-        if(c == '[')
+    if(c == '[')
+    {
+        is >> std::skipws >> c;
+        if(is.fail() || c != ']')
         {
-            is >> std::skipws >> c;
-            if(is.fail() || c != ']')
-            {
-                is.setstate(std::ios_base::failbit);
-                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso vuoto, sintassi non rispettata");
-            }
+            is.setstate(std::ios_base::failbit);
+            throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso vuoto, sintassi non rispettata");
+        }
     
+        for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
+            for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
+                p(i,j) = false;
+    }
+    else if (c == '(')
+    {
+        char next_c = is.peek();
+        if(is.fail()) 
+        { 
+            is.setstate(std::ios_base::failbit); 
+            throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Sintassi non rispettata");
+        }
+
+        if(next_c == ')')
+        {
+            is.get();
             for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
                 for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
-                    p(i,j) = false;
+                    p(i,j) = true;
         }
-        else if (c == '(')
+        else //if(next_c == '(' || next_c == '[')
         {
-            char next_c = is.peek();
-            if(is.fail()) 
-            { 
-                is.setstate(std::ios_base::failbit); 
-                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Sintassi non rispettata");
-            }
-
-            if(next_c == ')')
+            /*if (!is.putback(next_c)) 
             {
-                is.get();
-                for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
-                    for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
-                        p(i,j) = true;
-            }
-            else
-            {
-                /*if (!is.putback(next_c)) 
-                {
-                    is.setstate(std::ios_base::failbit);
-                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore lettura flusso (putback)");
-                }*/
+                is.setstate(std::ios_base::failbit);
+                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore lettura flusso (putback)");
+            }*/
 
-                //Top-Left
-                try{ input_grid_rec(is, p, half_side, row_offset, col_offset); }
-                catch(const tetris_exception& e)
-                {
-                    is.setstate(std::ios_base::failbit);
-                    throw tetris_exception(e.what() + " 1");
-                }
+            //Top-Left
+            try{ input_grid_rec(is, p, half_side, row_offset, col_offset); }
+            catch(const tetris_exception& e)
+            {
+                is.setstate(std::ios_base::failbit);
+                throw tetris_exception(e.what() + " 1");
+            }
             
-                //Top-rigth
-                try{ input_grid_rec(is, p, half_side, row_offset, col_offset + half_side); }
-                catch(const tetris_exception& e)
-                {
-                    is.setstate(std::ios_base::failbit);
-                    throw tetris_exception(e.what() + " 2");
-                }
+            //Top-rigth
+            try{ input_grid_rec(is, p, half_side, row_offset, col_offset + half_side); }
+            catch(const tetris_exception& e)
+            {
+                is.setstate(std::ios_base::failbit);
+                throw tetris_exception(e.what() + " 2");
+            }
                 
-                //Bottom-left
-                try{ input_grid_rec(is, p, half_side, row_offset + half_side, col_offset); }
-                catch(const tetris_exception& e) 
-                {
-                    is.setstate(std::ios_base::failbit);
-                    throw tetris_exception(e.what() + " 3");
-                }
-            
-                //Bottom-right
-                try{ input_grid_rec(is, p, half_side, row_offset + half_side, col_offset + half_side); }
-                catch(const tetris_exception& e)
-                {
-                    is.setstate(std::ios_base::failbit);
-                    throw tetris_exception(e.what() + " 4");
-                }
-
-                is >> std::skipws >> c;
-                if(is.fail() || c != ')')
-                {
-                    is.setstate(std::ios_base::failbit);
-                    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Ultima parentesi di chiusura ')' non rispettata ");
-                }
+            //Bottom-left
+            try{ input_grid_rec(is, p, half_side, row_offset + half_side, col_offset); }
+            catch(const tetris_exception& e) 
+            {
+                is.setstate(std::ios_base::failbit);
+                throw tetris_exception(e.what() + " 3");
             }
+            
+            //Bottom-right
+            try{ input_grid_rec(is, p, half_side, row_offset + half_side, col_offset + half_side); }
+            catch(const tetris_exception& e)
+            {
+                is.setstate(std::ios_base::failbit);
+                throw tetris_exception(e.what() + " 4");
+            }
+
+            is >> std::skipws >> c;
+            if(is.fail() || c != ')')
+            {
+                is.setstate(std::ios_base::failbit);
+                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Ultima parentesi di chiusura ')' non rispettata ");
+            }
+            /*else 
+            {
+                is.setstate(std::ios_base::failbit);
+                throw tetris_exception("ERROR! - input_grid_rec - Carattere non valido (atteso '[' o '(')");
+            }
+            */
         }
     }
 }
+
 
 void output_grid_rec(std::ostream& os, piece const& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
 {

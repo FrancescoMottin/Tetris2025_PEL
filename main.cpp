@@ -352,7 +352,6 @@ bool test_piece_stream_operators() {
         std::cout << "Posizione cursore dopo lettura: " << ss.tellg() << std::endl;
         std::cout << "ASCII Art del pezzo letto dallo stream:\n";
         p_read.print_ascii_art(std::cout);
-
         
         // Mostra cosa resta da leggere
         //std::string rest;
