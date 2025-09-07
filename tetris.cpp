@@ -834,10 +834,12 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
     if(curr_side == 1) 
     {
+        //char next_c = is.peek();
         if(c == '[') 
         {
-            is >> std::skipws >> c;
-            if(is.fail() || c != ']')
+            //is >> std::skipws >> c;
+            char next = is.get();
+            if(is.fail() || next == EOF || next != ']')
             {
                 is.setstate(std::ios_base::failbit);
                 if(c != ']') snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
@@ -847,14 +849,18 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         }
         else if(c == '(') 
         {
-            is >> std::skipws >> c;
-            if(is.fail() || c != ')')
+            char next = is.get();
+            if(is.fail() || next == EOF || next != ')')
             {
                 is.setstate(std::ios_base::failbit);
                 if(c != ')') snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
                 throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso side=1 pieno, sintassi non rispettata");
             }
-            else p(row_offset, col_offset) = true;
+            else 
+            {
+                fprintf(stderr, "DEBUG: chiusura trovata a livello side=%u offset=(%u,%u)\n", curr_side, row_offset, col_offset);
+                p(row_offset, col_offset) = true;
+            }
         }
         else //failing state
         {
@@ -949,7 +955,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
     
     is.setstate(std::ios_base::failbit);
     snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
-    throw tetris_exception("ERROR! - input_grid_rec - Carattere iniziale non valido");
+    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Carattere iniziale non valido");
 }
 
 
