@@ -816,13 +816,11 @@ uint32_t tetris::height() const { return m_height; }
 //crea handler stato p.empty() e p.full()
 void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
 {
-    /*
     if(is.fail()) 
     {
         is.setstate(std::ios_base::failbit);
-        throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore di lettura iniziale");
+        throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore di lettura pre-lettura");
     }
-    */
 
     char c;
     is >> std::skipws >> c;
@@ -899,15 +897,9 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             
             return ;
         }
-        //else if(next_c == '(' || next_c == '[')
-        //{
-            /*if (!is.putback(next_c)) 
-            {
-                is.setstate(std::ios_base::failbit);
-                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore lettura flusso (putback)");
-            }*/
+        
 
-            //Top-Left
+        //Top-Left
         try{ input_grid_rec(is, p, half_side, row_offset, col_offset); }
         catch(const tetris_exception& e)
         {
@@ -945,13 +937,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             is.setstate(std::ios_base::failbit);
             throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Ultima parentesi di chiusura ')' non rispettata ");
         }
-            /*else 
-            {
-                is.setstate(std::ios_base::failbit);
-                throw tetris_exception("ERROR! - input_grid_rec - Carattere non valido (atteso '[' o '(')");
-            }
-            */
-        //}
+                
         return ;
     }
     
