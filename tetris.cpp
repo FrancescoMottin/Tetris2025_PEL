@@ -815,7 +815,7 @@ uint32_t tetris::height() const { return m_height; }
 
 //crea handler stato p.empty() e p.full()
 //RICORDA DI ELEMINARE I snprintf()
-void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
+/*void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
 {
     char buf[64];
     if(is.fail()) 
@@ -944,7 +944,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         }
 
         is >> std::skipws >> c;
-        if(/*is.fail() ||*/ c != ')')
+        if(/*is.fail() ||*/ /* c != ')')
         {
             is.setstate(std::ios_base::failbit);
             throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Ultima parentesi di chiusura ')' non rispettata ");
@@ -956,6 +956,90 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
     is.setstate(std::ios_base::failbit);
     snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
     throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Carattere iniziale non valido");
+}*/
+
+void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
+{
+    if(is.fail()) 
+    {
+        is.setstate(std::ios_base::failbit);
+        throw tetris_exception("ERROR! - input_grid_rec - Errore di lettura pre-lettura");
+    }
+
+    char c;
+    is >> std::skipws >> c;
+    if(is.fail()) 
+    {
+        is.setstate(std::ios_base::failbit);
+        throw tetris_exception("ERROR! - input_grid_rec - Errore di sintassi iniziale");
+    }
+
+    if(curr_side == 1)
+    {
+        char next;
+        if(c == '[')
+        {
+            next = is.get();
+            if(is.fail() || next != ']')
+                throw tetris_exception("ERROR! - input_grid_rec - Foglia vuota, sintassi non rispettata");
+            p(row_offset, col_offset) = false;
+        }
+        else if(c == '(')
+        {
+            next = is.get();
+            if(is.fail() || next != ')')
+                throw tetris_exception("ERROR! - input_grid_rec - Foglia piena, sintassi non rispettata");
+            p(row_offset, col_offset) = true;
+        }
+        else
+        {
+            throw tetris_exception("ERROR! - input_grid_rec - Carattere inatteso a livello foglia");
+        }
+        return;
+    }
+
+    int half_side = curr_side / 2;
+
+    if(c == '[') // blocco vuoto
+    {
+        char next = is.get();
+        if(is.fail() || next != ']')
+            throw tetris_exception("ERROR! - input_grid_rec - Caso vuoto, sintassi non rispettata");
+
+        for(uint32_t i = row_offset; i < row_offset + curr_side; ++i)
+            for(uint32_t j = col_offset; j < col_offset + curr_side; ++j)
+                p(i,j) = false;
+        return;
+    }
+    else if(c == '(') // blocco pieno o ricorsivo
+    {
+        char next_c = is.peek();
+        if(is.fail()) 
+            throw tetris_exception("ERROR! - input_grid_rec - Sintassi non rispettata");
+
+        if(next_c == ')') // pieno
+        {
+            is.get();
+            for(uint32_t i = row_offset; i < row_offset + curr_side; ++i)
+                for(uint32_t j = col_offset; j < col_offset + curr_side; ++j)
+                    p(i,j) = true;
+            return;
+        }
+
+        // ricorsione sui quattro quadranti
+        input_grid_rec(is, p, half_side, row_offset, col_offset);               // Top-left
+        input_grid_rec(is, p, half_side, row_offset, col_offset + half_side);   // Top-right
+        input_grid_rec(is, p, half_side, row_offset + half_side, col_offset);   // Bottom-left
+        input_grid_rec(is, p, half_side, row_offset + half_side, col_offset + half_side); // Bottom-right
+
+        is >> std::skipws >> c;
+        if(is.fail() || c != ')')
+            throw tetris_exception("ERROR! - input_grid_rec - Ultima parentesi di chiusura ')' non rispettata");
+
+        return;
+    }
+
+    throw tetris_exception("ERROR! - input_grid_rec - Carattere iniziale non valido");
 }
 
 
