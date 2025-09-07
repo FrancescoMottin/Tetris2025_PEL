@@ -635,7 +635,7 @@ void tetris::insert(piece const& p, int x)
     bool pos_found = false;
     for (int y = 0; y <= (int)m_height - (int)p.side(); y++) 
     {
-        bool contained;
+        bool contained = false;
         try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
         if(contained) 
         {
