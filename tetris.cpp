@@ -631,16 +631,25 @@ void tetris::insert(piece const& p, int x)
     if ((int)p.side() > m_height || (int)p.side() > m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
 
     // 1. Trova la posizione di caduta dall’alto
-    int pos_y = -1;
+    int pos_y = 0;
+    bool pos_found = false;
     for (int y = 0; y <= (int)m_height - (int)p.side(); y++) 
     {
-        if (containment(p, x, y)) pos_y = y;
+        bool contained;
+        try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+        if(contained) 
+        {
+            pos_y = y;
+            pos_found = true;
+            break;
+        }
         else break; // appena non contiene più, l’ultima valida è quella precedente
     }
-    if (pos_y < 0)throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
+    if (!pos_found) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
 
     // 2. Aggiungi pezzo in testa alla lista
-    add(p, x, pos_y);
+    try { add(p,x, pos_y); }
+    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
     // 3. Loop di stabilizzazione
     bool changed = true;
@@ -659,22 +668,24 @@ void tetris::insert(piece const& p, int x)
 
         for (node* curr = m_field; curr; curr = curr->next) 
         {
-            piece& cp = curr->tp.p;
-            for (uint32_t gy = 0; gy < cp.side(); ++gy) 
+            piece& curr_piece = curr->tp.p;
+            for (uint32_t gy = 0; gy < curr_piece.side(); gy++) 
             {
-                for (uint32_t gx = 0; gx < cp.side(); ++gx) 
+                for (uint32_t gx = 0; gx < curr_piece.side(); gx++) 
                 {
-                    if (cp(gy, gx)) 
+                    if (curr_piece(gy, gx)) 
                     {
                         int global_x = curr->tp.x + gx;
                         int global_y = curr->tp.y + gy;
-                        if (global_x >= 0 && global_x < (int)m_width && global_y >= 0 && global_y < (int)m_height) { table[global_y][global_x] = true; }
+                        if (global_x >= 0 && global_x < (int)m_width && global_y >= 0 && global_y < (int)m_height) 
+                            table[global_y][global_x] = true; 
                     }
                 }
             }
         }
 
         // --- Righe piene ---
+        uint32_t clear_rows = 0;
         bool* row_full = new bool[m_height];
         for (uint32_t i = 0; i < m_height; i++) 
         {
@@ -687,7 +698,10 @@ void tetris::insert(piece const& p, int x)
                     break;
                 }
             }
+            if(row_full[i]) clear_rows++;
         }
+
+        m_score += clear_rows * 100;
 
         // --- Taglia i pezzi sulle righe piene ---
         for (uint32_t r = 0; r < m_height; r++) 
