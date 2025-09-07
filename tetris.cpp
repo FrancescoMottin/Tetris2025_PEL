@@ -469,9 +469,10 @@ bool tetris::operator==(tetris const& rhs) const
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
-void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
+/*void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
+    if(p.side() > m_width || p.side() > m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
     //Se il il piece è più grande del campo di gioco? throw_exception
 
     //1. Trovare posizione di caduta
@@ -623,7 +624,129 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             curr_node = curr_node->next;
         }
     }
+}*/
+void tetris::insert(piece const& p, int x)
+{
+    if (m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
+    if ((int)p.side() > m_height || (int)p.side() > m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
+
+    // 1. Trova la posizione di caduta dall’alto
+    int pos_y = -1;
+    for (int y = 0; y <= (int)m_height - (int)p.side(); y++) 
+    {
+        if (containment(p, x, y)) pos_y = y;
+        else break; // appena non contiene più, l’ultima valida è quella precedente
+    }
+    if (pos_y < 0)throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
+
+    // 2. Aggiungi pezzo in testa alla lista
+    add(p, x, pos_y);
+
+    // 3. Loop di stabilizzazione
+    bool changed = true;
+    while (changed) 
+    {
+        changed = false;
+
+        // --- Stato tabella ---
+        bool** table = new bool*[m_height];
+        for (uint32_t i = 0; i < m_height; i++) 
+        {
+            table[i] = new bool[m_width];
+            for (uint32_t j = 0; j < m_width; j++)
+                table[i][j] = false;
+        }
+
+        for (node* curr = m_field; curr; curr = curr->next) 
+        {
+            piece& cp = curr->tp.p;
+            for (uint32_t gy = 0; gy < cp.side(); ++gy) 
+            {
+                for (uint32_t gx = 0; gx < cp.side(); ++gx) 
+                {
+                    if (cp(gy, gx)) 
+                    {
+                        int global_x = curr->tp.x + gx;
+                        int global_y = curr->tp.y + gy;
+                        if (global_x >= 0 && global_x < (int)m_width && global_y >= 0 && global_y < (int)m_height) { table[global_y][global_x] = true; }
+                    }
+                }
+            }
+        }
+
+        // --- Righe piene ---
+        bool* row_full = new bool[m_height];
+        for (uint32_t i = 0; i < m_height; i++) 
+        {
+            row_full[i] = true;
+            for (uint32_t j = 0; j < m_width; j++) 
+            {
+                if (!table[i][j]) 
+                {
+                    row_full[i] = false;
+                    break;
+                }
+            }
+        }
+
+        // --- Taglia i pezzi sulle righe piene ---
+        for (uint32_t r = 0; r < m_height; r++) 
+        {
+            if (!row_full[r]) continue;
+
+            changed = true;
+            m_score += m_width;
+
+            for (node* curr = m_field; curr; curr = curr->next) 
+            {
+                piece& cp = curr->tp.p;
+                int pos_y = curr->tp.y;
+
+                if (r >= pos_y && r < pos_y + (int)cp.side()) 
+                {
+                    int rel_row = r - pos_y;
+                    cp.cut_row(rel_row);
+                }
+                if (pos_y < (int)r) { curr->tp.y += 1; } // abbassa intero pezzo 
+            }
+        }
+
+        // --- Libera memoria temporanea ---
+        for (uint32_t i = 0; i < m_height; i++)
+            delete[] table[i];
+        delete[] table;
+        delete[] row_full;
+
+        // --- Rimuovi pezzi vuoti ---
+        node* prev = nullptr;
+        node* curr = m_field;
+        while (curr) 
+        {
+            if (curr->tp.p.empty()) 
+            {
+                changed = true;
+                if (!prev) 
+                {
+                    m_field = curr->next;
+                    delete curr;
+                    curr = m_field;
+                } 
+                else 
+                {
+                    prev->next = curr->next;
+                    delete curr;
+                    curr = prev->next;
+                }
+            } 
+            else 
+            {
+                prev = curr;
+                curr = curr->next;
+            }
+        }
+    }
 }
+
 
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
