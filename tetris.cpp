@@ -896,7 +896,8 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
                 for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
                     p(i,j) = true;
-
+            
+            return ;
         }
         //else if(next_c == '(' || next_c == '[')
         //{
@@ -939,7 +940,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         }
 
         is >> std::skipws >> c;
-        if(is.fail() || c != ')')
+        if(/*is.fail() ||*/ c != ')')
         {
             is.setstate(std::ios_base::failbit);
             throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Ultima parentesi di chiusura ')' non rispettata ");
