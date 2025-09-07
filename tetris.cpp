@@ -814,8 +814,10 @@ uint32_t tetris::width() const { return m_width; }
 uint32_t tetris::height() const { return m_height; }
 
 //crea handler stato p.empty() e p.full()
+//RICORDA DI ELEMINARE I snprintf()
 void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
 {
+    char buf[64];
     if(is.fail()) 
     {
         is.setstate(std::ios_base::failbit);
@@ -838,6 +840,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             if(is.fail() || c != ']')
             {
                 is.setstate(std::ios_base::failbit);
+                if(c != ']') snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
                 throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso side=1 vuoto, sintassi non rispettata");
             }
             else p(row_offset, col_offset) = false;
@@ -848,6 +851,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             if(is.fail() || c != ')')
             {
                 is.setstate(std::ios_base::failbit);
+                if(c != ')') snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
                 throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso side=1 pieno, sintassi non rispettata");
             }
             else p(row_offset, col_offset) = true;
@@ -856,6 +860,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         {
             //forse stampare?
             is.setstate(std::ios_base::failbit);
+            snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
             throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Stato fallimentare (side == 1)");
         }
         
@@ -868,6 +873,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         if(is.fail() || c != ']')
         {
             is.setstate(std::ios_base::failbit);
+            if(c != ']') snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
             throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso vuoto, sintassi non rispettata");
         }
     
@@ -942,6 +948,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
     }
     
     is.setstate(std::ios_base::failbit);
+    snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
     throw tetris_exception("ERROR! - input_grid_rec - Carattere iniziale non valido");
 }
 
