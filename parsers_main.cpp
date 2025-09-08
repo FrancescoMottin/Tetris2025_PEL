@@ -248,3 +248,10 @@ bool test_tetris_stream_operators()
     }
     return passed;
 }
+
+// ------------------------------------------------------------------
+int main()
+{
+    print_test_result("Piece - Operatori di Stream (<< e >>)", test_piece_stream_operators());
+    print_test_result("Tetris - Operatori di Stream (<< e >>)", test_tetris_stream_operators());
+}
