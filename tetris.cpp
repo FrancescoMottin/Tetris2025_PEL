@@ -476,10 +476,8 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     //Se il il piece è più grande del campo di gioco? throw_exception
 
     //1. Trovare posizione di caduta
-    //int pos_y;
-    //bool pos_found = false;
-    
-    /*
+    int pos_y;
+    bool pos_found = false;
     for(int i = m_height - ((int) p.side()); i >= 0; i--) 
     {
         bool contained; 
@@ -491,8 +489,11 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             break;
         }
     }
-    */
-
+    
+    //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
+    if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
+    
+    /*
     int pos_y = -1;
     for(int i = 0; i <= (int)m_height - (int)p.side(); i++) 
     {
@@ -506,9 +507,8 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             break;       // appena non più contenuto → fermati
     }
     if(pos_y < 0) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-    //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
-    //if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
-    
+    */
+
     try { add(p,x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
