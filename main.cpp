@@ -379,6 +379,7 @@ bool test_piece_stream_operators() {
             passed = false;
         }
 
+
     } catch (const tetris_exception& e) {
         std::cerr << "Eccezione in test_piece_stream_operators: " << e.what() << std::endl;
         passed = false;
