@@ -181,63 +181,65 @@ bool test_tetris_stream_operators()
         }
 
         // --- Caso 1: Campo vuoto ---
-        tetris t1(10, 20, 0);
-        std::stringstream ss;
-        ss << t1;
-        tetris t_read;
-        ss >> t_read;
-        if (!(t1 == t_read)) 
         {
-            std::cerr << "Empty tetris not preserved after stream." << std::endl;
-            passed = false;
+            tetris t1(10, 20, 0);
+            std::stringstream ss;
+            ss << t1;
+            tetris t_read;
+            ss >> t_read;
+            if (!(t1 == t_read)) 
+            {
+                std::cerr << "Empty tetris not preserved after stream." << std::endl;
+                passed = false;
+            }
         }
-
 
         // --- Caso 2: Un pezzo solo ---
-        tetris t2(6, 6, 0);
-        piece p(2, 5); p(0,0) = true;
-        t2.add(p, 1, 1);
-        std::stringstream ss;
-        ss << t2;
-        tetris t_read;
-        ss >> t_read;
-        if (!(t2 == t_read)) 
         {
-            std::cerr << "Single-piece tetris not preserved after stream." << std::endl;
-            passed = false;
+            tetris t2(6, 6, 0);
+            piece p(2, 5); p(0,0) = true;
+            t2.add(p, 1, 1);
+            std::stringstream ss;
+            ss << t2;
+            tetris t_read;
+            ss >> t_read;
+            if (!(t2 == t_read)) 
+            {
+                std::cerr << "Single-piece tetris not preserved after stream." << std::endl;
+                passed = false;
+            }
         }
-
 
         // --- Caso 3: Campo pieno ---
-        tetris t3(4, 4, 0);
-        piece p_full(4, 9);
-        for (uint32_t r=0; r<p_full.side(); ++r)
-            for (uint32_t c=0; c<p_full.side(); ++c)
-                p_full(r,c) = true;
-        t3.add(p_full, 0, 0);
-        std::stringstream ss;
-        ss << t3;
-        tetris t_read;
-        ss >> t_read;
-        if (!(t3 == t_read)) 
         {
-            std::cerr << "Full tetris not preserved after stream." << std::endl;
-            passed = false;
+            tetris t3(4, 4, 0);
+            piece p_full(4, 9);
+            for (uint32_t r=0; r<p_full.side(); ++r)
+                for (uint32_t c=0; c<p_full.side(); ++c)
+                    p_full(r,c) = true;
+            t3.add(p_full, 0, 0);
+            std::stringstream ss;
+            ss << t3;
+            tetris t_read;
+            ss >> t_read;
+            if (!(t3 == t_read)) 
+            {
+                std::cerr << "Full tetris not preserved after stream." << std::endl;
+                passed = false;
+            }
         }
-
 
         // --- Caso 4: Input malformato ---
-        std::stringstream ss_bad("8 16 1000 2 10 ([])"); 
-        tetris t_bad;
-        ss_bad >> t_bad;
-        if (!ss_bad.fail()) 
         {
-            std::cerr << "Malformed tetris input not detected." << std::endl;
-            passed = false;
+            std::stringstream ss_bad("8 16 1000 2 10 ([])"); 
+            tetris t_bad;
+            ss_bad >> t_bad;
+            if (!ss_bad.fail()) 
+            {
+                std::cerr << "Malformed tetris input not detected." << std::endl;
+                passed = false;
+            }
         }
-
-
-
     } 
     catch (const tetris_exception& e) 
     {
