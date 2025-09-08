@@ -79,54 +79,59 @@ bool test_piece_stream_operators()
         }
 
         // --- Caso 1: Pezzo vuoto ---
-        piece p_empty(2, 42);
-        std::stringstream ss;
-        ss << p_empty;
-        piece p_read;
-        ss >> p_read;
-        if (!(p_empty == p_read)) 
         {
-            std::cerr << "Empty piece not preserved after stream." << std::endl;
-            passed = false;
-        }
-
+            piece p_empty(2, 42);
+            std::stringstream ss;
+            ss << p_empty;
+            piece p_read;
+            ss >> p_read;
+            if (!(p_empty == p_read)) 
+            {
+                std::cerr << "Empty piece not preserved after stream." << std::endl;
+                passed = false;
+            }
+        }   
 
         // --- Caso 2: Pezzo pieno ---
-        piece p_full(3, 77);
-        for (uint32_t r=0; r<p_full.side(); ++r)
-            for (uint32_t c=0; c<p_full.side(); ++c)
-                p_full(r,c) = true;
-    
-        std::stringstream ss;
-        ss << p_full;
-        piece p_read;
-        ss >> p_read;
-        if (!(p_full == p_read)) 
         {
-            std::cerr << "Full piece not preserved after stream." << std::endl;
-            passed = false;
+            piece p_full(3, 77);
+            for (uint32_t r=0; r<p_full.side(); ++r)
+                for (uint32_t c=0; c<p_full.side(); ++c)
+                    p_full(r,c) = true;
+        
+            std::stringstream ss;
+            ss << p_full;
+            piece p_read;
+            ss >> p_read;
+            if (!(p_full == p_read)) 
+            {
+                std::cerr << "Full piece not preserved after stream." << std::endl;
+                passed = false;
+            }
         }
-
 
         // --- Caso 4: Input malformato ---
-        std::stringstream ss_bad("3 50 (([])");
-        piece p_bad;
-        ss_bad >> p_bad;
-        if (!ss_bad.fail()) 
         {
-            std::cerr << "Malformed input not detected." << std::endl;
-            passed = false;
+            std::stringstream ss_bad("3 50 (([])");
+            piece p_bad;
+            ss_bad >> p_bad;
+            if (!ss_bad.fail()) 
+            {
+                std::cerr << "Malformed input not detected." << std::endl;
+                passed = false;
+            }
         }
 
-
         // --- Caso 5: Pezzo side=1 vuoto ---
-        std::stringstream ss("1 9 ([])");
-        piece p1;
-        ss >> p1;
-        if (ss.fail() || p1.side() != 1) 
         {
-            std::cerr << "Failed to parse side=1 piece." << std::endl;
-            passed = false;
+            std::stringstream ss("1 9 ([])");
+            piece p1;
+            ss >> p1;
+            if (ss.fail() || p1.side() != 1) 
+            {
+                std::cerr << "Failed to parse side=1 piece." << std::endl;
+                passed = false;
+            }
         }
     } 
     catch (const tetris_exception& e) 
