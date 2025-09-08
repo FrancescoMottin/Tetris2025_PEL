@@ -832,6 +832,7 @@ uint32_t tetris::height() const { return m_height; }
 
 //crea handler stato p.empty() e p.full()
 //RICORDA DI ELEMINARE I snprintf()
+/*
 void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
 {
     char buf[64];
@@ -964,6 +965,150 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             
             return ;
         } 
+
+        //Top-Left
+        try{ input_grid_rec(is, p, half_side, row_offset, col_offset); }
+        catch(const tetris_exception& e)
+        {
+            is.setstate(std::ios_base::failbit);
+            throw tetris_exception(e.what() + " 1");
+        }
+            
+        //Top-rigth
+        try{ input_grid_rec(is, p, half_side, row_offset, col_offset + half_side); }
+        catch(const tetris_exception& e)
+        {
+            is.setstate(std::ios_base::failbit);
+            throw tetris_exception(e.what() + " 2");
+        }
+            
+        //Bottom-left
+        try{ input_grid_rec(is, p, half_side, row_offset + half_side, col_offset); }
+        catch(const tetris_exception& e) 
+        {
+            is.setstate(std::ios_base::failbit);
+            throw tetris_exception(e.what() + " 3");
+        }
+            
+        //Bottom-right
+        try{ input_grid_rec(is, p, half_side, row_offset + half_side, col_offset + half_side); }
+        catch(const tetris_exception& e)
+        {
+            is.setstate(std::ios_base::failbit);
+            throw tetris_exception(e.what() + " 4");
+        }
+
+        is >> std::skipws >> c;
+        if(is.fail() || c != ')')
+        {
+            is.setstate(std::ios_base::failbit);
+            throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Ultima parentesi di chiusura ')' non rispettata ");
+        }
+                
+        return ;
+    }
+    
+    is.setstate(std::ios_base::failbit);
+    snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
+    throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Carattere iniziale non valido");
+}
+*/
+
+void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
+{
+    char buf[64];
+    if(is.fail()) 
+    {
+        is.setstate(std::ios_base::failbit);
+        throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore di lettura pre-lettura");
+    }
+
+    char c;
+    is >> std::skipws >> c;
+    if(is.fail()) 
+    {
+        is.setstate(std::ios_base::failbit);
+        throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore di sintassi inziale");
+    }
+
+    if(curr_side == 1) 
+    {
+        //char next_c = is.peek();
+        if(c == '[') 
+        {
+            //is >> std::skipws >> c;
+            char next = is.get();
+            if(is.fail() || next == EOF || next != ']')
+            {
+                is.setstate(std::ios_base::failbit);
+                if(c != ']') snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
+                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso side=1 vuoto, sintassi non rispettata");
+            }
+            else p(row_offset, col_offset) = false;
+        }
+        else if(c == '(') 
+        {
+            char next = is.get();
+            if(is.fail() || next == EOF || next != ')')
+            {
+                is.setstate(std::ios_base::failbit);
+                if(c != ')') snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
+                throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso side=1 pieno, sintassi non rispettata");
+            }
+            else 
+            {
+                fprintf(stderr, "DEBUG: chiusura trovata a livello side=%u offset=(%u,%u)\n", curr_side, row_offset, col_offset);
+                p(row_offset, col_offset) = true;
+            }
+        }
+        else //failing state
+        {
+            //forse stampare?
+            is.setstate(std::ios_base::failbit);
+            snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
+            throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Stato fallimentare (side == 1)");
+        }
+        
+        return;
+    }
+
+    if(c == '[')
+    {
+        is >> std::skipws >> c;
+        if(is.fail() || c != ']')
+        {
+            is.setstate(std::ios_base::failbit);
+            if(c != ']') snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
+            throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Caso vuoto, sintassi non rispettata");
+        }
+    
+        for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
+            for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
+                p(i,j) = false;
+
+        return; //
+    }
+    else if (c == '(')
+    {
+        int half_side = curr_side / 2;
+
+        char next_c = is.peek();
+        if(is.fail()) 
+        { 
+            is.setstate(std::ios_base::failbit); 
+            throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Sintassi non rispettata");
+        }
+
+        if(next_c == ')')
+        {
+            is.get();
+            for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
+                for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
+                    p(i,j) = true;
+            
+            return ;
+        }
+        
 
         //Top-Left
         try{ input_grid_rec(is, p, half_side, row_offset, col_offset); }
