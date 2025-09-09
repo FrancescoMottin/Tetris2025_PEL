@@ -679,8 +679,9 @@ bool tetris::containment(piece const& p, int x, int y) const
         {
             if(p(r,c))    
             {
-                uint32_t abs_x = x + c;
-                uint32_t abs_y = y + r; //Sbagliata, come aggiungerci?
+                //Coordinate del campo di gioco
+                int abs_x = x + c;
+                int abs_y = y + r; //Sbagliata, come aggiungerci?
                 if(abs_x < 0 || abs_x >= m_width || abs_y >= m_height) return false;
 
                 node* curr = m_field;
@@ -690,12 +691,15 @@ bool tetris::containment(piece const& p, int x, int y) const
                     uint32_t curr_x = curr->tp.x;
                     uint32_t curr_y = curr->tp.y;
                 
-                    //Coordinate del pezzo partendo 
-                    uint32_t rel_x = abs_x - curr_x;
-                    uint32_t rel_y = abs_y - curr_y;    //rel_y è necessariamente sbagliata a causa di abs_y
+                    //Vogliamo trovare l'x e l'y per inserirlo nella lista di m_field
+                    int rel_x = abs_x - (int) curr_x;
+                    int rel_y = abs_y - (int) curr_y;    //rel_y è necessariamente sbagliata a causa di abs_y
 
                     //Controllato
-                    if(rel_x < curr_piece.side() && rel_y < curr_piece.side())
+                    //La "side()" non si diflette molto sul campo di gicoco
+                    //Sbagliato poichè controlla solo se la cella più BL abbia conflitti con altri pezzi
+                    //E non tutte le altre celle del pezzo che vogliamo inserire
+                    if(rel_x < curr_piece.side() && rel_y < curr_piece.side())  //Controlle dimensione generica (inutile)
                         if(curr_piece(rel_y,rel_x)) return false;
 
                     curr = curr->next;
