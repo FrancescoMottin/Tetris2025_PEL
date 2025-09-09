@@ -670,18 +670,18 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
 //controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
 bool tetris::containment(piece const& p, int x, int y) const
 {
-    if(x < 0 || y < 0) throw tetris_exception("ERROR! - containment(piece const& p, int x, int y) - Variabili x,y minori di 0") ;
+    //La coordinata x può essere negativa, y no
+    if(y < 0) throw tetris_exception("ERROR! - containment(piece const& p, int x, int y) - Variabile y minore di 0") ;
 
     for(uint32_t r = 0; r < p.side(); r++)
     {
         for(uint32_t c = 0; c < p.side(); c++)
         {
-            if(p.operator()(r,c))    
+            if(p(r,c))    
             {
                 uint32_t abs_x = x + c;
-                uint32_t abs_y = y + r;
-            
-                if(abs_x >= m_width || abs_y >= m_height) return false;
+                uint32_t abs_y = y + r; //Sbagliata, come aggiungerci?
+                if(abs_x < 0 || abs_x >= m_width || abs_y >= m_height) return false;
 
                 node* curr = m_field;
                 while(curr)
@@ -690,11 +690,13 @@ bool tetris::containment(piece const& p, int x, int y) const
                     uint32_t curr_x = curr->tp.x;
                     uint32_t curr_y = curr->tp.y;
                 
+                    //Coordinate del pezzo partendo 
                     uint32_t rel_x = abs_x - curr_x;
-                    uint32_t rel_y = abs_y - curr_y;
+                    uint32_t rel_y = abs_y - curr_y;    //rel_y è necessariamente sbagliata a causa di abs_y
 
+                    //Controllato
                     if(rel_x < curr_piece.side() && rel_y < curr_piece.side())
-                        if(curr_piece.operator()(rel_y,rel_x)) return false;
+                        if(curr_piece(rel_y,rel_x)) return false;
 
                     curr = curr->next;
                 }

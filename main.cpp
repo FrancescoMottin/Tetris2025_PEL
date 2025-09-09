@@ -1,575 +1,1079 @@
-#include <iostream> // Per input/output su console
-#include <sstream>  // Per testare gli operatori di stream in memoria
-#include <string>   // Per std::string e std::getline
-#include <cassert>  // Per asserzioni semplici (anche se i try-catch sono preferibili per le eccezioni)
-#include "tetris.cpp" // Include l'implementazione delle classi piece e tetris
+#include "tetris.hpp"
+#include <sstream>
+#include <fstream>
+#include <vector>
 
-// Funzione helper per stampare il risultato di un test
-void print_test_result(const std::string& test_name, bool passed) {
-    std::cout << "Test: " << test_name << " - " << (passed ? "PASSED" : "FAILED") << std::endl;
+void divider(int x){
+    std::cout << std::endl;
+    for(; x>0; x--){
+        std::cout << "-";
+    }
+    std::cout << std::endl;
 }
 
-void piece::print_ascii_art(std::ostream& os) const
-{
-    os << "Piece (side=" << m_side << ", color=" << (int)m_color << ")\n";
-    os << "\033[38;5;" << static_cast<int>(m_color) << "m";
-
-    for (uint32_t i = 0; i < m_side; i++) {
-        for (uint32_t j = 0; j < m_side; j++) {
-            os << (m_grid[i][j] ? '#' : '.');
-        }
-        os << '\n';
-    }
-
-    os << "\033[0m";
+void skipM(std::istream& is) {
+    char c = 0;
+    is >> c;
+    is.putback(c);
 }
 
-
-// --- Test per la classe Piece ---
-
-// Test dei costruttori validi
-bool test_piece_valid_constructors() {
-    bool passed = true;
-    try {
-        piece p1(1, 1);
-        if (p1.side() != 1 || p1.color() != 1 || !p1.empty()) passed = false; // Deve essere vuoto all'inizio
-
-        piece p2(4, 254);
-        if (p2.side() != 4 || p2.color() != 254 || !p2.empty()) passed = false;
-
-    } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_piece_valid_constructors: " << e.what() << std::endl;
-        passed = false;
-    } catch (...) {
-        std::cerr << "Eccezione sconosciuta in test_piece_valid_constructors." << std::endl;
-        passed = false;
-    }
-    return passed;
+// funzione di supporto per stampare ogni mossa
+void insert_and_print(tetris& t, piece& p, int x) {
+    std::cout << "\nInserting piece at x = " << x << ":\n";
+    p.print_ascii_art(std::cout);
+    t.insert(p, x);
+    std::cout << "State of tetris after insertion:\n";
+    t.print_ascii_art(std::cout);
+    std::cout << t << "\n";
 }
 
-// Test dei costruttori non validi (dovrebbero lanciare eccezioni)
-bool test_piece_invalid_constructors() {
-    bool passed = true;
-
-    // Test side = 0
+void testH() {
     try {
-        piece p(0, 1);
-        passed = false; // Fallisce se non lancia eccezione
-    } catch (const tetris_exception& e) {
-        // Eccezione attesa
-    } catch (...) {
-        passed = false; // Fallisce per eccezione sbagliata
-    }
+        std::cout << "TestH Morris test\n" << std::endl;
+        //std::ifstream file("input2.txt");
+        std::ifstream file("Test/input1.txt");
+        //tetris t1(3, 6, 0); (input 2)
+        tetris t1(8, 7, 0); //input 1
 
-    // Test side non potenza di 2
-    try {
-        piece p(3, 100);
-        passed = false; // Fallisce se non lancia eccezione
-    } catch (const tetris_exception& e) {
-        // Eccezione attesa
-    } catch (...) {
-        passed = false;
-    }
+        piece p;
+        int x;
 
-    // Test color = 0
-    try {
-        piece p(2, 0);
-        passed = false; // Fallisce se non lancia eccezione
-    } catch (const tetris_exception& e) {
-        // Eccezione attesa
-    } catch (...) {
-        passed = false;
-    }
-
-    return passed;
-}
-
-// Test dell'operatore di copia e assegnazione
-bool test_piece_copy_assignment() {
-    bool passed = true;
-    try {
-        piece p_original(2, 10);
-        p_original(0,0) = true; // Rendi non vuota una cella
-
-        piece p_copy = p_original; // Costruttore di copia
-        if (!(p_copy == p_original)) passed = false;
-
-        piece p_assign(4, 50); // Un altro pezzo
-        p_assign = p_original; // Operatore di assegnazione
-        if (!(p_assign == p_original)) passed = false;
-
-        // Verifica deep copy: modifica la copia e controlla l'originale
-        p_copy(0,0) = false;
-        if (p_copy(0,0) == p_original(0,0)) passed = false; // Dovrebbero essere diversi
-
-    } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_piece_copy_assignment: " << e.what() << std::endl;
-        passed = false;
-    }
-    return passed;
-}
-
-// Test dell'operatore di move e assegnazione
-bool test_piece_move_assignment() {
-    bool passed = true;
-    try {
-        piece p_original(2, 10);
-        p_original(0,0) = true;
-        piece p_original_copy = p_original; // Copia per confronto
-        //std::cout << "Copia per confronto fatta" << std::endl;
-
-        piece p_move = std::move(p_original); // Costruttore di move
-        //std::cout << "Failstate 1" << std::endl;
-        if (!(p_move == p_original_copy)) passed = false; // p_move deve essere uguale alla copia dell'originale
-        //std::cout << "Failstate 2" << std::endl;
-        if (!p_original.empty() || p_original.side() != 0) passed = false; // p_original deve essere in stato valido ma vuoto
-        //std::cout << "Move constructor funzionante" << std::endl;
-
-        piece p_assign_target(4, 50);
-        p_assign_target = std::move(p_move); // Operatore di move assignment
-        if (!(p_assign_target == p_original_copy)) passed = false; // p_assign_target deve essere uguale alla copia dell'originale
-        if (!p_move.empty() || p_move.side() != 0) passed = false; // p_move deve essere in stato valido ma vuoto
-        //std::cout << "Move assignment utilizzato" << std::endl;
-    } 
-    catch (const tetris_exception& e) 
-    {
-        std::cerr << "Eccezione in test_piece_move_assignment: " << e.what() << std::endl;
-        passed = false;
-    }
-    return passed;
-}
-
-// Test operator() per accesso alle celle
-bool test_piece_cell_access() {
-    bool passed = true;
-    try {
-        piece p(2, 100);
-        p(0,0) = true;
-        p(1,1) = true;
-        if (!p(0,0) || !p(1,1) || p(0,1) || p(1,0)) passed = false;
-
-        // Test accesso fuori limiti (dovrebbe lanciare eccezione)
-        try {
-            p(2,0) = true; // Fuori limite
-            passed = false; // Fallisce se non lancia eccezione
-        } catch (const tetris_exception& e) {
-            // Eccezione attesa
-        } catch (...) {
-            passed = false;
+        // ciclo che legge coppie (pezzo, colonna) finché ci sono
+        skipM(file);
+        while (file) {
+            file >> p >> x;
+            insert_and_print(t1, p, x); 
+            skipM(file);
         }
 
     } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_piece_cell_access: " << e.what() << std::endl;
-        passed = false;
+        std::cout << "Exception: " << e.what() << std::endl;
     }
-    return passed;
 }
 
-// Test empty() e full()
-bool test_piece_empty_full() {
-    bool passed = true;
+/*
+void testH() {
     try {
-        piece p_empty(2, 100);
-        if (!p_empty.empty()) passed = false;
-        if (p_empty.full()) passed = false;
+        std::cout << "TestH Morris test\n" << std::endl;
+        std::ifstream file("input2.txt");
+        tetris t1(3, 6, 0);
 
-        piece p_full(1, 100);
-        p_full(0,0) = true;
-        if (p_full.empty()) passed = false;
-        if (!p_full.full()) passed = false;
+        piece p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11;
+        int x;    
 
-        // Test empty(i,j,s) e full(i,j,s)
-        piece p_mixed(4, 100);
-        p_mixed(0,0) = true; // Top-Left sub-quadrant has one full cell
-        p_mixed(3,3) = true; // Bottom-Right sub-quadrant has one full cell
+        file >> p1;
+        file >> x;
+        t1.insert(p1, x);
 
-        // Top-Left (0,0,2) should be mixed
-        if (p_mixed.empty(0,0,2) || p_mixed.full(0,0,2)) passed = false;
-        // Top-Right (0,2,2) should be empty
-        if (!p_mixed.empty(0,2,2)) passed = false;
-        // Bottom-Left (2,0,2) should be empty
-        if (!p_mixed.empty(2,0,2)) passed = false;
-        // Bottom-Right (2,2,2) should be mixed
-        if (p_mixed.empty(2,2,2) || p_mixed.full(2,2,2)) passed = false;
+        file >> p2;
+        file >> x;
+        t1.insert(p2, x);
 
+        file >> p3;
+        file >> x;
+        t1.insert(p3, x);
+
+        file >> p4;
+        file >> x;
+        t1.insert(p4, x);
+
+        file >> p5;
+        file >> x;
+        t1.insert(p5, x);
+
+        file >> p6;
+        file >> x;
+        t1.insert(p6, x);
+
+        file >> p7;
+        file >> x;
+        t1.insert(p7, x);
+
+        file >> p8;
+        file >> x;
+        t1.insert(p8, x);
+
+        file >> p9;
+        file >> x;
+        t1.insert(p9, x);
+
+        file >> p10;
+        file >> x;
+        t1.insert(p10, x);
+
+        file >> p11;
+        file >> x;
+        t1.insert(p11, x);
+
+        std::cout << t1;
+        t1.print_ascii_art(std::cout);
     } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_piece_empty_full: " << e.what() << std::endl;
-        passed = false;
+        std::cout << "Exception: " << e.what() << std::endl;
     }
-    return passed;
 }
+*/
 
-// Test rotate()
-bool test_piece_rotate() {
-    bool passed = true;
-    try {
-        piece p(2, 100); // Crea un pezzo 2x2
-        p(0,0) = true;
-        p(0,1) = true; // Forma a 'L' rovesciata nella parte superiore sinistra
-        p(1,0) = true;
+void testG() {
+    try{
+        std::cout << "Test G - TEST Tetris" << std::endl;
+        piece p;
+        piece p2;
+        piece p3;
 
-        //std::cout << "Creazione pezzo fatta" << std::endl;
+        divider(100);
+        //PARSER PIECE
+        {
+            std::ifstream file("Test/piece4.txt");
+            std::ifstream file2("Test/piece5.txt");
+            std::ifstream file3("Test/piece6.txt");
 
-        // 0 gradi:
-        // # #
-        // # .
-        if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
-        //std::cout << "0 gradi" << std::endl;
+            if (!file || !file2 || !file3) {
+                std::cerr << "Errore nell'aprire il file!" << std::endl;
+                file.close();
+                file2.close();
+                file3.close();
+            }
+            else{
 
-        p.rotate(); // 90 gradi orario
-        // # #
-        // . #
-        if (!p(0,0) || !p(0,1) || p(1,0) || !p(1,1)) passed = false;    //Test modificato
-        if (!passed) { std::cout << "Rotate 90 failed." << std::endl; return false; }
-        //std::cout << "90 gradi" << std::endl;
+                file >> p;
+                file2 >> p2;
+                file3 >> p3;
 
-        p.rotate(); // 180 gradi
-        // . #
-        // # #
-        if (!p(0,1) || !p(1,0) || !p(1,1) || p(0,0)) passed = false; // La forma è la stessa per questo esempio specifico di rotazione
-        if (!passed) { std::cout << "Rotate 180 failed." << std::endl; return false; }
-        //std::cout << "180 gradi" << std::endl;
+                std::cout << "PARSER PIECE p" << std::endl;
+                p.print_ascii_art(std::cout);
+                //std::cout << p << std::endl;
 
-        p.rotate(); // 270 gradi
-        // # .
-        // # #
-        //if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
-        if (!p(0,0) || p(0,1) || !p(1,0) || !p(1,1)) passed = false;
-        if (!passed) { std::cout << "Rotate 270 failed." << std::endl; return false; }
-        //std::cout << "270 gradi" << std::endl;
+                std::cout << "PARSER PIECE p2" << std::endl;
+                p2.print_ascii_art(std::cout);
+                //std::cout << p2 << std::endl;
 
-        p.rotate(); // 360 gradi (torna all'originale)
-        // # #
-        // # .
-        if (!p(0,0) || !p(0,1) || !p(1,0) || p(1,1)) passed = false;
-        if (!passed) { std::cout << "Rotate 360 failed." << std::endl; return false; }
-        //std::cout << "360 gradi" << std::endl;
+                std::cout << "PARSER PIECE p3" << std::endl;
+                p3.print_ascii_art(std::cout);
+                //std::cout << p3 << std::endl;
 
-
-    } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_piece_rotate: " << e.what() << std::endl;
-        passed = false;
-    }
-    return passed;
-}
-
-
-// Test cut_row()
-bool test_piece_cut_row() {
-    bool passed = true;
-    try {
-        piece p(4, 100); // Crea un pezzo 4x4
-        // Riempi le prime due righe
-        for(uint32_t j=0; j<4; ++j) { p(0,j)=true; p(1,j)=true; }
-        p(2,0)=true; // Una cella nella terza riga
-
-        // Stato iniziale del pezzo (4x4):
-        // # # # #  (Riga 0)
-        // # # # #  (Riga 1)
-        // # . . .  (Riga 2)
-        // . . . .  (Riga 3)
-
-        p.cut_row(1); // Taglia la riga 1
-
-        // Stato atteso dopo cut_row(1):
-        // . . . .  (Nuova riga 0 vuota)
-        // # # # #  (Ex riga 0 scesa)
-        // # . . .  (Riga 2 invariata)
-        // . . . .  (Riga 3 invariata)
-
-        // Verifica nuova riga 0 vuota
-        for(uint32_t j=0; j<4; ++j) {
-            if(p(0,j)) {
-                passed = false;
-                std::cerr << "Cut row failed: Riga 0 non vuota a colonna " << j << std::endl;
+                file.close();
+                file2.close();
+                file3.close();
             }
         }
+        divider(100);
 
-        // Verifica nuova riga 1 = ex riga 0 (tutta true)
-        for(uint32_t j=0; j<4; ++j) {
-            if(!p(1,j)) {
-                passed = false;
-                std::cerr << "Cut row failed: Riga 1 non corretta a colonna " << j << std::endl;
+        //CONTRUCTORS
+        {
+            std::cout << "DEFAULT CONSTRUCTOR -> t1()" << std::endl;
+            tetris t1;
+
+            std::cout << "FANCY CONSTRUCTOR -> t2(5, 4, 0)" << std::endl;
+            tetris t2(5, 4, 0);
+            t2.print_ascii_art(std::cout);
+            std::cout << "added element" << std::endl;
+            t2.add(p2, 3,3);
+            t2.print_ascii_art(std::cout);
+
+            std::cout << "COPY CONSTRUCTOR -> t3(t2)" << std::endl;
+            tetris t3(t2);
+            std::cout << "T2" << std::endl;
+            t2.print_ascii_art(std::cout);
+            std::cout << "T3" << std::endl;
+            t3.print_ascii_art(std::cout);
+
+            std::cout << "MOVE CONSTRUCTOR -> tetris t4 = std::move(t3)" << std::endl;
+            tetris t4 = std::move(t3);
+            std::cout << "T3" << std::endl;
+            t3.print_ascii_art(std::cout);
+            std::cout << "T4" << std::endl;
+            t4.print_ascii_art(std::cout);
+
+        }
+        divider(100);
+
+        //ASSIGNMENT OPERATORS
+        {
+            std::cout << "ASSIGNMENT OPERATORS" << std::endl;
+            std::cout << "T1" << std::endl;
+            tetris t1(5, 4, 0);
+            t1.add(p, 0,1);
+            t1.print_ascii_art(std::cout);
+
+            std::cout << "T2" << std::endl;
+            tetris t2(5, 4, 0);
+            t2.add(p2, 3,3);
+            t2.print_ascii_art(std::cout);
+
+            std::cout << "ASSIGNMENT OPERATOR COPY -> t1 = t2" << std::endl;
+            t1 = t2;
+            std::cout << "T1" << std::endl;
+            t1.print_ascii_art(std::cout);
+            std::cout << "T2" << std::endl;
+            t2.print_ascii_art(std::cout);
+
+            std::cout << "ASSIGNMENT OPERATOR MOVE -> t2 = std::move(t1)" << std::endl;
+            t2 = std::move(t1);
+            std::cout << "T1" << std::endl;
+            t1.print_ascii_art(std::cout);
+            std::cout << "T2" << std::endl;
+            t2.print_ascii_art(std::cout);
+        }
+        divider(100);
+
+
+        //COMPARISON OPERATORS
+        {
+            std::cout << "COMPARISON OPERATORS" << std::endl;
+            std::cout << "T1" << std::endl;
+            tetris t1(5, 4, 0);
+            t1.add(p, 0,1);
+            t1.print_ascii_art(std::cout);
+
+            std::cout << "T2" << std::endl;
+            tetris t2(5, 4, 0);
+            t2.add(p2, 3,3);
+            t2.print_ascii_art(std::cout);
+
+            std::cout << "t1 == t1?: " << (t1==t1) << std::endl;
+            std::cout << "t1 != t1?: " << (t1!=t1) << std::endl;
+            std::cout << "t1 == t2?: " << (t1==t2) << std::endl;
+            std::cout << "t1 != t2?: " << (t1!=t2) << std::endl;
+        }
+        divider(100);
+
+
+        //CONTAINMENT
+        {
+            std::cout << "CONTAIMENT" << std::endl;
+            std::cout << "T1" << std::endl;
+            tetris t1;
+            t1.print_ascii_art(std::cout);
+
+            std::cout << "T2" << std::endl;
+            tetris t2(5, 4, 0);
+            t2.print_ascii_art(std::cout);
+
+            std::cout << "P1" << std::endl;
+            p.print_ascii_art(std::cout);
+
+            std::cout << "P2" << std::endl;
+            p2.print_ascii_art(std::cout);
+
+            std::cout << "T2 contiene P1(x=1, y=2)? " << t2.containment(p, 1, 2) << " (dovrebbe essere 1)" << std::endl;
+            t2.add(p, 1,2);
+            t2.print_ascii_art(std::cout);
+            std::cout << t2 << std::endl;
+
+            std::cout << "T2 contiene P2(x=4, y=3)? " << t2.containment(p2, 4, 3) << " (dovrebbe essere 0)" << std::endl;
+            std::cout << "T2 contiene P2(x=3, y=3)? " << t2.containment(p2, 3, 3) << " (dovrebbe essere 1)" << std::endl;
+            t2.add(p2, 3,3);
+            t2.print_ascii_art(std::cout);
+            std::cout << t2 << std::endl;
+        }
+        divider(100);
+
+
+        //INSERT
+        {
+            std::cout << "INSERT" << std::endl;
+            std::cout << "T1 BEFORE" << std::endl;
+            tetris t1(8, 8, 0);
+            t1.print_ascii_art(std::cout);
+
+            std::cout << "T1 AFTER INSERTING P3" << std::endl;
+            t1.insert(p3, 0);
+            t1.print_ascii_art(std::cout);
+        }
+        divider(100);
+
+        //PARSER TETRIS (usa l'add)
+        {
+            tetris t;
+            std::ifstream file("Test/tetris3.txt");
+
+            if (!file) {
+                std::cerr << "Errore nell'aprire il file!" << std::endl;
+                file.close();
+            }
+            else{
+
+                file >> t;
+                t.print_ascii_art(std::cout);
+                std::cout << t << std::endl;
+
+                file.close();
             }
         }
+        divider(100);
 
-        // Verifica riga 2 invariata (solo colonna 0 true)
-        if(!p(2,0) || p(2,1) || p(2,2) || p(2,3)) {
-            passed = false;
-            std::cerr << "Cut row failed: Riga 2 non invariata." << std::endl;
-        }
+        //ITERATORS
+        {
+            tetris t;
+            std::ifstream file("Test/tetris3.txt");
 
-        // Verifica riga 3 invariata (tutta false)
-        for(uint32_t j=0; j<4; ++j) {
-            if(p(3,j)) {
-                passed = false;
-                std::cerr << "Cut row failed: Riga 3 non corretta a colonna " << j << std::endl;
+            if (!file) {
+                std::cerr << "Errore nell'aprire il file!" << std::endl;
+                file.close();
+            }
+            else{
+
+                file >> t;
+                t.print_ascii_art(std::cout);
+                std::cout << t << std::endl;
+
+                file.close();
+            }
+
+            t.insert(p2, 0);
+            t.print_ascii_art(std::cout);
+
+            std::cout << "ITERATORS" << std::endl;
+            for(tetris::iterator index = t.begin(); index != t.end(); ++index){
+                std::cout << index->p << "(x = " << index->x << ", y = " << index->y << ")" << std::endl;
+            }
+
+            std::cout << "CONST ITERATORS" << std::endl;
+            const tetris t2 = t;
+            for(tetris::const_iterator index = t2.begin(); index != t2.end(); ++index){
+                std::cout << index->p << "(x = " << index->x << ", y = " << index->y << ")" << std::endl;
             }
         }
-
-        // Test cut_row su riga invalida
-        try {
-            p.cut_row(p.side()); // Fuori limite (p.side() è ancora 4)
-            passed = false;
-        } catch (const tetris_exception& e) {
-            // Eccezione attesa
-        } catch (...) {
-            passed = false;
-        }
-
-    } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_piece_cut_row: " << e.what() << std::endl;
-        passed = false;
+        divider(100);
     }
-    return passed;
+    catch(const tetris_exception& e){
+        std::cerr << e.what() << std::endl;
+    }    
 }
 
+void run_test(int test_number, const std::string& input_data, bool should_fail) {
+    std::cout << "\033[36m=== TEST " << test_number << " ===\033[0m" << std::endl;
+    std::cout << "Input:\n\"" << input_data << "\"\n" << std::endl;
 
-// Test operator<< e operator>> per piece (round-trip)
-bool test_piece_stream_operators() {
-    bool passed = true;
-    try 
-    {
-        piece p_original(4, 123);
-        p_original(0,0) = true;
-        p_original(1,1) = true;
-        p_original(2,2) = true;
-        p_original(3,3) = true;
-        p_original(0,3) = true; // Rende un sotto-quadrante misto
-
-        std::stringstream ss;
-        ss << p_original; // Scrivi il pezzo nello stringstream
-
-        std::cout << "DEBUG operator<< stringa pre-serializzazione: " << ss.str() << std::endl;
-        std::cout << "Posizione iniziale cursore: " << ss.tellg() << std::endl;
-        std::cout << "ASCII Art del pezzo originale:\n";
-        p_original.print_ascii_art(std::cout);
-
-        piece p_read;
-        ss >> p_read; // Leggi il pezzo dallo stringstream      --> Il problema è in operator>>
-        
-        std::cout << "DEBUG operator<< stringa serializzata: " << ss.str() << std::endl;
-        std::cout << "Posizione cursore dopo lettura: " << ss.tellg() << std::endl;
-        std::cout << "ASCII Art del pezzo letto dallo stream:\n";
-        p_read.print_ascii_art(std::cout);
-        
-        // Mostra cosa resta da leggere
-        //std::string rest;
-        //std::getline(ss, rest, '\0');
-        //std::cout << "DEBUG residuo nel buffer dopo lettura: '" << rest << "'" << std::endl;
-        
-        if (ss.fail()) {
-            std::cerr << "Stream failed during piece read." << std::endl;
-            passed = false;
-        }
-        if (!(p_original == p_read)) {
-            std::cerr << "Original and read piece are not equal." << std::endl;
-            passed = false;
-        }
-
-        std::cout << "" << std::endl;
-        // Test input malformato
-        std::stringstream ss_bad;
-        ss_bad << "2 100 ([])"; // Formato valido, ma poi un carattere extra
-        piece p_bad;
-        ss_bad >> p_bad; // Dovrebbe leggere correttamente
-        ss_bad >> p_bad; // Prova a leggere di nuovo, dovrebbe fallire
-        if (!ss_bad.fail()) {
-            std::cerr << "Stream did not fail for malformed input." << std::endl;
-            passed = false;
-        }
-
-
-    } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_piece_stream_operators: " << e.what() << std::endl;
-        passed = false;
-    }
-    return passed;
-}
-
-// --- Test per la classe Tetris ---
-
-// Test costruttori Tetris
-bool test_tetris_constructors() {
-    bool passed = true;
+    std::istringstream iss(input_data);
+    piece p;
     try {
-        tetris t1(10, 20, 0); // width, height, score
-        if (t1.width() != 10 || t1.height() != 20 || t1.score() != 0) passed = false;
-
-        // Test costruttori non validi (dovrebbero lanciare eccezioni)
-        try {
-            tetris t_invalid(0, 10, 0); // width = 0
-            passed = false;
-        } catch (const tetris_exception& e) {} // Eccezione attesa
-        catch (...) { passed = false; }
-
-        try {
-            tetris t_invalid(10, 0, 0); // height = 0
-            passed = false;
-        } catch (const tetris_exception& e) {} // Eccezione attesa
-        catch (...) { passed = false; }
-
-    } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_tetris_constructors: " << e.what() << std::endl;
-        passed = false;
+        iss >> p;
+        std::cout << "piece pieno: " << std::boolalpha << p.full() << std::endl;
+        std::cout << "piece vuoto: " << std::boolalpha << p.empty() << std::endl;
+        p.print_ascii_art(std::cout);
+        if (should_fail) {
+            std::cout << "Test " << test_number << " FALLITO (doveva lanciare eccezione)\n" << std::endl;
+            assert(false);
+        } else {
+            std::cout << "Test " << test_number << " passato\n" << std::endl;
+        }
     }
-    return passed;
+    catch (const tetris_exception& e) {
+        if (should_fail) {
+            std::cout << "Eccezione prevista: " << e.what() << "\n" << std::endl;
+            std::cout << "Test " << test_number << " passato\n" << std::endl;
+        } else {
+            std::cout << "Test " << test_number << " FALLITO (eccezione inaspettata): " << e.what() << "\n" << std::endl;
+            assert(false);
+        }
+    }
+    if(!should_fail) {
+        std::cout << "Chiamo operator<< sul pezzo per vedere se coindice" << std::endl;
+        std::cout << p << "\n" << std::endl;
+    }
+}
+void testF() {
+    std::cout << "Test F - TEST Parser Piece" << std::endl;
+    run_test(1, "4 75 (([]()[]())(()[]()[])([]()()())(()[]()()))[]()(((mipiaceilcazzo)))", false);
+    run_test(2, "  4 \t75  \n  ( (\n [ ]()[\n ]()) (( )[\n ]()[])([](\n )()(  )) ( ()[](\n  )() ) )", false);
+    run_test(3, "8 90 (   []   (([]()[]()) () ([]()[]()) ())   ([][] ([]()[]())  ()) ()   )", false);
+    run_test(9, "2 115 ()", false);
+    run_test(10, "2 115 []", false);
+
+    // Test invalidi
+    run_test(4, "-4 75 (([]()[]())(()[]()[])([]()()())(()[]()()))", true);     // side negativo
+    run_test(5, "4 75.5 (([]()[]())(()[]()[])([]()()())(()[]()()))", true);   // color float
+    run_test(6, "4 0 (([]()[]())(()[]()[])([]()()())(()[]()()))", true);     // color = 0, fuori range
+    run_test(7, "5 0 (([]()[]())(()[]()[])([]()()())(()[]()()))", true);    //side non potenza di 2
+    run_test(8, "2 90 (   []   (([]()[]()) () ([]()[]()) ())   ([][] ([]()[]())  ()) ()   )", true); ////side piccola
+
+    std::cout << "\033[36m=== Riepilogo Finale ===\033[0m" << std::endl;
+    std::cout << "Tutti i test eseguiti correttamente" << std::endl;
 }
 
-// Test add() e insert()
-bool test_tetris_add_insert() {
-    bool passed = true;
+void testE() {
+    std::cout << "Test E - TEST Piece" << std::endl;
     try {
-        tetris t(4, 4, 0); // Piccolo tabellone per test semplici
-        piece p1(2, 100); // Pezzo 2x2
-        p1(0,0) = true; p1(0,1) = true; p1(1,0) = true; p1(1,1) = true; // Quadrato pieno
+        // =============================
+        // TEST Costruttore di default + move assignment
+        // =============================
+        piece p1;
+        {
+            piece temp(4, 1);
+            p1 = std::move(temp);
+            std::cout << "TEST Costruttore di default e move assignment: Superato\n";
+            std::cout << "Creato p1: empty=" << std::boolalpha << p1.empty()
+                      << " full=" << p1.full() << "\n";
+        }
 
-        // Test add()
-        t.add(p1, 0, 0); // Aggiungi in (0,0)
-        // Verifica che il pezzo sia stato aggiunto (es. iterando o controllando print_ascii_art)
-        // Per un test unitario, potresti voler controllare le celle specifiche
-        // t.print_ascii_art(std::cout); // Per debug visivo
+        // =============================
+        // TEST Operatore () per impostare celle
+        // =============================
+        p1(0,1) = true;
+        p1(0,2) = p1(1,1) = p1(1,2) = p1(2,1) = p1(2,2) = true;
+        p1(3,0) = p1(3,1) = p1(3,2) = p1(3,3) = true;
+        std::cout << "\nTEST Operatore() per impostare celle: Superato\n";
+        p1.print_ascii_art(std::cout);
 
-        // Test insert() - dovrebbe cadere in y=2
-        piece p2(2, 101); // Un altro pezzo 2x2
-        t.insert(p2, 0); // Inserisci nella colonna 0
-        // Ora (0,0) e (0,1) sono occupati da p1, quindi p2 dovrebbe cadere in (0,2)
-        // t.print_ascii_art(std::cout); // Per debug visivo
+        // =============================
+        // TEST Copy constructor
+        // =============================
+        piece p3(p1);
+        std::cout << "\nTEST Copy constructor:\n";
+        std::cout << "p3 == p1: " << std::boolalpha << (p3 == p1) << "\n";
+        if (!(p3 == p1)) throw std::runtime_error("Copy constructor fallito");
+        std::cout << "Superato\n";
 
-        // Test collisione con add()
+        // =============================
+        // TEST Copy assignment
+        // =============================
+        piece p4(4, 2);
+        p4 = p1;
+        std::cout << "\nTEST Copy assignment:\n";
+        std::cout << "p4 == p1: " << std::boolalpha << (p4 == p1) << "\n";
+        if (!(p4 == p1)) throw std::runtime_error("Copy assignment fallito");
+        std::cout << "Superato\n";
+
+        // =============================
+        // TEST Self-assignment
+        // =============================
+        p4 = p4;
+        std::cout << "\nTEST Self-assignment: Superato\n";
+
+        // =============================
+        // TEST p2 diverso
+        // =============================
+        piece p2(4, 3);
+        for (uint32_t r = 1; r < p2.side(); r++)
+            for (uint32_t c = 0; c < p2.side(); c++)
+                p2(r,c) = true;
+
+        std::cout << "\nTEST p2 diverso:\n";
+        p2.print_ascii_art(std::cout);
+        std::cout << "empty(0,2,2): " << p2.empty(0,2,2)
+                  << " full(0,1,3): " << p2.full(0,1,3) << "\n";
+        std::cout << "p2 == p1: " << (p2 == p1) << "\n";
+        std::cout << "p2 != p1: " << (p2 != p1) << "\n";
+
+        // =============================
+        // TEST assegnamento p2 = p1
+        // =============================
+        p2 = p1;
+        std::cout << "\nDopo p2 = p1:\n";
+        std::cout << "p2 == p1: " << (p2 == p1) << "\n";
+
+        // =============================
+        // TEST rotazione
+        // =============================
+        std::cout << "\nTEST rotazione:\n";
+        p2.rotate();
+        p2.print_ascii_art(std::cout);
+        std::cout << "p2 == p1: " << (p2 == p1) << "\n";
+
+        // =============================
+        // TEST 4 rotazioni
+        // =============================
+        piece p5(p1);
+        for (int i = 0; i < 4; ++i) p5.rotate();
+        if (!(p5 == p1)) throw std::runtime_error("4 rotazioni non tornano allo stato iniziale");
+        std::cout << "TEST 4 rotazioni: Superato\n";
+
+        // =============================
+        // TEST cut_row
+        // =============================
+        for (uint32_t i = 0; i < p2.side(); i++) {
+            std::cout << "\nCutting row: " << i << "\n";
+            p2.cut_row(i);
+            p2.print_ascii_art(std::cout);
+        }
+        std::cout << "empty dopo cut_row: " << p2.empty() << "\n";
+        std::cout << "TEST cut_row: Superato\n";
+
+        // =============================
+        // TEST operator() out of bounds
+        // =============================
+        std::cout << "\nTEST operator() out of bounds:\n";
         try {
-            t.add(p1, 0, 0); // Collide con p1
-            passed = false; // Fallisce se non previene la collisione
-        } catch (const tetris_exception& e) {
-            // Eccezione attesa (o add dovrebbe restituire false se gestisce così)
-        } catch (...) { passed = false; }
+            p1(99, 0) = true;
+            throw std::runtime_error("Eccezione NON lanciata (riga)");
+        } catch (tetris_exception& e) {
+            std::cout << "Eccezione correttamente catturata (riga): " << e.what() << "\n";
+        }
 
-        // Test Game Over (inserimento impossibile)
-        tetris t_game_over(2, 2, 0);
-        piece p_small(1,1); p_small(0,0)=true; // Pezzo 1x1
-        t_game_over.add(p_small, 0,0);
-        t_game_over.add(p_small, 1,0);
-        t_game_over.add(p_small, 0,1);
-        t_game_over.add(p_small, 1,1); // Riempie tutto il 2x2
-        // t_game_over.print_ascii_art(std::cout);
         try {
-            t_game_over.insert(p_small, 0); // Non c'è spazio
-            passed = false; // Fallisce se non lancia eccezione
-        } catch (const tetris_exception& e) {
-            // Eccezione attesa (Game Over)
-        } catch (...) { passed = false; }
+            p1(0, 99) = true;
+            throw std::runtime_error("Eccezione NON lanciata (colonna)");
+        } catch (tetris_exception& e) {
+            std::cout << "Eccezione correttamente catturata (colonna): " << e.what() << "\n";
+        }
 
+        // =============================
+        // TEST cut_row() out of bounds
+        // =============================
+        std::cout << "\nTEST cut_row() out of bounds:\n";
+        try {
+            p1.cut_row(99);
+            throw std::runtime_error("Eccezione NON lanciata da cut_row()");
+        } catch (tetris_exception& e) {
+            std::cout << "Eccezione correttamente catturata da cut_row(): " << e.what() << "\n";
+        }
 
-    } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_tetris_add_insert: " << e.what() << std::endl;
-        passed = false;
+        // =============================
+        // TEST costruttori invalidi
+        // =============================
+        std::cout << "\nTEST costruttori con parametri invalidi:\n";
+        try {
+            piece bad1(5, 2);
+            throw std::runtime_error("Eccezione NON lanciata per side non valido");
+        } catch (tetris_exception& e) {
+            std::cout << "Eccezione per side non valido: " << e.what() << "\n";
+        }
+
+        try {
+            piece bad2(4, 0);
+            throw std::runtime_error("Eccezione NON lanciata per color == 0");
+        } catch (tetris_exception& e) {
+            std::cout << "Eccezione per color == 0: " << e.what() << "\n";
+        }
+
+        std::cout << "\nTutti i test superati con successo!\n";
     }
-    return passed;
+    catch (std::exception& e) {
+        std::cout << "\nProgramma terminato prematuramente: " << e.what() << "\n";
+    }
 }
 
-// Test iteratori
-bool test_tetris_iterators() {
-    bool passed = true;
+void testD() {
+    try{
+        std::cout << "Test D - TEST MAGGGGICO 1+2" << std::endl;
+        piece p;
+        piece p2;
+        piece p3;
+
+        divider(100);
+        //PARSER PIECE
+        {
+            std::ifstream file("Test/piece4.txt");
+            std::ifstream file2("Test/piece5.txt");
+            std::ifstream file3("Test/piece6.txt");
+
+            if (!file || !file2 || !file3) {
+                std::cerr << "Errore nell'aprire il file!" << std::endl;
+                file.close();
+                file2.close();
+                file3.close();
+            }
+            else{
+
+                file >> p;
+                file2 >> p2;
+                file3 >> p3;
+
+                std::cout << "PARSER PIECE p" << std::endl;
+                p.print_ascii_art(std::cout);
+                //std::cout << p << std::endl;
+
+                std::cout << "PARSER PIECE p2" << std::endl;
+                p2.print_ascii_art(std::cout);
+                //std::cout << p2 << std::endl;
+
+                std::cout << "PARSER PIECE p3" << std::endl;
+                p3.print_ascii_art(std::cout);
+                //std::cout << p3 << std::endl;
+
+                file.close();
+                file2.close();
+                file3.close();
+            }
+        }
+        divider(100);
+
+        //TEST MAGGGGICO
+        {
+            std::cout << "TEST MAGGGGICO" << std::endl;
+
+            std::cout << "PIECE 1" << std::endl;
+            piece piece_bello;
+            std::istringstream file("4 32 ((()()()[])(()()[]())[][])");
+            file >> piece_bello;
+            piece_bello.print_ascii_art(std::cout);
+
+            std::cout << "TETRIS DEFAULT" << std::endl;
+            tetris t(8, 8, 0);
+            t.print_ascii_art(std::cout);
+
+            std::cout << "INSERISCO PIECE 1" << std::endl;
+            t.insert(piece_bello, 0);
+            t.print_ascii_art(std::cout);
+
+            std::cout << "PIECE 2" << std::endl;
+            piece piece_bello2;
+            std::istringstream file2("1 83 ()");
+            file2 >> piece_bello2;
+            piece_bello2.print_ascii_art(std::cout);
+
+            std::cout << "INSERISCO PIECE 2" << std::endl;
+            t.insert(piece_bello2, 1);
+            t.print_ascii_art(std::cout);
+        }
+        divider(100);
+
+        //TEST MAGGGGICO 2
+        {
+            std::cout << "TEST MAGGGGICO 2" << std::endl;
+
+            //PIECE
+            std::cout << "PIECE 1" << std::endl;
+            piece piece_bello_1;
+            std::istringstream file1("4 1 ([][](()[]()())([][]()[]))");
+            file1 >> piece_bello_1;
+            piece_bello_1.print_ascii_art(std::cout);
+
+            std::cout << "PIECE 2" << std::endl;
+            piece piece_bello_2;
+            std::istringstream file2("2 220 ([][]()())");
+            file2 >> piece_bello_2;
+            piece_bello_2.print_ascii_art(std::cout);
+
+            std::cout << "PIECE 3" << std::endl;
+            piece piece_bello_3;
+            std::istringstream file3("4 21 (([][]()[])[](()()()[])[])");
+            file3 >> piece_bello_3;
+            piece_bello_3.print_ascii_art(std::cout);
+
+            std::cout << "PIECE 4" << std::endl;
+            piece piece_bello_4;
+            std::istringstream file4("4 128 ([]([][][]())[](()()[]()))");
+            file4 >> piece_bello_4;
+            piece_bello_4.print_ascii_art(std::cout);
+
+            std::cout << "PIECE 5" << std::endl;
+            piece piece_bello_5;
+            std::istringstream file5("4 10 ([]([]()[]())[]([]()[]()))");
+            file5 >> piece_bello_5;
+            piece_bello_5.print_ascii_art(std::cout);
+
+            std::cout << "PIECE 6" << std::endl;
+            piece piece_bello_6;
+            std::istringstream file6("4 14 ([][](()()()[])(()[]()[]))");
+            file6 >> piece_bello_6;
+            piece_bello_6.print_ascii_art(std::cout);
+
+            std::cout << "PIECE 7" << std::endl;
+            piece piece_bello_7;
+            std::istringstream file7("1 13 ()");
+            file7 >> piece_bello_7;
+            piece_bello_7.print_ascii_art(std::cout);
+
+            //serve per insert
+            std::cout << "PIECE 8" << std::endl;
+            piece piece_bello_8;
+            std::istringstream file8("1 88 ()");
+            file8 >> piece_bello_8;
+            piece_bello_8.print_ascii_art(std::cout);
+
+            //TETRIS
+            std::cout << "TETRIS DEFAULT" << std::endl;
+            tetris t1(9, 9, 0);
+            tetris t2(9, 9, 0);
+            t1.print_ascii_art(std::cout);
+
+            std::cout << "TETRIS CRESCENTE" << std::endl;
+            //AGGIUNTI IN ORDINE CRESCENTE
+            t1.add(piece_bello_1, 0, 5);
+            t1.add(piece_bello_2, 4, 5);
+            //t1.add(piece_bello_8, 6, 5);
+            t1.add(piece_bello_3, 3, 5);
+            t1.add(piece_bello_4, 4, 5);
+            t1.add(piece_bello_5, 5, 5);
+            t1.add(piece_bello_6, 4, 3);
+            t1.add(piece_bello_7, 5, 1);
+
+            t1.print_ascii_art(std::cout);
+
+            std::cout << "TETRIS DECRESCENTE" << std::endl;
+            //AGGIUNTI IN ORDINE DECRESCENTE
+            t2.add(piece_bello_7, 5, 1);
+            t2.add(piece_bello_6, 4, 3);
+            t2.add(piece_bello_5, 5, 5);
+            t2.add(piece_bello_4, 4, 5);
+            t2.add(piece_bello_3, 3, 5);
+            t2.add(piece_bello_2, 4, 5);
+            t2.add(piece_bello_1, 0, 5);
+
+            t2.print_ascii_art(std::cout);
+
+            std::cout << "TETRIS CRESCENTE" << std::endl;
+            t1.insert(piece_bello_8, 5);
+            t1.print_ascii_art(std::cout);
+
+            std::cout << "TETRIS DECRESCENTE" << std::endl;
+            t2.insert(piece_bello_8, 5);
+            t2.print_ascii_art(std::cout);
+        }
+        divider(100);
+    }
+    catch(const tetris_exception& e){
+        std::cerr << e.what() << std::endl;
+    }
+}
+
+void testC() {
     try {
-        tetris t(4, 4, 0);
-        piece p1(1, 1); p1(0,0)=true;
-        piece p2(1, 2); p2(0,0)=true;
-        t.add(p1, 0, 0);
-        t.add(p2, 1, 0);
+        std::cout << "Test C - Play game tetris 2 GAME OVER" << std::endl;
+        tetris t(6, 8, 0);
 
-        int count = 0;
-        for (auto it = t.begin(); it != t.end(); ++it) {
-            count++;
-            // Puoi anche verificare i valori di it->x, it->y, it->p
-        }
-        if (count != 2) passed = false;
+        std::istringstream is("2 202 ()");
+        piece p;
+        is >> p;
 
-        // Test su tabellone vuoto
-        tetris t_empty(2,2,0);
-        count = 0;
-        for (auto it = t_empty.begin(); it != t_empty.end(); ++it) {
-            count++;
-        }
-        if (count != 0) passed = false;
+        std::istringstream is1("2 170 ()");
+        piece p1;
+        is1 >> p1;
 
-    } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_tetris_iterators: " << e.what() << std::endl;
-        passed = false;
+        std::istringstream is2("2 120 ()");
+        piece p2;
+        is2 >> p2;
+
+        std::istringstream is3("4 195 ()");
+        piece p3;
+        is3 >> p3;
+
+        // PASSO 1
+        std::cout << "\nPASSO 1\n";
+
+        p.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        p1.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 2\n";
+        t.insert(p1, 2);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        p3.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 2\n";
+        t.insert(p3, 2);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        p2.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 4\n";
+        t.insert(p2, 4);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        std::cout << "\nPASSO 2 GAME OVER\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 4\n";
+        t.insert(p, 4);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
     }
-    return passed;
+    catch (tetris_exception e) {
+        std::cout << e.what();
+    }
 }
 
-// Test operator<< e operator>> per tetris (round-trip)
-bool test_tetris_stream_operators() {
-    bool passed = true;
+void testB() {
     try {
-        tetris t_original(8, 16, 1000);
-        piece p1(2, 10); p1(0,0)=true; p1(1,1)=true;
-        piece p2(4, 20); p2(0,0)=true; p2(0,1)=true; p2(0,2)=true; p2(0,3)=true;
-        t_original.add(p1, 0, 0);
-        t_original.add(p2, 4, 0);
-        t_original.insert(p1, 0); // Inserisci un altro pezzo
+        std::cout << "Test B - Play game tetris 2" << std::endl;
+        tetris t(6, 8, 0);
 
-        std::stringstream ss;
-        ss << t_original; // Scrivi il tabellone nello stringstream
-        std::cout << "ASCII Art del tetris originale:\n";
-        t_original.print_ascii_art(std::cout);
-        
-        //std::cout << "Output serializzato:\n" << ss.str() << std::endl; // Per debug: stampa l'output serializzato
+        std::istringstream is("2 202 ()");
+        piece p;
+        is >> p;
 
-        tetris t_read; // Crea un nuovo oggetto vuoto
-        ss >> t_read; // Leggi il tabellone dallo stringstream
-        std::cout << "ASCII Art del tetris letto dallo stream:\n";
-        t_read.print_ascii_art(std::cout);
+        std::istringstream is1("2 170 ()");
+        piece p1;
+        is1 >> p1;
 
-        if (ss.fail()) {
-            std::cerr << "Stream failed during tetris read.";
-            passed = false;
-        }
+        std::istringstream is2("2 120 ()");
+        piece p2;
+        is2 >> p2;
 
-        // Verifica che t_read sia uguale a t_original
-        // Questo richiede che operator== per tetris sia robusto
-        if (!(t_original == t_read)) {
-            std::cerr << "Original and read tetris objects are not equal." << std::endl;
-            // Per debug, puoi stampare entrambi per vedere le differenze
-            std::cout << "Original:\n" << t_original << std::endl;
-            std::cout << "Read:\n" << t_read << std::endl;
-            passed = false;
-        }
+        std::istringstream is3("4 195 ()");
+        piece p3;
+        is3 >> p3;
 
-    } catch (const tetris_exception& e) {
-        std::cerr << "Eccezione in test_tetris_stream_operators: " << e.what() << std::endl;
-        passed = false;
+        // PASSO 1
+        std::cout << "\nPASSO 1\n";
+
+        p.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        p1.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 2\n";
+        t.insert(p1, 2);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        p3.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 2\n";
+        t.insert(p3, 2);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        p2.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 4\n";
+        t.insert(p2, 4);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        // PASSO 2
+        std::cout << "\nPASSO 2\n";
+
+        p.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        /*
+        std::cout << "\nPASSO 2 GAME OVER\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 4\n";
+        t.insert(p, 4);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+        */
+
+        // PASSO 3
+        std::cout << "\nPASSO 3\n";
+
+        p1.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 0\n";
+        t.insert(p1, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        p.print_ascii_art(std::cout);
+        std::cout << "inserting piece at x = 4\n";
+        t.insert(p, 4);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
     }
-    return passed;
+    catch (tetris_exception e) {
+        std::cout << e.what();
+    }
 }
 
+void testA() {
+    try{
+        std::cout << "Test A - Play game tetris 1" << std::endl;
+        std::ifstream file("Test/input_tetris.txt");
+        tetris t;
+        file >> t;
+        t.print_ascii_art(std::cout);
+        file.close();
+
+        std::istringstream is("2 202 () 2 202 ()");
+        piece p;
+        is >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        std::istringstream is1("4 100 ((()()[][])(()[]()[])[][])");
+        is1 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        std::istringstream is2("4 100 ([][](()()[][])(()[]()[]))");
+        is2 >> p;
+        p.rotate();
+        p.rotate();
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 4\n";
+        t.insert(p, 4);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        is >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 6\n";
+        t.insert(p, 6);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        std::istringstream is3("4 32 (([][]()())[](()[]()[])[])");
+        is3 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 4\n";
+        t.insert(p, 4);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        std::istringstream is5("2 11 ()");
+        is5 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        /*
+        std::cout << "/n test fall pieces";
+        std::istringstream is55("1 11 ()");
+        std::istringstream is555("1 30 ()");
+        is55 >> p;
+        t.insert(p, 3);
+        is555 >> p;
+        t.insert(p, 3);
+        t.print_ascii_art(std::cout);
+        */
+
+        std::istringstream is6("1 11 ()");
+        is6 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 2\n";
+        t.insert(p, 2);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        std::istringstream is7("8 123 ([][](([][]()())([][]()())()())[])");
+        is7 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 3\n";
+        t.insert(p, 3);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        /*
+        std::istringstream is8("8 123 ([][](([][]()())([][]()())()())[])");
+        is8 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 3\n";
+        t.insert(p, 3);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+        */
+
+        std::istringstream is8("8 28 ([][][]([][][]([]()[][])))");
+        is8 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        std::istringstream is9("8 29 ([][][]([][][]([]()[][])))");
+        is9 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        std::istringstream is10("8 30 ([][][]([][][]([]()[][])))");
+        is10 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        std::istringstream is11("8 31 ([][][]([][][]([]()[][])))");
+        is11 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;
+
+        /*std::istringstream is11("4 15 (([][]()())([][]()[])[](()[]()[]))");
+        is11 >> p;
+        std::cout << "\n";
+        p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 0\n";
+        t.insert(p, 0);
+        t.print_ascii_art(std::cout);
+        std::cout << t;*/
+    }
+    catch(tetris_exception e){
+        std::cout << e.what();
+    }    
+}
 
 int main() {
-    std::cout << "--- Avvio Test per le Classi Piece e Tetris ---" << std::endl << std::endl;
+    std::cout << "=========================================\n";
+    std::cout << "        PEL PROJECT 2024/2025 - TETRIS   \n";
+    std::cout << "=========================================\n\n";
 
-    // --- Test per la Classe Piece ---
-    std::cout << "--- Test Classe Piece ---" << std::endl;
-    print_test_result("Piece - Costruttori Validi", test_piece_valid_constructors());
-    print_test_result("Piece - Costruttori Non Validi (Eccezioni)", test_piece_invalid_constructors());
-    print_test_result("Piece - Copia e Assegnazione", test_piece_copy_assignment());
-    print_test_result("Piece - Move e Assegnazione", test_piece_move_assignment());
-    print_test_result("Piece - Accesso Celle (operator())", test_piece_cell_access());
-    print_test_result("Piece - empty() e full()", test_piece_empty_full());
-    print_test_result("Piece - rotate()", test_piece_rotate());
-    print_test_result("Piece - cut_row()", test_piece_cut_row());
-    print_test_result("Piece - Operatori di Stream (<< e >>)", test_piece_stream_operators());
-    std::cout << "--- Fine Test Classe Piece ---" << std::endl << std::endl;
+    while (true) {
+        std::cout << "Seleziona il test da eseguire:\n";
+        std::cout << "  1 -> Test A - Play game tetris 1\n";
+        std::cout << "  2 -> Test B - Play game tetris 2\n";
+        std::cout << "  3 -> Test C - Play game tetris 2 GAME OVER\n";
+        std::cout << "  4 -> Test D - TEST MAGGGGICO 1+2\n";
+        std::cout << "  5 -> Test E - TEST Piece\n";
+        std::cout << "  6 -> Test F - TEST Parser Piece\n";
+        std::cout << "  7 -> Test G - Test G - TEST Tetris\n";
+        std::cout << "  8 -> Test H - Test H - TEST Morris\n";
+        std::cout << "  0 -> Esci\n";
+        std::cout << "\nScelta: ";
 
-    // --- Test per la Classe Tetris ---
-    std::cout << "--- Test Classe Tetris ---" << std::endl;
-    print_test_result("Tetris - Costruttori", test_tetris_constructors());
-    print_test_result("Tetris - add() e insert()", test_tetris_add_insert());
-    print_test_result("Tetris - Iteratori", test_tetris_iterators());
-    print_test_result("Tetris - Operatori di Stream (<< e >>)", test_tetris_stream_operators());
-    std::cout << "--- Fine Test Classe Tetris ---" << std::endl << std::endl;
+        int test = -1;
+        std::cin >> test;
 
-    std::cout << "--- Tutti i Test Completati ---" << std::endl;
+        if (std::cin.fail()) {
+            std::cout << "\nInput non valido! Inserisci un numero tra 0 e 3.\n";
+            std::cout << "Uscita dal programma.\n";
+            break;
+        }
+
+        if (test == 0) {
+            std::cout << "\nUscita dal programma.\n";
+            break;
+        }
+
+        if (test < 0 || test > 8) {
+            std::cout << "\nScelta non valida! Inserisci un numero tra 0 e 8.\n\n";
+            continue;
+        }
+
+        divider(100);
+        std::cout << "Hai selezionato il test: " << test << "\n\n";
+
+        switch(test) {
+            case 1: testA(); break;
+            case 2: testB(); break;
+            case 3: testC(); break;
+            case 4: testD(); break;
+            case 5: testE(); break;
+            case 6: testF(); break;
+            case 7: testG(); break;
+            case 8: testH(); break;
+        }
+
+        divider(100);
+        std::cout << "\nTest terminato.\n\n";
+    }
 
     return 0;
 }
