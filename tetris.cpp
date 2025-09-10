@@ -577,7 +577,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         if(row_full[i]) clear_rows++;   //Calcoliamo righe da cancellare
     }
     
-    m_score += clear_rows * 100;
+    m_score += clear_rows * m_width;
 
     curr = m_field;
     while(curr)
@@ -667,6 +667,7 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
     }
 }
 
+/*
 //controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
 bool tetris::containment(piece const& p, int x, int y) const
 {
@@ -709,6 +710,97 @@ bool tetris::containment(piece const& p, int x, int y) const
     }
     return true;
 }
+*/
+
+//controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
+//L'offeset nella tabella è (abs_x, abs_y), e containment lavora cella per cella piuttosto che pezzo per pezzo
+bool tetris::containment(piece const& p, int x, int y) const
+{
+    if(y < 0) throw tetris_exception("ERROR! - containment(piece const& p, int x, int y) - Variabile y minore di 0") ;
+
+    for(int c = 0; c < p.side(); c++) //Mai minori di 0
+    {
+        for(int r = p.side() - 1; r >= 0; r--)    
+        {
+            if(p(r,c))
+            {
+                                //coordinate nella tabella
+                int abs_x = x + c;                              
+                int abs_y = y + (int) (p.side() - 1 - r);
+                
+                if(abs_y < 0 || abs_x >= (int) m_width || abs_y >= (int) m_height) return false;
+
+                node* curr = m_field;
+                while(curr)
+                {
+                    piece const& curr_piece = curr->tp.p;
+                    uint32_t curr_x = curr->tp.x;
+                    uint32_t curr_y = curr->tp.y;
+
+                    //Vogliamo trovare l'x e l'y per inserirlo nella lista di m_field
+                    int rel_x = abs_x - (int) curr_x;
+                    int rel_y = abs_y - (int) curr_y;
+                    //int abs_curr_x = curr_x + c2;
+                    //int abs_curr_y = curr_y + (curr_piece.side() - 1 - r2);
+                    //if(abs_x == abs_curr_x && abs_y == abs_curr_y && p(r, c) == true && curr_piece(r2, c2) == true) return false;
+
+                    if(abs_x >= 0 && abs_y >= 0 && rel_x < curr_piece.side() && rel_y < curr_piece.side())
+                        if(curr_piece(rel_y,rel_x)) return false;
+
+                    //for(uint32_t c2 = 0; c2 < curr_piece.side(); c2++)
+                    //for(uint32_t r2 = curr_piece.side() -1; r2 >= 0; r2++) 
+                            
+                    curr = curr->next;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+
+/*
+bool tetris::containment(piece const& p, int x, int y) const
+{
+    if(y < 0) throw tetris_exception("ERROR! - containment(piece const& p, int x, int y) - Variabile y minore di 0") ;
+
+    for(int c = 0; c < p.side(); c++) //Mai minori di 0
+    {
+        for(int r = p.side() - 1; r >= 0; r--)    
+        {
+            //coordinate nella tabella
+            int abs_x = x + c;                              
+            int abs_y = y + (int) (p.side() - 1 - r);
+            
+            if(abs_y < 0 || abs_x >= (int) m_width || abs_y >= (int) m_height) return false;
+
+            node* curr = m_field;
+            while(curr)
+            {
+                piece const& curr_piece = curr->tp.p;
+                uint32_t curr_x = curr->tp.x;
+                uint32_t curr_y = curr->tp.y;
+
+                //Vogliamo trovare l'x e l'y per inserirlo nella lista di m_field
+                //int rel_x = abs_x - (int) curr_x;
+                //int rel_y = abs_y - (int) curr_y;
+
+                for(uint32_t c2 = 0; c2 < curr_piece.side(); c2++)
+                {
+                    for(uint32_t r2 = curr_piece.side() -1; r2 >= 0; r2++) 
+                    {
+                        int abs_curr_x = curr_x + c2;
+                        int abs_curr_y = curr_y + (curr_piece.side() - 1 - r2);
+                        if(abs_x == abs_curr_x && abs_y == abs_curr_y && p(r, c) == true && curr_piece(r2, c2) == true) return false;
+                    }
+                }
+                curr = curr->next;
+            }
+        }
+    }
+    return true;
+}
+*/
 
 //NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
