@@ -1068,7 +1068,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
     }
 
     char c;
-    is >> std::skipws >> c;
+    is >> std::ws >> c;
     if(is.fail()) 
     {
         is.setstate(std::ios_base::failbit);
@@ -1077,12 +1077,11 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
     if(curr_side == 1) 
     {
-        //char next_c = is.peek();
+        char next;
         if(c == '[') 
         {
-            //is >> std::skipws >> c;
-            char next = is.get();
-            if(is.fail() || next == EOF || next != ']')
+            is >> std::ws >> next;
+            if(is.fail() || next != ']')
             {
                 is.setstate(std::ios_base::failbit);
                 if(c != ']') snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
@@ -1092,8 +1091,9 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
         }
         else if(c == '(') 
         {
-            char next = is.get();
-            if(is.fail() || next == EOF || next != ')')
+            
+            is >> std::ws >> next;
+            if(is.fail() || next != ')')
             {
                 is.setstate(std::ios_base::failbit);
                 if(c != ')') snprintf(buf, sizeof(buf),"Side=1: carattere inatteso '%c'", c);
@@ -1113,12 +1113,12 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             throw tetris_exception("ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Stato fallimentare (side == 1)");
         }
         
-        return;
+        return ;
     }
 
     if(c == '[')
     {
-        is >> std::skipws >> c;
+        is >> std::ws >> c;
         if(is.fail() || c != ']')
         {
             is.setstate(std::ios_base::failbit);
@@ -1130,13 +1130,14 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
             for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
                 p(i,j) = false;
 
-        return; //
+        return; 
     }
     else if (c == '(')
     {
         int half_side = curr_side / 2;
 
-        char next_c = is.peek();
+        char next_c;
+        is >> std::ws >> next_c;
         if(is.fail()) 
         { 
             is.setstate(std::ios_base::failbit); 
@@ -1145,7 +1146,6 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
         if(next_c == ')')
         {
-            is.get();
             for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
                 for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
                     p(i,j) = true;
