@@ -1136,8 +1136,8 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
     {
         int half_side = curr_side / 2;
 
-        char next_c;
-        is >> std::ws >> next_c;
+        is >> std::ws; // >> next_c;
+        char next_c = is.peek();
         if(is.fail()) 
         { 
             is.setstate(std::ios_base::failbit); 
@@ -1146,6 +1146,7 @@ void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row
 
         if(next_c == ')')
         {
+            is.get();
             for(uint32_t i = row_offset; i < row_offset + curr_side; i++)
                 for(uint32_t j =col_offset; j < col_offset + curr_side; j++)
                     p(i,j) = true;
