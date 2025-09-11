@@ -792,7 +792,9 @@ void tetris::print_ascii_art(std::ostream& os) const
                     abs_x = x + j;
                     abs_y = y + i;
                     //tmp_mat[abs_y][abs_x] = '#';  
-                    tmp_mat[abs_y][abs_x] = p.color();
+                    
+                    if(abs_x >= 0 && abs_y >= 0 && abs_x < (int) m_width && abs_y < (int) m_height)
+                        tmp_mat[abs_y][abs_x] = p.color();
                 } 
             }
         }
