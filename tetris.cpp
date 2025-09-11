@@ -667,51 +667,6 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
     }
 }
 
-/*
-//controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
-bool tetris::containment(piece const& p, int x, int y) const
-{
-    //La coordinata x può essere negativa, y no
-    if(y < 0) throw tetris_exception("ERROR! - containment(piece const& p, int x, int y) - Variabile y minore di 0") ;
-
-    for(uint32_t r = 0; r < p.side(); r++)
-    {
-        for(uint32_t c = 0; c < p.side(); c++)
-        {
-            if(p(r,c))    
-            {
-                //Coordinate del campo di gioco
-                int abs_x = x + c;
-                int abs_y = y + r; //Sbagliata, come aggiungerci?
-                if(abs_x < 0 || abs_x >= m_width || abs_y >= m_height) return false;
-
-                node* curr = m_field;
-                while(curr)
-                {
-                    piece const& curr_piece = curr->tp.p;
-                    uint32_t curr_x = curr->tp.x;
-                    uint32_t curr_y = curr->tp.y;
-                
-                    //Vogliamo trovare l'x e l'y per inserirlo nella lista di m_field
-                    int rel_x = abs_x - (int) curr_x;
-                    int rel_y = abs_y - (int) curr_y;    //rel_y è necessariamente sbagliata a causa di abs_y
-
-                    //Controllato
-                    //La "side()" non si diflette molto sul campo di gicoco
-                    //Sbagliato poichè controlla solo se la cella più BL abbia conflitti con altri pezzi
-                    //E non tutte le altre celle del pezzo che vogliamo inserire
-                    if(rel_x < curr_piece.side() && rel_y < curr_piece.side())  //Controlle dimensione generica (inutile)
-                        if(curr_piece(rel_y,rel_x)) return false;
-
-                    curr = curr->next;
-                }
-            }
-        }
-    }
-    return true;
-}
-*/
-
 //controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
 //L'offeset nella tabella è (abs_x, abs_y), e containment lavora cella per cella piuttosto che pezzo per pezzo
 bool tetris::containment(piece const& p, int x, int y) const
@@ -724,7 +679,7 @@ bool tetris::containment(piece const& p, int x, int y) const
         {
             if(p(r,c))
             {
-                                //coordinate nella tabella
+                //coordinate nella tabella
                 int abs_x = x + c;                              
                 int abs_y = y + (int) (p.side() - 1 - r);
                 
@@ -740,15 +695,9 @@ bool tetris::containment(piece const& p, int x, int y) const
                     //Vogliamo trovare l'x e l'y per inserirlo nella lista di m_field
                     int rel_x = abs_x - (int) curr_x;
                     int rel_y = abs_y - (int) curr_y;
-                    //int abs_curr_x = curr_x + c2;
-                    //int abs_curr_y = curr_y + (curr_piece.side() - 1 - r2);
-                    //if(abs_x == abs_curr_x && abs_y == abs_curr_y && p(r, c) == true && curr_piece(r2, c2) == true) return false;
 
                     if(abs_x >= 0 && abs_y >= 0 && rel_x < curr_piece.side() && rel_y < curr_piece.side())
                         if(curr_piece(rel_y,rel_x)) return false;
-
-                    //for(uint32_t c2 = 0; c2 < curr_piece.side(); c2++)
-                    //for(uint32_t r2 = curr_piece.side() -1; r2 >= 0; r2++) 
                             
                     curr = curr->next;
                 }
@@ -757,7 +706,6 @@ bool tetris::containment(piece const& p, int x, int y) const
     }
     return true;
 }
-
 
 /*
 bool tetris::containment(piece const& p, int x, int y) const
@@ -780,10 +728,6 @@ bool tetris::containment(piece const& p, int x, int y) const
                 piece const& curr_piece = curr->tp.p;
                 uint32_t curr_x = curr->tp.x;
                 uint32_t curr_y = curr->tp.y;
-
-                //Vogliamo trovare l'x e l'y per inserirlo nella lista di m_field
-                //int rel_x = abs_x - (int) curr_x;
-                //int rel_y = abs_y - (int) curr_y;
 
                 for(uint32_t c2 = 0; c2 < curr_piece.side(); c2++)
                 {
