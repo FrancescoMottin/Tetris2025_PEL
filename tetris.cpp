@@ -696,7 +696,7 @@ bool tetris::containment(piece const& p, int x, int y) const
                     int rel_x = abs_x - (int) curr_x;
                     int rel_y = abs_y - (int) curr_y;
 
-                    if(abs_x >= 0 && abs_y >= 0 && rel_x < ((int) curr_piece.side()) && rel_y < ((int) curr_piece.side()))
+                    if(abs_x >= 0 && abs_y >= 0 && rel_x >= 0 && rel_y >= 0 && rel_x < ((int) curr_piece.side()) && rel_y < ((int) curr_piece.side()))
                         if(curr_piece(rel_y,rel_x)) return false;
                             
                     curr = curr->next;
