@@ -543,12 +543,11 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     while (curr)
     {
         piece curr_piece = curr->tp.p;
-
         for(uint32_t grid_x = 0; grid_x < curr_piece.side(); grid_x++)
         {
             for(uint32_t grid_y = 0; grid_y < curr_piece.side(); grid_y++)
             {
-                if(curr->tp.p(grid_y, grid_x)) 
+                if(curr_piece(grid_y, grid_x)) 
                 {
                     int global_x = curr->tp.x + grid_x;
                     int global_y = curr->tp.y + (curr_piece.side() - 1 - grid_y);
