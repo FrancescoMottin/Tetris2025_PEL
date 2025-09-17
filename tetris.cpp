@@ -468,12 +468,13 @@ bool tetris::operator==(tetris const& rhs) const
 }
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
+/*
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
     //Se il il piece è più grande del campo di gioco? throw_exception
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
-    if( /*x < 0 ||*/ x >= (int) m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
+    if(x >= (int) m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
     
     //1. Trovare posizione di caduta
     int pos_x = 0;
@@ -504,6 +505,180 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
 
     try { add(p, pos_x, pos_y); }
+    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
+
+    //2. Identifica le righe piene che dovremo rimuovere  
+    bool* row_full = new bool[m_height];  //new bool[m_height];
+    bool** table_state = new bool*[m_height]{}; //{} dovrebbe permettere una deallocazione più sciura
+    try
+    {
+        for(uint32_t i = 0; i < m_height; ++i) 
+                row_full[i] = true;
+
+        for(uint32_t i = 0; i < m_height; i++)
+        {
+            table_state[i] = new bool[m_width]{};   //Dovrebbe rendere tutti i valori nell'array "false"
+        }
+    }
+    catch(const std::bad_alloc& e)
+    {
+        delete[] row_full;
+        if(table_state != nullptr)
+        {
+            for(uint32_t i = 0; i < m_height; i++)
+                delete[] table_state[i];
+            delete[] table_state;
+        }
+
+        throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per row_full");
+    }
+
+    node* curr = m_field;
+    while (curr)
+    {
+        piece curr_piece = curr->tp.p;
+        for(uint32_t grid_x = 0; grid_x < curr_piece.side(); grid_x++)
+        {
+            for(uint32_t grid_y = 0; grid_y < curr_piece.side(); grid_y++)
+            {
+                if(curr_piece(grid_y, grid_x)) 
+                {
+                    int global_x = curr->tp.x + grid_x;
+                    int global_y = curr->tp.y + (curr_piece.side() - 1 - grid_y);
+
+                    //&& global_x >= 0 && global_y >= 0
+                    if(global_x >= 0 && global_x < ((int) m_width) && global_y >= 0 && global_y < ((int) m_height)) 
+                        table_state[global_y][global_x] = true;
+                }
+            }
+        }            
+        curr = curr->next;
+    }
+    
+    //3. Gestione taglio pezzi
+    uint32_t clear_rows = 0;
+    curr = m_field;
+    for(uint32_t i = 0; i < m_height; i++)
+    {
+        for(uint32_t j = 0; j < m_width; j++)
+        {
+            if(!table_state[i][j])
+            {
+                row_full[i] = false;
+                break;
+            }
+        }
+        if(row_full[i]) clear_rows++;   //Calcoliamo righe da cancellare
+    }
+    
+    m_score += clear_rows * m_width;
+
+    curr = m_field;
+    while(curr)
+    {
+        int fall = 0;
+        piece& to_cut = curr->tp.p;
+        uint32_t pos_y = curr->tp.y;
+
+        for(uint32_t i = 0; i < m_height; i++)
+        {
+            if(row_full[i] && pos_y < i) fall++;   //Calcola il cambio di movimento da fare
+            
+            if(row_full[i] && i >= pos_y && i < pos_y + to_cut.side()) //Controlla se la riga è da eliminare
+            {
+                int rel_row = i - pos_y;
+                
+                try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
+                catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
+            }
+        }
+        curr->tp.y += fall;
+        curr = curr->next;
+    }
+    
+    //Poniamo il codice per deallocare manualmente la memoria dinamica
+    delete[] row_full;
+    if(table_state != nullptr)
+    {
+        for(uint32_t i = 0; i < m_height; i++)
+            delete[] table_state[i];
+        delete[] table_state;
+    }
+
+    //4. Rimozione dalla lista dei pezzi vuoti
+    //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
+    node* prev_node = nullptr;
+    node* curr_node = m_field;
+    while (curr_node)
+    {
+        if((curr_node->tp.p).empty())
+        {
+            if(!prev_node)
+            {
+                m_field = curr_node->next;
+                node* tmp = curr_node;
+                delete tmp;
+                curr_node = m_field;
+            }
+            else
+            {
+                prev_node->next = curr_node->next;
+                node* tmp = curr_node;
+                delete tmp;
+                curr_node = prev_node->next;
+            }
+        }
+        else
+        {
+            prev_node = curr_node;
+            curr_node = curr_node->next;
+        }
+    }
+}
+*/
+
+void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
+{
+    if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
+    if( /*x < 0 ||*/ x >= (int) m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
+    //if((int) p.side() > (int) m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) -  Pezzo più alto del campo di gioco.");
+    //Se il il piece è più grande del campo di gioco? throw_exception
+
+    //1. Trovare posizione di caduta
+    int pos_y;
+    bool pos_found = false;
+    for(int i = m_height - ((int) p.side()); i >= 0; i--) 
+    {
+        bool contained; 
+        try{ contained = containment(p,x,i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+        if(contained) 
+        {
+            pos_y = i;
+            pos_found = true;
+            break;
+        }
+    }
+    
+    //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
+    if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
+    
+    /*
+    int pos_y = -1;
+    for(int i = 0; i <= (int)m_height - (int)p.side(); i++) 
+    {
+        bool contained = false; 
+        try { contained = containment(p, x, i); } 
+        catch(const tetris_exception& e){ throw tetris_exception(e.what()); };
+
+        if(contained) 
+            pos_y = i;   // aggiorna sempre, ultimo valido
+        else 
+            break;       // appena non più contenuto → fermati
+    }
+    if(pos_y < 0) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
+    */
+
+    try { add(p,x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
     //2. Identifica le righe piene che dovremo rimuovere  
