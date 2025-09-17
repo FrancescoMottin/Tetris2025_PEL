@@ -524,7 +524,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         {
             pos_y = i;
             pos_found = true;
-            break;
         }
     }
 
