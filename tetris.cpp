@@ -516,7 +516,8 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     
     int pos_y;
     bool pos_found = false;
-    for(int i = (int)(m_height - p.side()); i >= 0; i--) 
+    //for(int i = (int)(m_height - p.side()); i >= 0; i--)
+    for(int i = 0; i <= (int)(m_height - p.side()); i++)
     {
         bool contained; 
         try{ contained = containment(p,x,i); } 
@@ -526,7 +527,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         {
             pos_y = i;
             pos_found = true;
-            break;
+            //break;
         }
     }
 
@@ -702,8 +703,9 @@ bool tetris::containment(piece const& p, int x, int y) const
             {
                 //coordinate nella tabella
                 int abs_x = x + c;                              
-                int abs_y = y + (int) (p.side() - 1 - r);
-                
+                //int abs_y = y + (int) (p.side() - 1 - r);
+                int abs_y = y + r;
+
                 // abs_x < 0 || abs_x >= (int) m_width || abs_y < 0 || 
                 if(abs_y >= (int) m_height) return false;
 
@@ -773,7 +775,8 @@ void tetris::print_ascii_art(std::ostream& os) const
                 if(p(i,j) == true)
                 {
                     abs_x = x + j;
-                    abs_y = y + i;
+                    abs_y = y + (p.side() - 1 - i);
+                    //abs_y = y + i;
                     //tmp_mat[abs_y][abs_x] = '#';  
                     
                     if(abs_x >= 0 && abs_y >= 0 && abs_x < (int) m_width && abs_y < (int) m_height)
