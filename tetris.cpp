@@ -476,24 +476,34 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     if( /*x < 0 ||*/ x >= (int) m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
     
     //1. Trovare posizione di caduta
-    int pos_y;
+    int pos_x = 0;
+    int pos_y = -1; //-1 :posizione non trovata
     bool pos_found = false;
-    for(int i = m_height - ((int) p.side()); i >= 0; i--) 
+   
+    for(int dx = -p.side(); dx <= p.side(); dx++)
     {
-        bool contained; 
-        try{ contained = containment(p,x,i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-        if(contained) 
+        for(int y = 0; y <= m_height - p.side(); y++)
         {
-            pos_y = i;
-            pos_found = true;
-            break;
+            try
+            {
+                if(containment(p, x + dx, y))
+                {
+                    if(y > pos_y) // per preservare gli y più bassi
+                    {
+                        pos_x = x+dx;
+                        pos_y = y;
+                        pos_found = true;
+                    }
+                }    
+            }
+            catch(const std::exception& e) {throw tetris_exception(e.what());}
         }
     }
     
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
     if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
 
-    try { add(p,x, pos_y); }
+    try { add(p, pos_x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
     //2. Identifica le righe piene che dovremo rimuovere  
@@ -664,7 +674,7 @@ bool tetris::containment(piece const& p, int x, int y) const
                 int abs_x = x + c;                              
                 int abs_y = y + (int) (p.side() - 1 - r);
                 
-                if(abs_y < 0 || abs_x >= (int) m_width || abs_y >= (int) m_height) return false;
+                if(abs_x < 0 || abs_y < 0 || abs_x >= (int) m_width || abs_y >= (int) m_height) return false;
 
                 node* curr = m_field;
                 while(curr)
@@ -677,7 +687,7 @@ bool tetris::containment(piece const& p, int x, int y) const
                     int rel_x = abs_x - (int) curr_x;
                     int rel_y = abs_y - (int) curr_y;
 
-                    if(abs_x >= 0 && abs_y >= 0 && rel_x >= 0 && rel_y >= 0 && rel_x < ((int) curr_piece.side()) && rel_y < ((int) curr_piece.side()))
+                    if(rel_x >= 0 && rel_y >= 0 && rel_x < ((int) curr_piece.side()) && rel_y < ((int) curr_piece.side()))
                         if(curr_piece(rel_y,rel_x)) return false;
                             
                     curr = curr->next;
