@@ -482,7 +482,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
    
     for(int dx = -p.side(); dx <= p.side(); dx++)
     {
-        for(int y = 0; y <= m_height - p.side(); y++)
+        for(int y = m_height - p.side(); y >= 0; y--)
         {
             try
             {
