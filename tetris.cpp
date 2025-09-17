@@ -468,8 +468,15 @@ bool tetris::operator==(tetris const& rhs) const
 }
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
+/*
+//Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
+    //Se il il piece è più grande del campo di gioco? throw_exception
+    if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
+    if(x >= (int) m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
+    
+    //1. Trovare posizione di caduta
     int pos_x = 0;
     int pos_y = -1; //-1 :posizione non trovata
     bool pos_found = false;
@@ -492,6 +499,33 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             catch(const std::exception& e) {throw tetris_exception(e.what());}
         }
         if(pos_found) break ;
+    }
+    
+    //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
+    if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
+
+    try { add(p, pos_x, pos_y); }
+    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
+}
+*/
+
+void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
+{
+    if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
+    if( x >= (int) m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
+    
+    int pos_y;
+    bool pos_found = false;
+    for(int i = m_height - ((int) p.side()); i >= 0; i--) 
+    {
+        bool contained; 
+        try{ contained = containment(p,x,i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+        if(contained) 
+        {
+            pos_y = i;
+            pos_found = true;
+            break;
+        }
     }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
