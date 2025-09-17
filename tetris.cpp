@@ -494,6 +494,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                         pos_x = x+dx;
                         pos_y = y;
                         pos_found = true;
+                        break:
                 }    
             }
             catch(const std::exception& e) {throw tetris_exception(e.what());}
@@ -517,6 +518,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     //Se il il piece è più grande del campo di gioco? throw_exception
 
     //1. Trovare posizione di caduta
+    /*
     int pos_y;
     bool pos_found = false;
     for(int i = m_height - ((int) p.side()); i >= 0; i--) 
@@ -529,6 +531,31 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             pos_found = true;
             break;
         }
+    }
+    */
+    int pos_x = 0;
+    int pos_y = -1; //-1 :posizione non trovata
+    bool pos_found = false;
+
+    for(int dx = -p.side(); dx <= p.side(); dx++)
+    {
+        for(int y = m_height - p.side(); y >= 0; y--)
+        {
+            try
+            {
+                if(containment(p, x + dx, y))
+                {
+                    
+                    //if(y > pos_y) // per preservare gli y più bassi
+                        pos_x = x+dx;
+                        pos_y = y;
+                        pos_found = true;
+                        break;
+                }    
+            }
+            catch(const std::exception& e) {throw tetris_exception(e.what());}
+        }
+        if(pos_found) break ;
     }
     
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
