@@ -674,7 +674,8 @@ bool tetris::containment(piece const& p, int x, int y) const
                 int abs_x = x + c;                              
                 int abs_y = y + (int) (p.side() - 1 - r);
                 
-                if(abs_x < 0 || abs_y < 0 || abs_x >= (int) m_width || abs_y >= (int) m_height) return false;
+                // abs_x < 0 || abs_x >= (int) m_width
+                if( abs_y < 0 || abs_y >= (int) m_height) return false;
 
                 node* curr = m_field;
                 while(curr)
