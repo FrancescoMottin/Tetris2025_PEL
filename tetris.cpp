@@ -471,11 +471,10 @@ bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
+    //Se il il piece è più grande del campo di gioco? throw_exception
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
     if( /*x < 0 ||*/ x >= (int) m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
-    //if((int) p.side() > (int) m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) -  Pezzo più alto del campo di gioco.");
-    //Se il il piece è più grande del campo di gioco? throw_exception
-
+    
     //1. Trovare posizione di caduta
     int pos_y;
     bool pos_found = false;
@@ -493,22 +492,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
     if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
-    
-    /*
-    int pos_y = -1;
-    for(int i = 0; i <= (int)m_height - (int)p.side(); i++) 
-    {
-        bool contained = false; 
-        try { contained = containment(p, x, i); } 
-        catch(const tetris_exception& e){ throw tetris_exception(e.what()); };
-
-        if(contained) 
-            pos_y = i;   // aggiorna sempre, ultimo valido
-        else 
-            break;       // appena non più contenuto → fermati
-    }
-    if(pos_y < 0) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-    */
 
     try { add(p,x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
@@ -660,10 +643,8 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
     if(!m_field) m_field = new_node;
     else
     {
-        node* current = m_field;
-        while(current->next)
-            current = current->next;
-        current->next = new_node;
+        new_node->next = m_field;
+        m_field = new_node;
     }
 }
 
