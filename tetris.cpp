@@ -517,7 +517,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     //Se il il piece è più grande del campo di gioco? throw_exception
 
     //1. Trovare posizione di caduta
-    int pos_y = 0;
+    //int pos_y = 0;
     bool pos_found = false;
     int bottom_filled_row = -1;
 
