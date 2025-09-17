@@ -775,7 +775,7 @@ void tetris::print_ascii_art(std::ostream& os) const
                 if(p(i,j) == true)
                 {
                     abs_x = x + j;
-                    abs_y = y + (p.side() - 1 - i);
+                    abs_y = (m_height - 1) - (y + (p.side() - 1 - i));
                     //abs_y = y + i;
                     //tmp_mat[abs_y][abs_x] = '#';  
                     
