@@ -516,7 +516,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     
     int pos_y;
     bool pos_found = false;
-    for(int i = 0; i <= m_height - ((int) p.side()); i++) 
+    for(int i = (int)(m_height - p.side()); i >= 0; i--) 
     {
         bool contained; 
         try{ contained = containment(p,x,i); } 
@@ -526,6 +526,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         {
             pos_y = i;
             pos_found = true;
+            break;
         }
     }
 
