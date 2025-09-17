@@ -488,16 +488,16 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             {
                 if(containment(p, x + dx, y))
                 {
-                    if(y > pos_y) // per preservare gli y più bassi
-                    {
+                    
+                    //if(y > pos_y) // per preservare gli y più bassi
                         pos_x = x+dx;
                         pos_y = y;
                         pos_found = true;
-                    }
                 }    
             }
             catch(const std::exception& e) {throw tetris_exception(e.what());}
         }
+        if(pos_found) break ;
     }
     
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
