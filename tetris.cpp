@@ -475,6 +475,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     if(p.side() > m_width || p.side() > m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
 
     /*
+        //Versione vecchia
         if( x < 0 || (int) p.side() + x > (int) m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
         if((int) p.side() > (int) m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) -  Pezzo più alto del campo di gioco.");
     */
@@ -547,7 +548,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     node* curr = m_field;
     while (curr)
     {
-        piece curr_piece = curr->tp.p;
+        piece const& curr_piece = curr->tp.p;
         for(uint32_t grid_x = 0; grid_x < curr_piece.side(); grid_x++)
         {
             for(uint32_t grid_y = 0; grid_y < curr_piece.side(); grid_y++)
