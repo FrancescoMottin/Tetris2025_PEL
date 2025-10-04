@@ -472,7 +472,7 @@ bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
-    if(p.side() > m_width || p.side() > m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
+    //if(p.side() > m_width || p.side() > m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
     
     //1. Trovare posizione di caduta
     int pos_y = -1;
@@ -481,7 +481,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         bool contained; 
         try{ contained = containment(p,x,(int) i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
         if(contained) pos_y = i;
-        else break;
+        //else break;
     }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
@@ -648,7 +648,7 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
 
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
-    if (x < 0 || y < 0 || x + (int)p.side() > (int)m_width || y + (int)p.side() > (int)m_height)
+    if (x < 0 || y < 0 /*|| x + (int)p.side() > (int)m_width || y + (int)p.side() > (int)m_height*/)
         throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Pezzo fuori dai limiti del campo.");
 
     bool contained; 
