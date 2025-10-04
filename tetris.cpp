@@ -473,53 +473,24 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
     if(p.side() > m_width || p.side() > m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
-
-    /*
-        //Versione vecchia
-        if( x < 0 || (int) p.side() + x > (int) m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
-        if((int) p.side() > (int) m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) -  Pezzo più alto del campo di gioco.");
-    */
     
-    //Se il il piece è più grande del campo di gioco? throw_exception
-
     //1. Trovare posizione di caduta
-    int pos_y;
-    bool pos_found = false;
-    for(int i = m_height - ((int) p.side()); i >= 0; i--) 
+    int pos_y = -1;
+    for(int i = 0; i <= m_height - ((int) p.side()); i++) 
     {
         bool contained; 
         try{ contained = containment(p,x,i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-        if(contained) 
-        {
-            pos_y = i;
-            pos_found = true;
-            break;
-        }
+        if(contained) pos_y = i;
+        else break;
     }
-    
+
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
-    if(!pos_found)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!"); 
+    if(pos_y < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
     
-    /*
-    int pos_y = -1;
-    for(int i = 0; i <= (int)m_height - (int)p.side(); i++) 
-    {
-        bool contained = false; 
-        try { contained = containment(p, x, i); } 
-        catch(const tetris_exception& e){ throw tetris_exception(e.what()); };
-
-        if(contained) 
-            pos_y = i;   // aggiorna sempre, ultimo valido
-        else 
-            break;       // appena non più contenuto → fermati
-    }
-    if(pos_y < 0) throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-    */
-
     try { add(p,x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
-    //2. Identifica le righe piene che dovremo rimuovere  
+    //2. Identifica le righe piene che dovremo rimuovere, costruisci tabella temporanea
     bool* row_full = new bool[m_height];  //new bool[m_height];
     bool** table_state = new bool*[m_height]{}; //{} dovrebbe permettere una deallocazione più sciura
     try
@@ -556,7 +527,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                 if(curr_piece(grid_y, grid_x)) 
                 {
                     int global_x = curr->tp.x + grid_x;
-                    int global_y = curr->tp.y + (curr_piece.side() - 1 - grid_y);
+                    int global_y = curr->tp.y + grid_y;
 
                     //&& global_x >= 0 && global_y >= 0
                     if(global_x >= 0 && global_x < ((int) m_width) && global_y >= 0 && global_y < ((int) m_height)) 
@@ -567,7 +538,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         curr = curr->next;
     }
     
-    //3. Gestione taglio pezzi
+    //3.Identifica righe piene, Gestione taglio pezzi
     uint32_t clear_rows = 0;
     curr = m_field;
     for(uint32_t i = 0; i < m_height; i++)
@@ -592,7 +563,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         piece& to_cut = curr->tp.p;
         uint32_t pos_y = curr->tp.y;
 
-        for(uint32_t i = 0; i < m_height; i++)
+        for(int i = m_height - 1; i >= 0; i--) //tagliamo prima righe più basse
         {
             if(row_full[i] && pos_y < i) fall++;   //Calcola il cambio di movimento da fare
             
@@ -648,6 +619,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     }
 }
 
+/*
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
     bool contained; 
@@ -671,6 +643,23 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
             current = current->next;
         current->next = new_node;
     }
+}
+*/
+
+void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
+{
+    bool contained; 
+    try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+    if(!contained) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Le coordinate non sono valide per il pezzo dato");
+
+    tetris_piece new_tp{p,x,y};
+    node* new_node;
+    try{ new_node = new node{new_tp, nullptr};}
+    catch(const std::bad_alloc&){throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Memory allocation failed in add()");}
+    
+    new_node->next = m_field;
+    m_field = new_node;
+
 }
 
 //controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
