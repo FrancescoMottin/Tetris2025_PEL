@@ -567,7 +567,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         {
             if(row_full[i] && pos_y < i) fall++;   //Calcola il cambio di movimento da fare
             
-            if(row_full[i] && i >= pos_y && i < pos_y + to_cut.side()) //Controlla se la riga è da eliminare
+            if(row_full[i] && i >= pos_y && i < (int) (pos_y + to_cut.side())) //Controlla se la riga è da eliminare
             {
                 int rel_row = i - pos_y;
                 
