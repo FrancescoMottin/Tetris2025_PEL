@@ -476,10 +476,10 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     
     //1. Trovare posizione di caduta
     int pos_y = -1;
-    for(int i = 0; i <= m_height - ((int) p.side()); i++) 
+    for(uint32_t i = 0; i <= m_height - p.side(); i++) 
     {
         bool contained; 
-        try{ contained = containment(p,x,i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+        try{ contained = containment(p,x,(int) i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
         if(contained) pos_y = i;
         else break;
     }
@@ -563,7 +563,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         piece& to_cut = curr->tp.p;
         uint32_t pos_y = curr->tp.y;
 
-        for(int i = m_height - 1; i >= 0; i--) //tagliamo prima righe più basse
+        for(uint32_t i = m_height - 1; i >= 0; i--) //tagliamo prima righe più basse
         {
             if(row_full[i] && pos_y < i) fall++;   //Calcola il cambio di movimento da fare
             
@@ -709,10 +709,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     for(uint32_t i = 0; i < p.side(); i++) 
     {
         for(uint32_t j = 0; j < p.side(); j++) 
-        {
-            if((((j + x) < 0) || ((j + x) >= this->m_width) ||  ((i + y) < 0) || ((i + y) >= this->m_height)) && p(i, j))
-                return false;
-        }
+            if((((j + x) >= this->m_width) || ((i + y) >= this->m_height)) && p(i, j))return false;
     }
 
     // Checks if the tetris piece doesn't intersect with other tetris pieces
