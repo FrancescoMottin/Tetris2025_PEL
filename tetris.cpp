@@ -619,33 +619,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     }
 }
 
-/*
-void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
-{
-    bool contained; 
-    try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-    if(!contained) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Le coordinate non sono valide per il pezzo dato");
-
-    tetris_piece new_tp;
-    new_tp.p = p;
-    new_tp.x = x;
-    new_tp.y = y;
-
-    node* new_node = nullptr;
-    try{ new_node = new node{new_tp, nullptr}; }   //try-catch?
-    catch(const std::bad_alloc& e) { throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Errore di allocazione memoria durante l'aggiunta di un pezzo."); }
-
-    if(!m_field) m_field = new_node;
-    else
-    {
-        node* current = m_field;
-        while(current->next)
-            current = current->next;
-        current->next = new_node;
-    }
-}
-*/
-
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
     if (x < 0 || y < 0 /*|| x + (int)p.side() > (int)m_width || y + (int)p.side() > (int)m_height*/)
@@ -666,45 +639,6 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
 
 //controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
 //L'offeset nella tabella è (abs_x, abs_y), e containment lavora cella per cella piuttosto che pezzo per pezzo
-/*
-bool tetris::containment(piece const& p, int x, int y) const
-{
-    if(y < 0) throw tetris_exception("ERROR! - containment(piece const& p, int x, int y) - Variabile y minore di 0") ;
-
-    for(int c = 0; c < ((int) p.side()); c++) //Mai minori di 0
-    {
-        for(int r = p.side() - 1; r >= 0; r--)    
-        {
-            if(p(r,c))
-            {
-                //coordinate nella tabella
-                int abs_x = x + c;                              
-                int abs_y = y + (int) (p.side() - 1 - r);
-                
-                if(abs_y < 0 || abs_x >= (int) m_width || abs_y >= (int) m_height) return false;
-
-                node* curr = m_field;
-                while(curr)
-                {
-                    piece const& curr_piece = curr->tp.p;
-                    uint32_t curr_x = curr->tp.x;
-                    uint32_t curr_y = curr->tp.y;
-
-                    //Vogliamo trovare l'x e l'y per inserirlo nella lista di m_field
-                    int rel_x = abs_x - (int) curr_x;
-                    int rel_y = abs_y - (int) curr_y;
-
-                    if(abs_x >= 0 && abs_y >= 0 && rel_x >= 0 && rel_y >= 0 && rel_x < ((int) curr_piece.side()) && rel_y < ((int) curr_piece.side()))
-                        if(curr_piece(rel_y,rel_x)) return false;
-                            
-                    curr = curr->next;
-                }
-            }
-        }
-    }
-    return true;
-}
-*/
 bool tetris::containment(piece const& p, int x, int y) const
 {
     // Checks if the tetris piece doesn't have true cells out of bounds of the tetris field
