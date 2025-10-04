@@ -561,7 +561,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     {
         int fall = 0;
         piece& to_cut = curr->tp.p;
-        uint32_t pos_y = curr->tp.y;
+        int pos_y = curr->tp.y;
 
         for(int i = m_height - 1; i >= 0; i--) //tagliamo prima righe più basse
         {
