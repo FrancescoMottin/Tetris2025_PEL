@@ -468,6 +468,119 @@ bool tetris::operator==(tetris const& rhs) const
 }
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
+struct field { 
+	bool** f;
+	tetris t;
+	
+	field(tetris& rhs) {
+		this->t = rhs;
+		this->f = new bool*[this->t.height()];
+		for (uint32_t i = 0; i < this->t.height(); ++i) {
+			this->f[i] = new bool[this->t.width()]();
+		}
+
+	};
+	
+	~field() {		
+		for (uint32_t i = 0; i < this->t.height(); i++) {
+			delete[] this->f[i];
+		}
+
+		
+		delete[] this->f;
+	}
+	
+	void add(tetris_piece& tp) {
+		for(uint32_t i = 0; i < tp.p.side(); i++) {
+			for(uint32_t j = 0; j < tp.p.side(); j++) {
+				uint32_t x = tp.x + j;
+				uint32_t y = tp.y + i;
+				if (tp.p(i, j)) {
+					if (x < t.width() && y < t.height()) {
+						this->f[y][x] = true;
+					}
+				}
+			}
+		}
+	};
+	
+	bool full_row() {
+		for(int it1 = this->t.height()-1; it1 >= 0; it1--) {
+			uint32_t c = 0;
+			for(uint32_t it2 = 0; it2 < this->t.width(); it2++) {
+				if(this->f[it1][it2])
+					c++;
+			}
+			
+			if(c == this->t.width()) {
+				return true;
+			}
+		}
+		return false;
+	};
+	
+	int first_full_row() {
+		for(int it1 = this->t.height()-1; it1 >= 0; it1--) {
+			int c = 0;
+			for(uint32_t it2 = 0; it2 < this->t.width(); it2++) {
+				if(this->f[it1][it2])
+					c++;
+			}
+			
+			if(uint32_t(c) == this->t.width()) {
+				return it1;
+			}
+		}
+		return this->t.height();
+	}
+};
+
+void tetris::insert(piece const& p, int x) {
+	int max_y = -1;
+
+    // finds the maximum value of y
+    for(int y = 0; y <= int(this->m_height); ++y) {
+        if(this->containment(p, x, y)) {
+            max_y = y;
+        }
+    }
+    
+    //cout << "Qui arrivo1";
+
+    if(max_y == -1) 
+        throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+
+    this->add(p, x, max_y);
+    
+    field f(*this);
+    
+    //cout << "Qui arrivo2";
+    
+    node* tmp = this->m_field;
+    while(tmp != nullptr) {
+		f.add(tmp->tp);
+		tmp = tmp->next;
+	}
+	
+	//cout << "Qui arrivo3";
+	
+	while(f.full_row()) {
+		node* tmp = this->m_field;
+		while(tmp != nullptr) {
+			for(int i = tmp->tp.p.side() - 1; i >= 0; i--) {
+				if (tmp->tp.y + i == f.first_full_row()) {
+					tmp->tp.p.cut_row(i);
+				}
+			}
+			
+			tmp = tmp->next;
+		}
+		f = field(*this);
+		//cout << "Qui arrivo4";
+	}	
+	//cout << "Qui arrivo5";
+};
+/*
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
@@ -618,6 +731,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         }
     }
 }
+    */
 
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
