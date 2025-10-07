@@ -535,7 +535,7 @@ struct field {
 	}
 };
 
-void tetris::insert(piece const& p, int x) {
+/*void tetris::insert(piece const& p, int x) {
 	int max_y = -1;
 
     // finds the maximum value of y
@@ -580,7 +580,8 @@ void tetris::insert(piece const& p, int x) {
 	}	
 	//cout << "Qui arrivo5";
 };
-/*
+*/
+
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
@@ -589,12 +590,15 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     
     //1. Trovare posizione di caduta
     int pos_y = -1;
-    for(uint32_t i = 0; i <= m_height - p.side(); i++) 
+    for(int i = 0; i <= int(m_height - p.side()); i++) 
     {
+        if(containment(p,x,i)) pos_y = i;
+        /*
         bool contained; 
         try{ contained = containment(p,x,(int) i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
         if(contained) pos_y = i;
         else break;
+        */
     }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
@@ -731,7 +735,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         }
     }
 }
-    */
 
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
