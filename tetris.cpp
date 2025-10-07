@@ -648,7 +648,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                 int cuts_done = 0;
                 for(int i = m_height - 1; i >= 0; i--) //tagliamo prima righe più basse
                 {
-                    /*
                     //if(row_full[i] && pos_y < i) fall++;   //Calcola il cambio di movimento da fare
                     if (row_full[i] && i > pos_y + (int)to_cut.side() - 1) fall++;
 
@@ -658,7 +657,8 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                         try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
                         catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
                     }
-                    */
+                    
+                    /*
                     if (row_full[i] && i > pos_y + (int)to_cut.side() - 1) fall++;
 
                     if (row_full[i] && i >= pos_y && i < (int)(pos_y + to_cut.side())) 
@@ -668,6 +668,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                         catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
                         cuts_done++;
                     }
+                    */
                 }
                 curr->tp.y += fall;
                 curr = curr->next;
