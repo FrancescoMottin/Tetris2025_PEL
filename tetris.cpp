@@ -549,6 +549,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         bool contained; 
         try{ contained = containment(p,x,(int) i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
         if(contained) pos_y = i;
+        else break;
     }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
