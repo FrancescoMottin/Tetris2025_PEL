@@ -540,9 +540,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
     //if(p.side() > m_width || p.side() > m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
-    
-
-
 
     //1. Trovare posizione di caduta
     int pos_y = -1;
@@ -635,64 +632,75 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             if(row_full[i]) clear_rows++;   //Calcoliamo righe da cancellare
         }
     
-        if(clear_rows > 0)
+        if(clear_rows == 0) changed = false;   
+        else 
         {
             m_score += clear_rows * m_width;
             changed = true;
-        }
-        else changed = false;
 
-
-        curr = m_field;
-        while(curr)
-        {
-            int fall = 0;
-            piece& to_cut = curr->tp.p;
-            int pos_y = curr->tp.y;
-
-            for(int i = m_height - 1; i >= 0; i--) //tagliamo prima righe più basse
+            curr = m_field;
+            while(curr)
             {
-                //if(row_full[i] && pos_y < i) fall++;   //Calcola il cambio di movimento da fare
-                if (row_full[i] && i > pos_y + (int)to_cut.side() - 1) fall++;
+                int fall = 0;
+                piece& to_cut = curr->tp.p;
+                int pos_y = curr->tp.y;
 
-                if(row_full[i] && i >= pos_y && i < (int) (pos_y + to_cut.side())) //Controlla se la riga è da eliminare
+                int cuts_done = 0;
+                for(int i = m_height - 1; i >= 0; i--) //tagliamo prima righe più basse
                 {
-                    int rel_row = i - pos_y;
-                    try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
-                    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
+                    /*
+                    //if(row_full[i] && pos_y < i) fall++;   //Calcola il cambio di movimento da fare
+                    if (row_full[i] && i > pos_y + (int)to_cut.side() - 1) fall++;
+
+                    if(row_full[i] && i >= pos_y && i < (int) (pos_y + to_cut.side())) //Controlla se la riga è da eliminare
+                    {
+                        int rel_row = i - pos_y;
+                        try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
+                        catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
+                    }
+                    */
+                    if (row_full[i] && i > pos_y + (int)to_cut.side() - 1) fall++;
+
+                    if (row_full[i] && i >= pos_y && i < (int)(pos_y + to_cut.side())) 
+                    {
+                        int rel_row = i - pos_y - cuts_done;
+                        try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
+                        catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
+                        cuts_done++;
+                    }
                 }
+                curr->tp.y += fall;
+                curr = curr->next;
             }
-            curr->tp.y += fall;
-            curr = curr->next;
-        }
 
-        //4. Rimozione dalla lista dei pezzi vuoti
-        //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
-        node* prev_node = nullptr;
-        node* curr_node = m_field;
-        while (curr_node)
-        {
-            if((curr_node->tp.p).empty())
+            //4. Rimozione dalla lista dei pezzi vuoti
+            //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
+            node* prev_node = nullptr;
+            node* curr_node = m_field;
+            while (curr_node)
             {
-                if(!prev_node)
+                if((curr_node->tp.p).empty())
                 {
-                    m_field = curr_node->next;
-                    node* tmp = curr_node;
-                    delete tmp;
-                    curr_node = m_field;
+                    if(!prev_node)
+                    {
+                        m_field = curr_node->next;
+                        node* tmp = curr_node;
+                        delete tmp;
+                        curr_node = m_field;
+                    }
+                    else
+                    {
+                        prev_node->next = curr_node->next;
+                        node* tmp = curr_node;
+                        delete tmp;
+                        curr_node = prev_node->next;
+                    }
                 }
                 else
                 {
-                    prev_node->next = curr_node->next;
-                    node* tmp = curr_node;
-                    delete tmp;
-                    curr_node = prev_node->next;
+                    prev_node = curr_node;
+                    curr_node = curr_node->next;
                 }
-            }
-            else
-            {
-                prev_node = curr_node;
-                curr_node = curr_node->next;
             }
         }
     }
