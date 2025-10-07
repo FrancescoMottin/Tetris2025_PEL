@@ -541,6 +541,9 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
     //if(p.side() > m_width || p.side() > m_height) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo più grande del campo di gioco.");
     
+
+
+
     //1. Trovare posizione di caduta
     int pos_y = -1;
     for(int i = 0; i <= int(m_height); i++) 
@@ -558,18 +561,16 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     try { add(p,x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
-    //2. Identifica le righe piene che dovremo rimuovere, costruisci tabella temporanea
+    //Parte 2,3 e 4: Gestione righe
     bool* row_full = new bool[m_height];  //new bool[m_height];
     bool** table_state = new bool*[m_height]{}; //{} dovrebbe permettere una deallocazione più sciura
     try
     {
         for(uint32_t i = 0; i < m_height; ++i) 
-                row_full[i] = true;
+            row_full[i] = true;
 
         for(uint32_t i = 0; i < m_height; i++)
-        {
             table_state[i] = new bool[m_width]{};   //Dovrebbe rendere tutti i valori nell'array "false"
-        }
     }
     catch(const std::bad_alloc& e)
     {
@@ -584,69 +585,119 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per row_full");
     }
 
-    node* curr = m_field;
-    while (curr)
+    bool changed;
+    do
     {
-        piece const& curr_piece = curr->tp.p;
-        for(uint32_t grid_x = 0; grid_x < curr_piece.side(); grid_x++)
-        {
-            for(uint32_t grid_y = 0; grid_y < curr_piece.side(); grid_y++)
-            {
-                if(curr_piece(grid_y, grid_x)) 
-                {
-                    int global_x = curr->tp.x + grid_x;
-                    int global_y = curr->tp.y + grid_y;
+        changed = false;
+        for (uint32_t i = 0; i < m_height; ++i)
+            row_full[i] = true;
 
-                    //&& global_x >= 0 && global_y >= 0
-                    if(global_x >= 0 && global_x < ((int) m_width) && global_y >= 0 && global_y < ((int) m_height)) 
-                        table_state[global_y][global_x] = true;
+        for (uint32_t i = 0; i < m_height; ++i)
+            for (uint32_t j = 0; j < m_width; ++j)
+                table_state[i][j] = false;
+
+        //2. Identifica le righe piene che dovremo rimuovere, costruisci tabella temporanea
+        node* curr = m_field;
+        while (curr)
+        {
+            piece const& curr_piece = curr->tp.p;
+            for(uint32_t grid_x = 0; grid_x < curr_piece.side(); grid_x++)
+            {
+                for(uint32_t grid_y = 0; grid_y < curr_piece.side(); grid_y++)
+                {
+                    if(curr_piece(grid_y, grid_x)) 
+                    {
+                        int global_x = curr->tp.x + grid_x;
+                        int global_y = curr->tp.y + grid_y;
+
+                        //&& global_x >= 0 && global_y >= 0
+                        if(global_x >= 0 && global_x < ((int) m_width) && global_y >= 0 && global_y < ((int) m_height)) 
+                            table_state[global_y][global_x] = true;
+                    }
+                }
+            }            
+            curr = curr->next;
+        }
+    
+        //3.Identifica righe piene, Gestione taglio pezzi
+        uint32_t clear_rows = 0;
+        curr = m_field;
+        for(uint32_t i = 0; i < m_height; i++)
+        {
+            for(uint32_t j = 0; j < m_width; j++)
+            {
+                if(!table_state[i][j])
+                {
+                    row_full[i] = false;
+                    break;
                 }
             }
-        }            
-        curr = curr->next;
-    }
+            if(row_full[i]) clear_rows++;   //Calcoliamo righe da cancellare
+        }
     
-    //3.Identifica righe piene, Gestione taglio pezzi
-    uint32_t clear_rows = 0;
-    curr = m_field;
-    for(uint32_t i = 0; i < m_height; i++)
-    {
-        for(uint32_t j = 0; j < m_width; j++)
+        if(clear_rows > 0)
         {
-            if(!table_state[i][j])
+            m_score += clear_rows * m_width;
+            changed = true;
+        }
+        else changed = false;
+
+
+        curr = m_field;
+        while(curr)
+        {
+            int fall = 0;
+            piece& to_cut = curr->tp.p;
+            int pos_y = curr->tp.y;
+
+            for(int i = m_height - 1; i >= 0; i--) //tagliamo prima righe più basse
             {
-                row_full[i] = false;
-                break;
+                //if(row_full[i] && pos_y < i) fall++;   //Calcola il cambio di movimento da fare
+                if (row_full[i] && i > pos_y + (int)to_cut.side() - 1) fall++;
+
+                if(row_full[i] && i >= pos_y && i < (int) (pos_y + to_cut.side())) //Controlla se la riga è da eliminare
+                {
+                    int rel_row = i - pos_y;
+                    try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
+                    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
+                }
+            }
+            curr->tp.y += fall;
+            curr = curr->next;
+        }
+
+        //4. Rimozione dalla lista dei pezzi vuoti
+        //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
+        node* prev_node = nullptr;
+        node* curr_node = m_field;
+        while (curr_node)
+        {
+            if((curr_node->tp.p).empty())
+            {
+                if(!prev_node)
+                {
+                    m_field = curr_node->next;
+                    node* tmp = curr_node;
+                    delete tmp;
+                    curr_node = m_field;
+                }
+                else
+                {
+                    prev_node->next = curr_node->next;
+                    node* tmp = curr_node;
+                    delete tmp;
+                    curr_node = prev_node->next;
+                }
+            }
+            else
+            {
+                prev_node = curr_node;
+                curr_node = curr_node->next;
             }
         }
-        if(row_full[i]) clear_rows++;   //Calcoliamo righe da cancellare
     }
-    
-    m_score += clear_rows * m_width;
+    while(changed);
 
-    curr = m_field;
-    while(curr)
-    {
-        int fall = 0;
-        piece& to_cut = curr->tp.p;
-        int pos_y = curr->tp.y;
-
-        for(int i = m_height - 1; i >= 0; i--) //tagliamo prima righe più basse
-        {
-            //if(row_full[i] && pos_y < i) fall++;   //Calcola il cambio di movimento da fare
-            if (row_full[i] && i > pos_y + (int)to_cut.side() - 1) fall++;
-
-            if(row_full[i] && i >= pos_y && i < (int) (pos_y + to_cut.side())) //Controlla se la riga è da eliminare
-            {
-                int rel_row = i - pos_y;
-                try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
-                catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
-            }
-        }
-        curr->tp.y += fall;
-        curr = curr->next;
-    }
-    
     //Poniamo il codice per deallocare manualmente la memoria dinamica
     delete[] row_full;
     if(table_state != nullptr)
@@ -654,36 +705,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         for(uint32_t i = 0; i < m_height; i++)
             delete[] table_state[i];
         delete[] table_state;
-    }
-
-    //4. Rimozione dalla lista dei pezzi vuoti
-    //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
-    node* prev_node = nullptr;
-    node* curr_node = m_field;
-    while (curr_node)
-    {
-        if((curr_node->tp.p).empty())
-        {
-            if(!prev_node)
-            {
-                m_field = curr_node->next;
-                node* tmp = curr_node;
-                delete tmp;
-                curr_node = m_field;
-            }
-            else
-            {
-                prev_node->next = curr_node->next;
-                node* tmp = curr_node;
-                delete tmp;
-                curr_node = prev_node->next;
-            }
-        }
-        else
-        {
-            prev_node = curr_node;
-            curr_node = curr_node->next;
-        }
     }
 }
 
