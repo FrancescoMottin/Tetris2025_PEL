@@ -535,53 +535,6 @@ struct field {
 	}
 };
 
-/*void tetris::insert(piece const& p, int x) {
-	int max_y = -1;
-
-    // finds the maximum value of y
-    for(int y = 0; y <= int(this->m_height); ++y) {
-        if(this->containment(p, x, y)) {
-            max_y = y;
-        }
-    }
-    
-    //cout << "Qui arrivo1";
-
-    if(max_y == -1) 
-        throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
-
-    this->add(p, x, max_y);
-    
-    field f(*this);
-    
-    //cout << "Qui arrivo2";
-    
-    node* tmp = this->m_field;
-    while(tmp != nullptr) {
-		f.add(tmp->tp);
-		tmp = tmp->next;
-	}
-	
-	//cout << "Qui arrivo3";
-	
-	while(f.full_row()) {
-		node* tmp = this->m_field;
-		while(tmp != nullptr) {
-			for(int i = tmp->tp.p.side() - 1; i >= 0; i--) {
-				if (tmp->tp.y + i == f.first_full_row()) {
-					tmp->tp.p.cut_row(i);
-				}
-			}
-			
-			tmp = tmp->next;
-		}
-		f = field(*this);
-		//cout << "Qui arrivo4";
-	}	
-	//cout << "Qui arrivo5";
-};
-*/
-
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
@@ -592,13 +545,11 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     int pos_y = -1;
     for(int i = 0; i <= int(m_height); i++) 
     {
-        if(containment(p,x,i)) pos_y = i;
-        /*
+        //if(containment(p,x,i)) pos_y = i;
         bool contained; 
         try{ contained = containment(p,x,(int) i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
         if(contained) pos_y = i;
         else break;
-        */
     }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
