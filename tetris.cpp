@@ -468,6 +468,7 @@ bool tetris::operator==(tetris const& rhs) const
 }
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
+/*
 struct field { 
 	bool** f;
 	tetris t;
@@ -614,8 +615,8 @@ void tetris::insert(piece const& p, int x) {
 		}		
 	}
 };
+*/
 
-/*
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
@@ -796,7 +797,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         delete[] table_state;
     }
 }
-*/
+
 
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
