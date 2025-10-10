@@ -535,6 +535,79 @@ struct field {
 	}
 };
 
+void tetris::insert(piece const& p, int x) {
+	int max_y = -1;
+
+    for(int y = 0; y <= int(this->m_height); ++y) {
+        if(this->containment(p, x, y)) {
+            max_y = y;
+        }
+    }
+
+    if(max_y == -1) 
+        throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+
+    this->add(p, x, max_y);
+    
+    field f(*this);
+    
+    node* tmp = this->m_field;
+    while(tmp != nullptr) {
+		f.add(tmp->tp);
+		tmp = tmp->next;
+	}
+	
+	// finds all the full row inside the field
+	while(f.full_row()) {
+		node* tmp = this->m_field;
+		while(tmp != nullptr) {
+			for(int i = tmp->tp.p.side() - 1; i >= 0; i--) {
+				if (tmp->tp.y + i == f.first_full_row()) {
+					tmp->tp.p.cut_row(i);
+				}
+			}
+			tmp = tmp->next;
+		}
+		
+		// updates the field after the cut_row()
+		f.clear_field();
+		tmp = this->m_field;
+		while(tmp != nullptr) {
+			f.add(tmp->tp);
+			tmp = tmp->next;
+		}
+		
+		// checks the pieces can be shifted down
+		tmp = this->m_field;
+		this->m_field = nullptr;
+		node* tmp1 = tmp;
+		
+		while(tmp1 != nullptr) {
+			if(!tmp1->tp.p.empty()) {
+				max_y = -1;
+
+				for(int y = 0; y <= int(this->m_height); ++y) {
+					if(this->containment(tmp1->tp.p, x, y)) {
+						max_y = y;
+					}
+				}
+			
+				this->add(tmp1->tp.p, x, max_y);
+			}
+			
+			tmp1 = tmp1->next;			
+		}
+		
+		while(tmp != nullptr) {
+			node* tmp2 = tmp;
+			tmp2 = tmp;
+			tmp = tmp->next;
+			delete tmp2;
+		}		
+	}
+};
+
+/*
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
@@ -658,17 +731,16 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                         catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
                     }
                     
-                    /*
-                    if (row_full[i] && i > pos_y + (int)to_cut.side() - 1) fall++;
+                    
+                    //if (row_full[i] && i > pos_y + (int)to_cut.side() - 1) fall++;
 
-                    if (row_full[i] && i >= pos_y && i < (int)(pos_y + to_cut.side())) 
-                    {
-                        int rel_row = i - pos_y - cuts_done;
-                        try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
-                        catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
-                        cuts_done++;
-                    }
-                    */
+                    //if (row_full[i] && i >= pos_y && i < (int)(pos_y + to_cut.side())) 
+                    //{
+                    //    int rel_row = i - pos_y - cuts_done;
+                    //    try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
+                    //    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
+                    //    cuts_done++;
+                    //}
                 }
                 curr->tp.y += fall;
                 curr = curr->next;
@@ -716,6 +788,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         delete[] table_state;
     }
 }
+*/
 
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
