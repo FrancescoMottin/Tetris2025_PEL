@@ -237,6 +237,7 @@ void piece::cut_row(uint32_t i) {
 	}
 };
 
+/*
 //FUNZIONI DI DEBUG
 void piece::print_ascii_art(std::ostream& os) const {
 	for(uint32_t it1 = 0; it1 < this->m_side; it1++) {
@@ -250,7 +251,7 @@ void piece::print_ascii_art(std::ostream& os) const {
 		os << '\n';
 	}
 };
-
+*/
 uint32_t piece::side() const {
 	return this->m_side;
 };
