@@ -814,10 +814,13 @@ bool tetris::containment(piece const& p, int x, int y) const
     {
         for(uint32_t j = 0; j < p.side(); j++) 
         {
-            int grid_x = x + j;
-            int grid_y = y + i;
+            if(p(i,j))
+            {
+                int grid_x = x + j;
+                int grid_y = y + i;
 
-            if((grid_x >= (int) this->m_width || grid_y >= (int) this->m_height) && p(i, j))return false;
+                if(grid_x < 0 || grid_y < 0||grid_x >= (int) this->m_width || grid_y >= (int) this->m_height)return false;
+            }
         }
     }
 
