@@ -468,156 +468,6 @@ bool tetris::operator==(tetris const& rhs) const
 }
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
-
-struct field { 
-	bool** f;
-	tetris t;
-	
-	field(const tetris& rhs) {
-		this->t = rhs;
-		this->f = new bool*[this->t.height()];
-		for (uint32_t i = 0; i < this->t.height(); ++i) {
-			this->f[i] = new bool[this->t.width()]();
-		}
-
-	};
-	
-	~field() {		
-		for (uint32_t i = 0; i < this->t.height(); i++) {
-			delete[] this->f[i];
-		}
-
-		
-		delete[] this->f;
-	}
-	
-	void add(tetris_piece& tp) {
-		for(uint32_t i = 0; i < tp.p.side(); i++) {
-			for(uint32_t j = 0; j < tp.p.side(); j++) {
-				uint32_t x = tp.x + j;
-				uint32_t y = tp.y + i;
-				if (tp.p(i, j)) {
-					if (x < t.width() && y < t.height()) {
-						this->f[y][x] = true;
-					}
-				}
-			}
-		}
-	};
-	
-	bool full_row() {
-		for(int it1 = this->t.height()-1; it1 >= 0; it1--) {
-			uint32_t c = 0;
-			for(uint32_t it2 = 0; it2 < this->t.width(); it2++) {
-				if(this->f[it1][it2])
-					c++;
-			}
-			
-			if(c == this->t.width()) {
-				return true;
-			}
-		}
-		return false;
-	};
-	
-	int first_full_row() {
-		for(int it1 = this->t.height()-1; it1 >= 0; it1--) {
-			int c = 0;
-			for(uint32_t it2 = 0; it2 < this->t.width(); it2++) {
-				if(this->f[it1][it2])
-					c++;
-			}
-			
-			if(uint32_t(c) == this->t.width()) {
-				return it1;
-			}
-		}
-		return this->t.height();
-	};
-	
-	void clear_field() {
-		for(int i = 0; i < int(this->t.height()); i++) {
-			for(int j = 0; j < int(this->t.width()); j++) {
-				f[i][j] = false;
-			}
-		}
-	};
-};
-
-/*
-void tetris::insert(piece const& p, int x) {
-	int max_y = -1;
-
-    for(int y = 0; y <= int(this->m_height); ++y) {
-        if(this->containment(p, x, y)) {
-            max_y = y;
-        }
-    }
-
-    if(max_y == -1) 
-        throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
-
-    this->add(p, x, max_y);
-    
-    field f(*this);
-    
-    node* tmp = this->m_field;
-    while(tmp != nullptr) {
-		f.add(tmp->tp);
-		tmp = tmp->next;
-	}
-	
-	// finds all the full row inside the field
-	while(f.full_row()) {
-		node* tmp = this->m_field;
-		while(tmp != nullptr) {
-			for(int i = tmp->tp.p.side() - 1; i >= 0; i--) {
-				if (tmp->tp.y + i == f.first_full_row()) {
-					tmp->tp.p.cut_row(i);
-				}
-			}
-			tmp = tmp->next;
-		}
-		
-		// updates the field after the cut_row()
-		f.clear_field();
-		tmp = this->m_field;
-		while(tmp != nullptr) {
-			f.add(tmp->tp);
-			tmp = tmp->next;
-		}
-		
-		// checks the pieces can be shifted down
-		tmp = this->m_field;
-		this->m_field = nullptr;
-		node* tmp1 = tmp;
-		
-		while(tmp1 != nullptr) {
-			if(!tmp1->tp.p.empty()) {
-				max_y = -1;
-
-				for(int y = 0; y <= int(this->m_height); ++y) {
-					if(this->containment(tmp1->tp.p, x, y)) {
-						max_y = y;
-					}
-				}
-			
-				this->add(tmp1->tp.p, x, max_y);
-			}
-			
-			tmp1 = tmp1->next;			
-		}
-		
-		while(tmp != nullptr) {
-			node* tmp2 = tmp;
-			tmp2 = tmp;
-			tmp = tmp->next;
-			delete tmp2;
-		}		
-	}
-};
-*/
-
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
@@ -630,7 +480,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     {
         //if(containment(p,x,i)) pos_y = i;
         bool contained; 
-        try{ contained = containment(p,x,(int) i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+        try{ contained = containment(p,x,i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
         if(contained) pos_y = i;
         else break;
     }
@@ -677,8 +527,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                 table_state[i][j] = false;
 
         //2. Identifica le righe piene che dovremo rimuovere, costruisci tabella temporanea
-        node* curr = m_field;
-        while (curr)
+        for (node* curr = m_field; curr; curr = curr->next)
         {
             piece const& curr_piece = curr->tp.p;
             for(uint32_t grid_x = 0; grid_x < curr_piece.side(); grid_x++)
@@ -696,12 +545,10 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                     }
                 }
             }            
-            curr = curr->next;
         }
     
         //3.Identifica righe piene, Gestione taglio pezzi
         uint32_t clear_rows = 0;
-        curr = m_field;
         for(uint32_t i = 0; i < m_height; i++)
         {
             for(uint32_t j = 0; j < m_width; j++)
@@ -721,8 +568,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             m_score += clear_rows * m_width;
             changed = true;
 
-            curr = m_field;
-            while(curr)
+            for (node* curr = m_field; curr; curr = curr->next)
             {
                 int fall = 0;
                 piece& to_cut = curr->tp.p;
@@ -741,7 +587,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                     }
                 }
                 curr->tp.y += fall;
-                curr = curr->next;
             }
 
             //4. Rimozione dalla lista dei pezzi vuoti
@@ -819,7 +664,7 @@ bool tetris::containment(piece const& p, int x, int y) const
                 int grid_x = x + j;
                 int grid_y = y + i;
 
-                if(grid_x < 0 || grid_y < 0||grid_x >= (int) this->m_width || grid_y >= (int) this->m_height)return false;
+                if(grid_x < 0 || grid_y < 0|| grid_x >= (int) this->m_width || grid_y >= (int) this->m_height)return false;
             }
         }
     }
@@ -844,7 +689,7 @@ bool tetris::containment(piece const& p, int x, int y) const
                     int new_y = field_y - y;
 
                     //Checks if the new tetris piece has a cell that collides with a cell of the already inserted tetris piece
-                    if (new_x >= 0 && new_x < int(p.side()) && new_y >= 0 && new_y < int(p.side())) 
+                    if (new_x >= 0  && new_y >= 0 && new_x < int(p.side()) && new_y < int(p.side())) 
                         if (p(new_y, new_x))return false;
                 }
             }
