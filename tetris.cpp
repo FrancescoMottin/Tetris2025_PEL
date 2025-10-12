@@ -739,22 +739,8 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                         try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
                         catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
                     }
-                    
-                    //if (row_full[i] && i > pos_y + (int)to_cut.side() - 1) fall++;
-
-                    //if (row_full[i] && i >= pos_y && i < (int)(pos_y + to_cut.side())) 
-                    //{
-                    //    int rel_row = i - pos_y - cuts_done;
-                    //    try{ to_cut.cut_row(rel_row); } //Aggiungere un possibile try catch per errori
-                    //    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
-                    //    cuts_done++;
-                    //}
                 }
-                //curr->tp.y += fall;
-                int new_y = curr->tp.y;
-                while (containment(to_cut, curr->tp.x, new_y + 1)) {new_y++;}
-                curr->tp.y = new_y;
-                
+                curr->tp.y += fall;
                 curr = curr->next;
             }
 
@@ -804,7 +790,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
     //|| x + (int)p.side() > (int)m_width || y + (int)p.side() > (int)m_height
-    if (y < 0) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Pezzo fuori dai limiti del campo. Offset X: " + std::to_string(x)  + " Y: " + std::to_string(y));
+    //if (y < 0) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Pezzo fuori dai limiti del campo. Offset X: " + std::to_string(x)  + " Y: " + std::to_string(y));
 
     bool contained; 
     try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
