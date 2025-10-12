@@ -790,7 +790,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
     //|| x + (int)p.side() > (int)m_width || y + (int)p.side() > (int)m_height
-    //if (y < 0) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Pezzo fuori dai limiti del campo. Offset X: " + std::to_string(x)  + " Y: " + std::to_string(y));
+    if (y < 0) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Pezzo fuori dai limiti del campo. Offset X: " + std::to_string(x)  + " Y: " + std::to_string(y));
 
     bool contained; 
     try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
@@ -813,7 +813,12 @@ bool tetris::containment(piece const& p, int x, int y) const
     for(uint32_t i = 0; i < p.side(); i++) 
     {
         for(uint32_t j = 0; j < p.side(); j++) 
-            if((((j + x) >= this->m_width) || ((i + y) >= this->m_height)) && p(i, j))return false;
+        {
+            int grid_x = x + j;
+            int grid_y = y + i;
+
+            if((grid_x >= this->m_width || grid_y >= this->m_height) && p(i, j))return false;
+        }
     }
 
     // Checks if the tetris piece doesn't intersect with other tetris pieces
@@ -847,7 +852,6 @@ bool tetris::containment(piece const& p, int x, int y) const
 
     return true;
 };
-
 
 //NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
