@@ -799,22 +799,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     }
 }
 
-void tetris::add(piece const& p, int x, int y) {
-	if(!this->containment(p, x, y)) {
-		throw tetris_exception("exception in tetris add function. tetris piece p cannot be contained at offset (x: " + std::to_string(x) + ", y: " + std::to_string(y) + ")");
-	}
-			
-	node* newN = new node();
-	
-	newN->tp.p = p;
-	newN->tp.x = x;
-	newN->tp.y = y;
-	
-	newN->next = this->m_field;
-	this->m_field = newN;
-};
-
-/*
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
     //|| x + (int)p.side() > (int)m_width || y + (int)p.side() > (int)m_height
@@ -832,7 +816,6 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
     new_node->next = m_field;
     m_field = new_node;
 }
-*/
 
 //controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
 //L'offeset nella tabella è (abs_x, abs_y), e containment lavora cella per cella piuttosto che pezzo per pezzo
