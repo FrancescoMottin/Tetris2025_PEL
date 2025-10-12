@@ -823,12 +823,12 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
 
     bool contained; 
     try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-    if(!contained) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Le coordinate non sono valide per il pezzo dato");
+    if(!contained) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Le coordinate non sono valide per il pezzo dato. X: " + std::to_string(x)  + " Y: " + std::to_string(y));
 
     tetris_piece new_tp{p,x,y};
     node* new_node;
     try{ new_node = new node{new_tp, nullptr};}
-    catch(const std::bad_alloc&){throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Memory allocation failed in add()");}
+    catch(const std::bad_alloc&){ throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Memory allocation failed in add(). X: " + std::to_string(x)  + " Y: " + std::to_string(y)); }
     
     new_node->next = m_field;
     m_field = new_node;
