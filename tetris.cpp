@@ -819,7 +819,7 @@ void tetris::add(piece const& p, int x, int y) {
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
     //|| x + (int)p.side() > (int)m_width || y + (int)p.side() > (int)m_height
-    if (x < 0 || y < 0 ) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Pezzo fuori dai limiti del campo. Offset X: " + std::to_string(x)  + " Y: " + std::to_string(y));
+    //if (x < 0 || y < 0 ) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Pezzo fuori dai limiti del campo. Offset X: " + std::to_string(x)  + " Y: " + std::to_string(y));
 
     bool contained; 
     try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
