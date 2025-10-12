@@ -817,7 +817,7 @@ bool tetris::containment(piece const& p, int x, int y) const
             int grid_x = x + j;
             int grid_y = y + i;
 
-            if((grid_x >= this->m_width || grid_y >= this->m_height) && p(i, j))return false;
+            if((grid_x >= (int) this->m_width || grid_y >= (int) this->m_height) && p(i, j))return false;
         }
     }
 
