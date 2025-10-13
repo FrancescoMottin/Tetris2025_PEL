@@ -633,6 +633,80 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     }
 }
 */
+struct field { 
+	bool** f;
+	tetris t;
+	
+	field(const tetris& rhs) {
+		this->t = rhs;
+		this->f = new bool*[this->t.height()];
+		for (uint32_t i = 0; i < this->t.height(); ++i) {
+			this->f[i] = new bool[this->t.width()]();
+		}
+
+	};
+	
+	~field() {		
+		for (uint32_t i = 0; i < this->t.height(); i++) {
+			delete[] this->f[i];
+		}
+
+		
+		delete[] this->f;
+	}
+	
+	void add(tetris_piece& tp) {
+		for(uint32_t i = 0; i < tp.p.side(); i++) {
+			for(uint32_t j = 0; j < tp.p.side(); j++) {
+				uint32_t x = tp.x + j;
+				uint32_t y = tp.y + i;
+				if (tp.p(i, j)) {
+					if (x < t.width() && y < t.height()) {
+						this->f[y][x] = true;
+					}
+				}
+			}
+		}
+	};
+	
+	bool full_row() {
+		for(int it1 = this->t.height()-1; it1 >= 0; it1--) {
+			uint32_t c = 0;
+			for(uint32_t it2 = 0; it2 < this->t.width(); it2++) {
+				if(this->f[it1][it2])
+					c++;
+			}
+			
+			if(c == this->t.width()) {
+				return true;
+			}
+		}
+		return false;
+	};
+	
+	int first_full_row() {
+		for(int it1 = this->t.height()-1; it1 >= 0; it1--) {
+			int c = 0;
+			for(uint32_t it2 = 0; it2 < this->t.width(); it2++) {
+				if(this->f[it1][it2])
+					c++;
+			}
+			
+			if(uint32_t(c) == this->t.width()) {
+				return it1;
+			}
+		}
+		return this->t.height();
+	};
+	
+	void clear_field() {
+		for(int i = 0; i < int(this->t.height()); i++) {
+			for(int j = 0; j < int(this->t.width()); j++) {
+				f[i][j] = false;
+			}
+		}
+	};
+};
 
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
