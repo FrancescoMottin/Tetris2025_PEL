@@ -798,7 +798,7 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
 
 //controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
 //L'offeset nella tabella è (abs_x, abs_y), e containment lavora cella per cella piuttosto che pezzo per pezzo
-/*
+
 bool tetris::containment(piece const& p, int x, int y) const {
     int side = int(p.side());
 
@@ -833,7 +833,8 @@ bool tetris::containment(piece const& p, int x, int y) const {
 
     return true;
 };
-*/
+
+/*
 bool tetris::containment(piece const& p, int x, int y) const
 {
     // Checks if the tetris piece doesn't have true cells out of bounds of the tetris field
@@ -882,6 +883,7 @@ bool tetris::containment(piece const& p, int x, int y) const
 
     return true;
 };
+*/
 
 //NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
