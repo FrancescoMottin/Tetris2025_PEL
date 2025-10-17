@@ -889,7 +889,7 @@ void testA() {
         t.print_ascii_art(std::cout);
         file.close();
 
-        std::istringstream is("2 202 () 2 202 ()");
+        std::istringstream is("2 202 ()"); /*2 202 () 2 202 ()*/
         piece p;
         is >> p;
         std::cout << "\n";
