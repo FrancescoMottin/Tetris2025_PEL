@@ -234,8 +234,7 @@ void piece::rotate() {
 };
 
 void piece::cut_row(uint32_t i) {
-	if(i >= this->m_side || i < 0) 
-		throw tetris_exception("Given row is incorrect. Out of bounds");
+	if(i >= this->m_side) throw tetris_exception("Given row is incorrect. Out of bounds");
 
 	for(int row = i; row > 0; row--) {
 		for(uint32_t col = 0; col < this->m_side; col++) {
