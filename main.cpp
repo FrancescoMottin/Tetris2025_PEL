@@ -3,7 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
-
+/*
 struct field {
     bool** f;
     const tetris& t;
@@ -73,7 +73,7 @@ struct field {
                 f[i][j] = false;
     };
 };
-
+*/
 void stampa(tetris& t) {
 	for(auto it = t.begin(); it != t.end(); it++) {
 		it->p.print_ascii_art(std::cout);
