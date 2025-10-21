@@ -154,13 +154,13 @@ bool piece::operator!=(piece const& rhs) const {
 };
 
 bool& piece::operator()(uint32_t i, uint32_t j) {
-	if((i >= this->m_side || i < 0) || (j >= this->m_side || j < 0))
+	if((i >= this->m_side) || (j >= this->m_side))
 		throw tetris_exception("Given coordinates are incorrect. Out of bounds");
 	return this->m_grid[i][j];
 };
 
 bool piece::operator()(uint32_t i, uint32_t j) const {
-	if((i >= this->m_side || i < 0) || (j >= this->m_side || j < 0))
+	if((i >= this->m_side) || (j >= this->m_side))
 		throw tetris_exception("Given coordinates are incorrect. Out of bounds");
 	return this->m_grid[i][j];
 };
