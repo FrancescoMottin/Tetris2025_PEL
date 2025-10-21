@@ -585,8 +585,10 @@ struct field {
             for(int j = tp.x; j < tp.x + int(tp.p.side()); ++j) {
                 if (tp.p(piece_y, piece_x)) {
                     if (i >= 0 && i < int(this->t.height()) && j >= 0 && j < int(this->t.width()))
+                    {
                         this->f[i][j] = true;
                         this->colors[i][j] = tp.p.color();
+                    }
                 }
                 ++piece_x;
             }
