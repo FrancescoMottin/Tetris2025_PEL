@@ -597,15 +597,9 @@ struct field {
 
 void tetris::insert(piece const& p, int x) {
 	int max_y = -1;
-	//bool obstacle = false;
 
     for(int y = 0; y < int(this->m_height); y++) {
-        if(this->containment(p, x, y) /*&& !obstacle*/) {
-            max_y = y;
-        } 
-        /*else {
-			obstacle = true;
-		}*/
+        if(this->containment(p, x, y)) max_y = y;
     }
 
     if(max_y == -1) 
@@ -643,13 +637,9 @@ void tetris::insert(piece const& p, int x) {
 		while(tmp1 != nullptr) {
 			if(!tmp1->tp.p.empty()) {
 				max_y = -1;
-				//obstacle = false;
+			
 				for(int i = 0; i < int(this->m_height); ++i) {
-					if(this->containment(tmp1->tp.p, tmp1->tp.x, i) /*&& !obstacle*/) {  
-						max_y = i;
-					} /*else {
-						obstacle = true;
-					}*/
+					if(this->containment(tmp1->tp.p, tmp1->tp.x, i)) max_y = i;
 				}
 				this->add(tmp1->tp.p, tmp1->tp.x, max_y);              
 			}
