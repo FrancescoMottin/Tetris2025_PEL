@@ -15,10 +15,12 @@ void stampa(tetris& t) {
 	field f(t);
 	
     //std::cout << "Hello" << std::endl;
+
     for(uint32_t i = 0; i < f.t.height(); i++) {
 		for(uint32_t j = 0; j < f.t.width(); j++) {
-			std::cout << f.f[i][j] << " ";
-		}
+            if (f.f[i][j]) std::cout << "\033[38;5;" << f.colors[i][j] << "m#\033[0m ";
+            else std::cout << ". ";
+        }
 		std::cout << "\n";
 	}
 };

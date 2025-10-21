@@ -549,12 +549,18 @@ bool tetris::operator!=(tetris const& rhs) const {
 
 struct field {
     bool** f;
+    int** colors;
     const tetris& t;
 
-    field(const tetris& rhs) : f(nullptr), t(rhs) {
+    field(const tetris& rhs) : f(nullptr), colors(nullptr), t(rhs) {
         this->f = new bool*[this->t.height()];
+        this->colors = new int*[this->t.height()];
+
         for(uint32_t i = 0; i < this->t.height(); ++i) {
             this->f[i] = new bool[this->t.width()]();
+            this->colors[i] = new int[this->t.width()];
+            for (uint32_t j = 0; j < this->t.width(); ++j)
+                this->colors[i][j] = -1; // vuoto
         }
 
         for(auto it = rhs.begin(); it != rhs.end(); ++it) {
@@ -565,8 +571,11 @@ struct field {
     ~field() {
         for(uint32_t i = 0; i < this->t.height(); i++) {
             delete[] this->f[i];
+            delete[] this->colors[i];
         }
+
         delete[] this->f;
+        delete[] this->colors;
     };
 
     void add(const tetris_piece& tp) {
@@ -577,6 +586,7 @@ struct field {
                 if (tp.p(piece_y, piece_x)) {
                     if (i >= 0 && i < int(this->t.height()) && j >= 0 && j < int(this->t.width()))
                         this->f[i][j] = true;
+                        this->colors[i][j] = tp.p.color();
                 }
                 ++piece_x;
             }
