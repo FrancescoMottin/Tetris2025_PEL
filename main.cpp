@@ -4,6 +4,7 @@
 #include <fstream>
 #include <vector>
 
+
 void stampa(tetris& t) {
 	for(auto it = t.begin(); it != t.end(); it++) {
 		it->p.print_ascii_art(std::cout);
