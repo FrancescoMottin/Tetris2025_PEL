@@ -47,10 +47,6 @@ void stampa(tetris& t) {
 	}
 };
 
-int main(/*int argc, char **argv*/) {
-	
-}
-
 void testH() {
     try {
         std::cout << "TestH Morris test\n" << std::endl;
