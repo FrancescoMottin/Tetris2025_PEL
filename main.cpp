@@ -6,7 +6,7 @@
 
 
 void stampa(tetris& t) {
-    //std::cout << "Hello";
+    //std::cout << "Hello" << std::endl;
 	for(auto it = t.begin(); it != t.end(); it++) {
 		it->p.print_ascii_art(std::cout);
 	}
@@ -14,8 +14,8 @@ void stampa(tetris& t) {
 	
 	field f(t);
 	
-    std::cout << "Hello";
-	for(uint32_t i = 0; i < f.t.height(); i++) {
+    //std::cout << "Hello" << std::endl;
+    for(uint32_t i = 0; i < f.t.height(); i++) {
 		for(uint32_t j = 0; j < f.t.width(); j++) {
 			std::cout << f.f[i][j] << " ";
 		}
