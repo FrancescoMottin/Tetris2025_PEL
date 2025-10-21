@@ -3,77 +3,7 @@
 #include <sstream>
 #include <fstream>
 #include <vector>
-/*
-struct field {
-    bool** f;
-    const tetris& t;
 
-    field(const tetris& rhs) : f(nullptr), t(rhs) {
-        this->f = new bool*[this->t.height()];
-        for(uint32_t i = 0; i < this->t.height(); ++i) {
-            this->f[i] = new bool[this->t.width()]();
-        }
-
-        for(auto it = rhs.begin(); it != rhs.end(); ++it) {
-            this->add(*it);
-        }
-    };
-
-    ~field() {
-        for(uint32_t i = 0; i < this->t.height(); i++) {
-            delete[] this->f[i];
-        }
-        delete[] this->f;
-    };
-
-    void add(const tetris_piece& tp) {
-        // tp.p coordinates: piece matrix indexed [0..side-1] with (row=0 top?) 
-        // Qui assumiamo lo stesso sistema di coordinate usato in containment/add (y = riga dall'alto)
-        int piece_y = int(tp.p.side()) - 1;
-        for(int i = tp.y; i > tp.y - int(tp.p.side()); --i) {
-            int piece_x = 0;
-            for(int j = tp.x; j < tp.x + int(tp.p.side()); ++j) {
-                if (tp.p(piece_y, piece_x)) {
-                    // protezione contro accessi fuori bordo (dovrebbe già essere garantito da containment)
-                    if (i >= 0 && i < int(this->t.height()) && j >= 0 && j < int(this->t.width()))
-                        this->f[i][j] = true;
-                }
-                ++piece_x;
-            }
-            --piece_y;
-        }
-    };
-
-    bool full_row() const {
-        for(int it1 = int(this->t.height()) - 1; it1 >= 0; --it1) {
-            uint32_t c = 0;
-            for(uint32_t it2 = 0; it2 < this->t.width(); ++it2) {
-                if(this->f[it1][it2])
-                    ++c;
-            }
-            if(c == this->t.width()) return true;
-        }
-        return false;
-    };
-
-    int first_full_row() const {
-        for(int it1 = int(this->t.height()) - 1; it1 >= 0; --it1) {
-            int c = 0;
-            for(uint32_t it2 = 0; it2 < this->t.width(); ++it2) {
-                if(this->f[it1][it2]) ++c;
-            }
-            if(uint32_t(c) == this->t.width()) return it1;
-        }
-        return int(this->t.height());
-    };
-
-    void clear_field() {
-        for(int i = 0; i < int(this->t.height()); ++i)
-            for(int j = 0; j < int(this->t.width()); ++j)
-                f[i][j] = false;
-    };
-};
-*/
 void stampa(tetris& t) {
 	for(auto it = t.begin(); it != t.end(); it++) {
 		it->p.print_ascii_art(std::cout);
@@ -90,7 +20,7 @@ void stampa(tetris& t) {
 	}
 };
 
-int main(int argc, char **argv) {
+int main(/*int argc, char **argv*/) {
 	 try{
         std::cout << "Test A - Play game tetris 1" << std::endl;
         std::ifstream file("Test/input_tetris.txt");
