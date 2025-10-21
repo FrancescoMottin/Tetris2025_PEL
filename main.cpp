@@ -6,6 +6,7 @@
 
 
 void stampa(tetris& t) {
+    std::cout << "Hello";
 	for(auto it = t.begin(); it != t.end(); it++) {
 		it->p.print_ascii_art(std::cout);
 	}
