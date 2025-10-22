@@ -786,7 +786,6 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
 
 //controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
 //L'offeset nella tabella è (abs_x, abs_y), e containment lavora cella per cella piuttosto che pezzo per pezzo
-/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     int side = int(p.side());
@@ -821,57 +820,6 @@ bool tetris::containment(piece const& p, int x, int y) const
                 tmp = tmp->next;
             }
         }
-    }
-
-    return true;
-};
-*/
-
-bool tetris::containment(piece const& p, int x, int y) const
-{
-    // Checks if the tetris piece doesn't have true cells out of bounds of the tetris field
-    for(uint32_t i = 0; i < p.side(); i++) 
-    {
-        for(uint32_t j = 0; j < p.side(); j++) 
-        {
-            if(p(i,j))
-            {
-                int grid_x = x + j;
-                int grid_y = y + i;
-
-                if(grid_x < 0 || grid_y < 0|| grid_x >= (int) this->m_width || grid_y >= (int) this->m_height)return false;
-            }
-        }
-    }
-
-    // Checks if the tetris piece doesn't intersect with other tetris pieces
-    node* tmp = this->m_field;
-    while(tmp != nullptr) 
-    {
-        for(uint32_t i = 0; i < tmp->tp.p.side(); ++i) 
-        {
-            for(uint32_t j = 0; j < tmp->tp.p.side(); ++j) 
-            {
-                // Checks if the cell of the matrix of the piece is occupied by a part of the tetris piece
-                
-                if (!tmp->tp.p(i, j)) 
-                { 
-                    // Calculates the absolute position into the tetris field for the already inserted tetris piece
-                    int field_x = tmp->tp.x + j;
-                    int field_y = tmp->tp.y + i;
-
-                    // Calculates the absolute position into the tetris field for the tetris piece that we want to insert
-                    int new_x = field_x - x;
-                    int new_y = field_y - y;
-
-                    //Checks if the new tetris piece has a cell that collides with a cell of the already inserted tetris piece
-                    if (new_x >= 0  && new_y >= 0 && new_x < int(p.side()) && new_y < int(p.side())) 
-                        if (p(new_y, new_x))return false;
-                }
-            }
-        }
-
-        tmp = tmp->next;
     }
 
     return true;
