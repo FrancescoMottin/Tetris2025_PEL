@@ -135,7 +135,6 @@ piece& piece::operator=(piece&& rhs)
         for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
             delete[] m_grid[i];                 
         delete[] m_grid;
-        m_grid = nullptr;
     }
 
     m_side = rhs.m_side;
@@ -205,24 +204,18 @@ bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
 
 bool piece::empty() const
 {
-    if(m_grid == nullptr && m_side == 0) return true;
-    if(m_grid == nullptr) throw tetris_exception("ERROR! - empty() - Accesso a griglia non inizializzata (nullptr).");
-    for(uint32_t i = 0; i < m_side; i++)
-        for(uint32_t j = 0; j < m_side; j++)
-            if(m_grid[i][j] == true) return false;
-
-    return true;
+    if (m_side == 0) return true;
+    if (m_grid == nullptr) throw tetris_exception("ERROR! - empty() - Griglia non inizializzata.");
+    
+    return empty(0, 0, m_side);
 }
 
 bool piece::full() const
 {
-    if(m_grid == nullptr && m_side == 0) return false;
-    if(m_grid == nullptr) throw tetris_exception("ERROR! - full() - Accesso a griglia non inizializzata (nullptr).");
-    for(uint32_t i = 0; i < m_side; i++)
-        for(uint32_t j = 0; j < m_side; j++)
-            if(m_grid[i][j] == false) return false;
-
-    return true;
+    if (m_side == 0) return false;
+    if (m_grid == nullptr) throw tetris_exception("ERROR! - full() - Griglia non inizializzata.");
+    
+    return full(0, 0, m_side);
 }
 
 void piece::rotate()
@@ -237,10 +230,10 @@ void piece::rotate()
         {         
             tmp_grid[i] = new bool[m_side];
             for(uint32_t j = 0; j < m_side; j++)
-                tmp_grid[i][j] = false;
+                tmp_grid[i] = new bool[m_side]();    //tmp_grid[i][j] = false;
         }    
     }
-    catch(const std::bad_alloc& e) 
+    catch(const std::bad_alloc&) 
     {
         if(tmp_grid)
         {
@@ -254,17 +247,12 @@ void piece::rotate()
     for(uint32_t i = 0; i < m_side; i++)
     {
         for(uint32_t j = 0; j < m_side; j++)
-        {
-            uint32_t new_row = j;
-            uint32_t new_col = m_side - i - 1;
-            tmp_grid[new_row][new_col] = m_grid[i][j];  //Sarebbe preferibile prima allocare memoria e dopo copiare i valori
-        } 
+            tmp_grid[j][m_side - i - 1] = m_grid[i][j];  //Sarebbe preferibile prima allocare memoria e dopo copiare i valori
     }
 
     for(uint32_t i = 0; i < m_side; i++)    
         delete[] m_grid[i];                   
-    delete[] m_grid;                        
-    m_grid = nullptr;                       
+    delete[] m_grid;                                             
 
     m_grid = tmp_grid;
 }
