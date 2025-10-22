@@ -502,8 +502,8 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per row_full");
     }
 
-    bool changed;
-    do
+    bool changed = true;
+    while(changed)
     {
         changed = false;
         for (uint32_t i = 0; i < m_height; ++i)
@@ -607,7 +607,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             }
         }
     }
-    while(changed);
+    //while(changed);
 
     //Poniamo il codice per deallocare manualmente la memoria dinamica
     delete[] row_full;
