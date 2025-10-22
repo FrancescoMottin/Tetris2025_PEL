@@ -352,12 +352,6 @@ tetris::tetris(tetris&& rhs)
 
 tetris::~tetris()
 {
-    if(m_field == nullptr) return ;
-
-    m_score = 0;
-    m_width = 0;
-    m_height = 0;
-
     node* tail_field = m_field;
     while(tail_field)
     {
