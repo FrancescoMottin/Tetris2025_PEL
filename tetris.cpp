@@ -461,6 +461,7 @@ bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
+    if (x < 0 || x + (int) p.side() > (int)m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo fuori dai limiti orizzontali del campo.");
 
     //1. Trovare posizione di caduta
     int pos_y = -1;
@@ -528,7 +529,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                         int global_y = curr->tp.y + grid_y;
 
                         //&& global_x >= 0 && global_y >= 0
-                        if(global_x >= 0 && global_x < ((int) m_width) && global_y >= 0 && global_y < ((int) m_height)) 
+                        if(global_x >= 0 && global_x < (int) m_width && global_y >= 0 && global_y < (int) m_height) 
                             table_state[global_y][global_x] = true;
                     }
                 }
@@ -645,6 +646,9 @@ bool tetris::containment(piece const& p, int x, int y) const
 {
     int side = int(p.side());
 
+    //if (y < 0 || x + side > int(m_width) || y + side > int(m_height)) return false;
+    if (y < 0) return false;
+
     for (int i = 0; i < side; ++i) 
     {
         for (int j = 0; j < side; ++j) 
@@ -655,7 +659,8 @@ bool tetris::containment(piece const& p, int x, int y) const
             int fy = y + i;
 
             // checks the borders
-            if (fx < 0 || fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
+            //if (fx < 0 || fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
+            if(fy < 0) return false;
 
             // checks collisions with other inserted pieces
             node* tmp = m_field;
