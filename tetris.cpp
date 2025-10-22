@@ -135,7 +135,7 @@ piece& piece::operator=(piece&& rhs)
         for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
             delete[] m_grid[i];                 
         delete[] m_grid;
-        //m_grid = nullptr;
+        m_grid = nullptr;
     }
 
     m_side = rhs.m_side;
