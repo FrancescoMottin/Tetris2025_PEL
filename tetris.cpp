@@ -647,7 +647,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     int side = int(p.side());
 
     //if (y < 0 || x + side > int(m_width) || y + side > int(m_height)) return false;
-    if (y < 0) return false;
+    //if (y < 0) return false;
 
     for (int i = 0; i < side; ++i) 
     {
@@ -659,8 +659,8 @@ bool tetris::containment(piece const& p, int x, int y) const
             int fy = y + i;
 
             // checks the borders
-            //if (fx < 0 || fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
-            if(fy < 0) return false;
+            if (fx < 0 || fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
+            //if(fy < 0) return false;
 
             // checks collisions with other inserted pieces
             node* tmp = m_field;
