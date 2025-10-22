@@ -526,8 +526,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                     if(curr_piece(grid_y, grid_x)) 
                     {
                         int global_x = curr->tp.x + grid_x;
-                        int global_y = curr->tp.y + (int)(curr_piece.side() - 1 - grid_y);
-                        //int global_y = curr->tp.y + grid_y;
+                        int global_y = curr->tp.y + grid_y;
 
                         //&& global_x >= 0 && global_y >= 0
                         if(global_x >= 0 && global_x < (int) m_width && global_y >= 0 && global_y < (int) m_height) 
