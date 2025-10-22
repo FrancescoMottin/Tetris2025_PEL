@@ -89,68 +89,6 @@ void testH() {
     }
 }
 
-/*
-void testH() {
-    try {
-        std::cout << "TestH Morris test\n" << std::endl;
-        std::ifstream file("input2.txt");
-        tetris t1(3, 6, 0);
-
-        piece p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11;
-        int x;    
-
-        file >> p1;
-        file >> x;
-        t1.insert(p1, x);
-
-        file >> p2;
-        file >> x;
-        t1.insert(p2, x);
-
-        file >> p3;
-        file >> x;
-        t1.insert(p3, x);
-
-        file >> p4;
-        file >> x;
-        t1.insert(p4, x);
-
-        file >> p5;
-        file >> x;
-        t1.insert(p5, x);
-
-        file >> p6;
-        file >> x;
-        t1.insert(p6, x);
-
-        file >> p7;
-        file >> x;
-        t1.insert(p7, x);
-
-        file >> p8;
-        file >> x;
-        t1.insert(p8, x);
-
-        file >> p9;
-        file >> x;
-        t1.insert(p9, x);
-
-        file >> p10;
-        file >> x;
-        t1.insert(p10, x);
-
-        file >> p11;
-        file >> x;
-        t1.insert(p11, x);
-
-        std::cout << t1;
-        t1.print_ascii_art(std::cout);
-    } catch (const tetris_exception& e) {
-        std::cout << "Exception: " << e.what() << std::endl;
-    }
-}
-*/
-
 void testG() {
     try{
         std::cout << "Test G - TEST Tetris" << std::endl;
