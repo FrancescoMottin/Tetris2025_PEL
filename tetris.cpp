@@ -11,8 +11,8 @@ piece::piece()
 //Throws "tetris_exception" se side != 2^n OR color = 0
 piece::piece(uint32_t s, uint8_t c)
 {
-    if((s & (s - 1)) != 0) throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  La dimensione del pezzo (m_side) deve essere una potenza di 2.");
     if(s == 0)  throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  La dimensione del pezzo (side) non puo' essere 0.");
+    if((s & (s - 1)) != 0) throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  La dimensione del pezzo (m_side) deve essere una potenza di 2.");
     if(c == 0)  throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  Il colore del pezzo (color) non puo' essere 0.");
 
     m_side = s;
@@ -28,7 +28,7 @@ piece::piece(uint32_t s, uint8_t c)
                 m_grid[i][j] = false;
         }
     }
-    catch(const std::bad_alloc& e)
+    catch(const std::bad_alloc&)
     {
         for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
             delete[] m_grid[i];                 
@@ -55,7 +55,7 @@ piece::piece(piece const& rhs)
                     m_grid[i][j] = rhs.m_grid[i][j];
             }
         }
-        catch(const std::bad_alloc& e)
+        catch(const std::bad_alloc&)
         {
             for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
                 delete[] m_grid[i];                 
@@ -135,7 +135,7 @@ piece& piece::operator=(piece&& rhs)
         for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
             delete[] m_grid[i];                 
         delete[] m_grid;
-        m_grid = nullptr;
+        //m_grid = nullptr;
     }
 
     m_side = rhs.m_side;
