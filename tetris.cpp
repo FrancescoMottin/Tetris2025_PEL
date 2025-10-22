@@ -786,32 +786,36 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
 
 //controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
 //L'offeset nella tabella è (abs_x, abs_y), e containment lavora cella per cella piuttosto che pezzo per pezzo
-
-bool tetris::containment(piece const& p, int x, int y) const {
+/*
+bool tetris::containment(piece const& p, int x, int y) const 
+{
     int side = int(p.side());
 
-    for (int i = 0; i < side; ++i) {
-        for (int j = 0; j < side; ++j) {
+    for (int i = 0; i < side; ++i) 
+    {
+        for (int j = 0; j < side; ++j) 
+        {
             if (!p(i, j)) continue;
 
             int fx = x + j;
             int fy = y + i;
 
             // checks the borders
-            if (fx < 0 || fy < 0 || fx >= int(m_width) || fy >= int(m_height))
-                return false;
+            if (fx < 0 || fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
 
             // checks collisions with other inserted pieces
             node* tmp = m_field;
-            while (tmp != nullptr) {
+            while (tmp != nullptr) 
+            {
                 tetris_piece const& tp = tmp->tp;
-                for (uint32_t pi = 0; pi < tp.p.side(); ++pi) {
-                    for (uint32_t pj = 0; pj < tp.p.side(); ++pj) {
+                for (uint32_t pi = 0; pi < tp.p.side(); ++pi) 
+                {
+                    for (uint32_t pj = 0; pj < tp.p.side(); ++pj) 
+                    {
                         if (!tp.p(pi, pj)) continue;
                         int px = tp.x + int(pj);
                         int py = tp.y + int(pi);
-                        if (fx == px && fy == py)
-                            return false;
+                        if (fx == px && fy == py) return false;
                     }
                 }
                 tmp = tmp->next;
@@ -821,8 +825,8 @@ bool tetris::containment(piece const& p, int x, int y) const {
 
     return true;
 };
+*/
 
-/*
 bool tetris::containment(piece const& p, int x, int y) const
 {
     // Checks if the tetris piece doesn't have true cells out of bounds of the tetris field
@@ -849,7 +853,8 @@ bool tetris::containment(piece const& p, int x, int y) const
             for(uint32_t j = 0; j < tmp->tp.p.side(); ++j) 
             {
                 // Checks if the cell of the matrix of the piece is occupied by a part of the tetris piece
-                if (tmp->tp.p(i, j)) 
+                
+                if (!tmp->tp.p(i, j)) 
                 { 
                     // Calculates the absolute position into the tetris field for the already inserted tetris piece
                     int field_x = tmp->tp.x + j;
@@ -871,7 +876,6 @@ bool tetris::containment(piece const& p, int x, int y) const
 
     return true;
 };
-*/
 
 //NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
