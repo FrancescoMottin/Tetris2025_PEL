@@ -456,6 +456,7 @@ bool tetris::operator==(tetris const& rhs) const
 }
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
+
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
@@ -502,8 +503,8 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per row_full");
     }
 
-    bool changed = true;
-    while(changed)
+    bool changed;
+    do
     {
         changed = false;
         for (uint32_t i = 0; i < m_height; ++i)
@@ -607,7 +608,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             }
         }
     }
-    //while(changed);
+    while(changed);
 
     //Poniamo il codice per deallocare manualmente la memoria dinamica
     delete[] row_full;
