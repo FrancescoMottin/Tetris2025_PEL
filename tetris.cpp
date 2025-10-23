@@ -452,7 +452,189 @@ bool tetris::operator==(tetris const& rhs) const
 }
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
+struct field {
+    bool** f;
+    const tetris& t;
 
+    field(const tetris& rhs) : f(nullptr), t(rhs) {
+        this->f = new bool*[this->t.height()];
+        for(uint32_t i = 0; i < this->t.height(); ++i) {
+            this->f[i] = new bool[this->t.width()]();
+        }
+
+        for(auto it = rhs.begin(); it != rhs.end(); ++it) {
+            this->add(*it);
+        }
+    };
+
+    ~field() {
+        for(uint32_t i = 0; i < this->t.height(); i++) {
+            delete[] this->f[i];
+        }
+        delete[] this->f;
+    };
+
+    void add(const tetris_piece& tp) {
+        int piece_y = int(tp.p.side()) - 1;
+        for(int i = tp.y; i > tp.y - int(tp.p.side()); --i) {
+            int piece_x = 0;
+            for(int j = tp.x; j < tp.x + int(tp.p.side()); ++j) {
+                if (tp.p(piece_y, piece_x)) {
+                    if (i >= 0 && i < int(this->t.height()) && j >= 0 && j < int(this->t.width()))
+                        this->f[i][j] = true;
+                }
+                ++piece_x;
+            }
+            --piece_y;
+        }
+    };
+
+    bool full_row() const {
+        for(int it1 = int(this->t.height()) - 1; it1 >= 0; --it1) {
+            uint32_t c = 0;
+            for(uint32_t it2 = 0; it2 < this->t.width(); ++it2) {
+                if(this->f[it1][it2])
+                    ++c;
+            }
+            if(c == this->t.width()) return true;
+        }
+        return false;
+    };
+
+    int first_full_row() const {
+        for(int it1 = int(this->t.height()) - 1; it1 >= 0; --it1) {
+            int c = 0;
+            for(uint32_t it2 = 0; it2 < this->t.width(); ++it2) {
+                if(this->f[it1][it2]) ++c;
+            }
+            if(uint32_t(c) == this->t.width()) return it1;
+        }
+        return int(this->t.height());
+    };
+
+    void clear_field() {
+        for(int i = 0; i < int(this->t.height()); ++i)
+            for(int j = 0; j < int(this->t.width()); ++j)
+                f[i][j] = false;
+    };
+};
+
+void tetris::insert(piece const& p, int x) {
+	int max_y = -1;
+	/*bool obstacle = false;
+
+    for(int y = 0; y < int(this->m_height); y++) {
+        if(this->containment(p, x, y) && !obstacle) {
+            max_y = y;
+        } else {
+			obstacle = true;
+		}
+    }*/
+    
+    for(int y = 0; y < int(this->m_height); y++) {
+		if(this->containment(p, x, y))
+            max_y = y;
+	}
+
+    if(max_y == -1) 
+        throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+
+    this->add(p, x, max_y);
+    
+    field f(*this);
+    
+    // finds all the full row inside the field
+	while(f.full_row()) {
+		// iterates all the pieces and cut the row
+		for(auto it = this->begin(); it != this->end(); it++) {
+			int field_y = it->y;
+			for (int y = int(it->p.side()) - 1; y >= 0; --y) {
+				if(f.first_full_row() == field_y)
+					it->p.cut_row(y);
+					
+				field_y--;
+			}
+		}
+		
+		// updates the field f
+		f.clear_field();
+		for(auto it = this->begin(); it != this->end(); it++) {
+			f.add(*it);
+		}
+		
+		// checks  if the pieces can be shifted down
+		node* tmp = this->m_field;
+		this->m_field = nullptr;
+		node* tmp1 = tmp;
+		
+		while(tmp1 != nullptr) {
+			if(!tmp1->tp.p.empty()) {
+				max_y = -1;
+				/*obstacle = false;
+				for(int i = 0; i < int(this->m_height); ++i) {
+					if(this->containment(tmp1->tp.p, tmp1->tp.x, i) && !obstacle) {  
+						max_y = i;
+					} else {
+						obstacle = true;
+					}
+				}*/
+				for(int i = 0; i < int(this->m_height); ++i) {
+					if(this->containment(tmp1->tp.p, tmp1->tp.x, i)) 
+						max_y = i;
+				}
+				
+				this->add(tmp1->tp.p, tmp1->tp.x, max_y);              
+			}
+			tmp1 = tmp1->next;
+		}
+
+		
+		while(tmp != nullptr) {
+			node* to_delete = tmp;
+			tmp = tmp->next;
+			delete to_delete;
+		}
+		
+		// empty pieces are removed
+		
+	}
+};
+
+void tetris::add(piece const& p, int x, int y) {
+	if(!this->containment(p, x, y)) {
+		throw tetris_exception("exception in tetris add function. tetris piece p cannot be contained at offset (x: " + std::to_string(x) + ", y: " + std::to_string(y) + ")");
+	}
+			
+	node* newN = new node();
+	
+	newN->tp.p = p;
+	newN->tp.x = x;
+	newN->tp.y = y;
+	
+	newN->next = this->m_field;
+	this->m_field = newN;
+};
+
+bool tetris::containment(piece const& p, int x, int y) const {
+    field f(*this);
+    
+    uint32_t piece_x = 0;
+    int piece_y = int(p.side()) - 1;
+    for(int i = y; i > y - int(p.side()); --i) {
+        piece_x = 0;
+        for(int j = x; j < x + int(p.side()); ++j) {
+            if(p(piece_y, piece_x)) {
+                if((i < 0 || i >= int(this->m_height)) || (j < 0 || j >= int(this->m_width)))
+                    return false;
+                if(f.f[i][j]) return false;
+            }
+            ++piece_x;
+        }
+        --piece_y;
+    }
+    return true;
+};
+/*
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
@@ -461,12 +643,12 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 
     //1. Trovare posizione di caduta
     int pos_y = -1;
-    for(int i = 0; i <= int(m_height); i++) 
+    for(int y = 0; y <= int(m_height); y++) 
     {
         //if(containment(p,x,i)) pos_y = i;
         bool contained; 
-        try{ contained = containment(p,x,i); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-        if(contained) pos_y = i;
+        try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+        if(contained) pos_y = y;
         else break;
     }
 
@@ -763,6 +945,7 @@ void tetris::print_ascii_art(std::ostream& os) const
     delete[] tmp_mat;
     tmp_mat = nullptr;
 }
+*/
 
 tetris::iterator::iterator(node* ptr) { m_ptr = ptr; }
 tetris::iterator::reference tetris::iterator::operator*() { return m_ptr->tp;}                      //ritorno puntatore
