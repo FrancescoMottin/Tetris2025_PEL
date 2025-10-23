@@ -1,16 +1,44 @@
 #include "tetris.cpp"
-
 #include <sstream>
 #include <fstream>
 #include <vector>
+/*
+void stampa(tetris& t) 
+{
+    //std::cout << "Hello" << std::endl;
+	for(auto it = t.begin(); it != t.end(); it++) 
+		it->p.print_ascii_art(std::cout);
+	std::cout << "\n";
+	
+	field f(t);
+	
+    //std::cout << "Hello" << std::endl;
 
-void insert_and_print(tetris& t, piece& p, int x) {
-    std::cout << "\nInserting piece at x = " << x << ":\n";
-    p.print_ascii_art(std::cout);
-    t.insert(p, x);
-    std::cout << "State of tetris after insertion:\n";
-    t.print_ascii_art(std::cout);
-    std::cout << t << "\n";
+    for(uint32_t i = 0; i < f.t.height(); i++) 
+    {
+		for(uint32_t j = 0; j < f.t.width(); j++) 
+        {
+            if (f.f[i][j]) std::cout << "\033[38;5;" << f.colors[i][j] << "m#\033[0m ";
+            else std::cout << ". ";
+        }
+		std::cout << "\n";
+	}
+};
+*/
+
+void piece::print_ascii_art(std::ostream& os) const
+{
+    os << "Piece (side=" << m_side << ", color=" << (int)m_color << ")\n";
+    os << "\033[38;5;" << static_cast<int>(m_color) << "m";
+
+    for (uint32_t i = 0; i < m_side; i++) {
+        for (uint32_t j = 0; j < m_side; j++) {
+            os << (m_grid[i][j] ? '#' : '.');
+        }
+        os << '\n';
+    }
+
+    os << "\033[0m";
 }
 
 void divider(int x){
@@ -27,25 +55,15 @@ void skipM(std::istream& is) {
     is.putback(c);
 }
 
-void stampa(tetris& t) {
-    //std::cout << "Hello" << std::endl;
-	for(auto it = t.begin(); it != t.end(); it++) {
-		it->p.print_ascii_art(std::cout);
-	}
-	std::cout << "\n";
-	
-	field f(t);
-	
-    //std::cout << "Hello" << std::endl;
-
-    for(uint32_t i = 0; i < f.t.height(); i++) {
-		for(uint32_t j = 0; j < f.t.width(); j++) {
-            if (f.f[i][j]) std::cout << "\033[38;5;" << f.colors[i][j] << "m#\033[0m ";
-            else std::cout << ". ";
-        }
-		std::cout << "\n";
-	}
-};
+// funzione di supporto per stampare ogni mossa
+void insert_and_print(tetris& t, piece& p, int x) {
+    std::cout << "\nInserting piece at x = " << x << ":\n";
+    p.print_ascii_art(std::cout);
+    t.insert(p, x);
+    std::cout << "State of tetris after insertion:\n";
+    t.print_ascii_art(std::cout);
+    std::cout << t << "\n";
+}
 
 void testH() {
     try {
@@ -824,24 +842,22 @@ void testB() {
 }
 
 void testA() {
-     try{
+    try{
         std::cout << "Test A - Play game tetris 1" << std::endl;
         std::ifstream file("Test/input_tetris.txt");
         tetris t;
         file >> t;
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         file.close();
-		
-        std::istringstream is("2 202 ()");
+
+        std::istringstream is("2 202 ()"); /*2 202 () 2 202 ()*/
         piece p;
         is >> p;
         std::cout << "\n";
-        std::cout << "insertint piece at x = 0\n";
         p.print_ascii_art(std::cout);
+        std::cout << "insertint piece at x = 0\n";
         t.insert(p, 0);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         std::istringstream is1("4 100 ((()()[][])(()[]()[])[][])");
@@ -850,8 +866,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 0\n";
         t.insert(p, 0);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         std::istringstream is2("4 100 ([][](()()[][])(()[]()[]))");
@@ -862,8 +877,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 4\n";
         t.insert(p, 4);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         is >> p;
@@ -871,8 +885,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 6\n";
         t.insert(p, 6);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         std::istringstream is3("4 32 (([][]()())[](()[]()[])[])");
@@ -881,8 +894,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 4\n";
         t.insert(p, 4);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         std::istringstream is5("2 11 ()");
@@ -891,8 +903,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 0\n";
         t.insert(p, 0);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         /*
@@ -912,8 +923,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 2\n";
         t.insert(p, 2);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         std::istringstream is7("8 123 ([][](([][]()())([][]()())()())[])");
@@ -922,8 +932,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 3\n";
         t.insert(p, 3);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         /*
@@ -943,8 +952,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 0\n";
         t.insert(p, 0);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         std::istringstream is9("8 29 ([][][]([][][]([]()[][])))");
@@ -953,8 +961,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 0\n";
         t.insert(p, 0);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         std::istringstream is10("8 30 ([][][]([][][]([]()[][])))");
@@ -963,8 +970,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 0\n";
         t.insert(p, 0);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         std::istringstream is11("8 31 ([][][]([][][]([]()[][])))");
@@ -973,8 +979,7 @@ void testA() {
         p.print_ascii_art(std::cout);
         std::cout << "insertint piece at x = 0\n";
         t.insert(p, 0);
-        //t.print_ascii_art(std::cout);
-        stampa(t);
+        t.print_ascii_art(std::cout);
         std::cout << t;
 
         /*std::istringstream is11("4 15 (([][]()())([][]()[])[](()[]()[]))");
@@ -988,7 +993,7 @@ void testA() {
     }
     catch(tetris_exception e){
         std::cout << e.what();
-    }
+    }    
 }
 
 int main() {
@@ -1048,5 +1053,3 @@ int main() {
 
     return 0;
 }
-
-
