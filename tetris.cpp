@@ -222,11 +222,29 @@ bool piece::full() const
 
 void piece::rotate() 
 {
-	bool** tmp = new bool*[m_side];
+    if(m_grid == nullptr || m_side <= 1) return ;
+
+    bool** tmp;
+	try
+    {
+        tmp = new bool*[m_side];
     
-    for(uint32_t it = 0; it < m_side; it++)
-		tmp[it] = new bool[m_side];
-	
+        for(uint32_t it = 0; it < m_side; it++)
+		    tmp[it] = new bool[m_side];
+    
+    }
+    catch(const std::bad_alloc&) 
+    {
+        if(tmp)
+        {
+            for(uint32_t i = 0; i < m_side; i++)    
+                delete[] tmp[i];                   
+            delete[] tmp;
+        }
+        throw tetris_exception("ERROR! - rotate() - Errore di allocazione memoria durante la rotazione.");
+    }
+
+
 	for(uint32_t it1 = 0; it1 < m_side; it1++) 
     {
 		for(uint32_t it2 = 0; it2 < m_side; it2++) 
@@ -242,13 +260,14 @@ void piece::rotate()
 	// Deletion of tmp. Otherwise there would be a memory leak
     for(uint32_t it1 = 0; it1 < m_side; it1++) 
         delete[] tmp[it1];
-
     delete[] tmp;
+
+    m_grid = m_grid;
 };
 /*
 void piece::rotate()
 {
-    if(m_grid == nullptr || m_side <= 1) return ;
+    
 
     bool** tmp_grid = nullptr; 
     try
