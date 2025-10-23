@@ -885,6 +885,38 @@ bool tetris::containment(piece const& p, int x, int y) const
 
     return true;
 };
+*/
+void piece::print_ascii_art(std::ostream& os) const 
+{
+    os << "Piece (side=" << m_side << ", color=" << (int)m_color << ")\n";
+    os << "\033[38;5;" << static_cast<int>(m_color) << "m";
+
+    for (uint32_t i = 0; i < m_side; i++) {
+        for (uint32_t j = 0; j < m_side; j++) {
+            os << (m_grid[i][j] ? '#' : '.');
+        }
+        os << '\n';
+    }
+
+    os << "\033[0m";
+    /*
+	for(uint32_t it1 = 0; it1 < this->m_side; it1++) 
+    {
+		for(uint32_t it2 = 0; it2 < this->m_side; it2++) 
+        {
+			if(this->m_grid[it1][it2]) 
+            {
+			    os << "\033[48;5;" << int(this->m_color) << "m" << ' ' << "\033[m";
+			} 
+            else 
+            {
+				os << ' ';
+			}
+		}
+		os << '\n';
+	}
+    */
+};
 
 //NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
@@ -968,7 +1000,6 @@ void tetris::print_ascii_art(std::ostream& os) const
     delete[] tmp_mat;
     tmp_mat = nullptr;
 }
-*/
 
 tetris::iterator::iterator(node* ptr) { m_ptr = ptr; }
 tetris::iterator::reference tetris::iterator::operator*() { return m_ptr->tp;}                      //ritorno puntatore
