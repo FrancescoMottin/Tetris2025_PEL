@@ -603,36 +603,35 @@ struct field
 };
 
 
-void tetris::insert(piece const& p, int x) {
-	int max_y = -1;
-	/*bool obstacle = false;
+void tetris::insert(piece const& p, int x) 
+{
+    if (m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert() - Il tabellone non e' stato inizializzato correttamente.");
 
-    for(int y = 0; y < int(m_height); y++) {
-        if(containment(p, x, y) && !obstacle) {
-            max_y = y;
-        } else {
-			obstacle = true;
-		}
-    }*/
-    
-    for(int y = 0; y < int(m_height); y++) {
-		if(containment(p, x, y))
-            max_y = y;
-	}
+    int pos_y = -1;
+    for(int y = 0; y <= int(m_height); y++) 
+    {
+        //if(containment(p,x,i)) pos_y = i;
+        bool contained; 
+        try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+        if(contained) pos_y = y;
+        else break;
+    }
+    if (pos_y < 0) throw tetris_exception("GAME OVER! - Nessuna posizione valida per il pezzo.");
 
-    if(max_y == -1) 
-        throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
-
-    add(p, x, max_y);
+    try { add(p, x, pos_y); }
+    catch (const tetris_exception& e) { throw; }
     
     field f(*this);
     
     // finds all the full row inside the field
-	while(f.full_row()) {
+	while(f.full_row()) 
+    {
 		// iterates all the pieces and cut the row
-		for(auto it = begin(); it != end(); it++) {
+		for(auto it = begin(); it != end(); it++) 
+        {
 			int field_y = it->y;
-			for (int y = int(it->p.side()) - 1; y >= 0; --y) {
+			for (int y = int(it->p.side()) - 1; y >= 0; --y) 
+            {
 				if(f.first_full_row() == field_y)
 					it->p.cut_row(y);
 					
@@ -642,74 +641,69 @@ void tetris::insert(piece const& p, int x) {
 		
 		// updates the field f
 		f.clear_field();
-		for(auto it = begin(); it != end(); it++) {
-			f.add(*it);
-		}
+		for(auto it = begin(); it != end(); it++) 
+            f.add(*it);
 		
 		// checks  if the pieces can be shifted down
 		node* tmp = m_field;
 		m_field = nullptr;
-		node* tmp1 = tmp;
 		
-		while(tmp1 != nullptr) {
-			if(!tmp1->tp.p.empty()) {
-				max_y = -1;
-				/*obstacle = false;
-				for(int i = 0; i < int(m_height); ++i) {
-					if(containment(tmp1->tp.p, tmp1->tp.x, i) && !obstacle) {  
-						max_y = i;
-					} else {
-						obstacle = true;
-					}
-				}*/
-				for(int i = 0; i < int(m_height); ++i) {
-					if(containment(tmp1->tp.p, tmp1->tp.x, i)) 
-						max_y = i;
-				}
+        for(node* n = tmp; n; n = n->next)
+        {
+			if(!n->tp.p.empty()) 
+            {
+				pos_y = -1;
+	
+				for(int i = 0; i < int(m_height); ++i) 
+					if(containment(n->tp.p, n->tp.x, i)) pos_y = i;
 				
-				add(tmp1->tp.p, tmp1->tp.x, max_y);              
+				add(n->tp.p, n->tp.x, pos_y);              
 			}
-			tmp1 = tmp1->next;
 		}
 
-		
-		while(tmp != nullptr) {
+		while(tmp != nullptr) 
+        {
 			node* to_delete = tmp;
 			tmp = tmp->next;
 			delete to_delete;
 		}
 		
 		// empty pieces are removed
-		
 	}
 };
 
-void tetris::add(piece const& p, int x, int y) {
-	if(!containment(p, x, y)) {
-		throw tetris_exception("exception in tetris add function. tetris piece p cannot be contained at offset (x: " + std::to_string(x) + ", y: " + std::to_string(y) + ")");
-	}
-			
-	node* newN = new node();
-	
-	newN->tp.p = p;
-	newN->tp.x = x;
-	newN->tp.y = y;
-	
-	newN->next = m_field;
-	m_field = newN;
-};
+void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
+{
+    //|| x + (int)p.side() > (int)m_width || y + (int)p.side() > (int)m_height
+    if (y < 0) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Pezzo fuori dai limiti del campo. Offset X: " + std::to_string(x)  + " Y: " + std::to_string(y));
 
-bool tetris::containment(piece const& p, int x, int y) const {
+    bool contained; 
+    try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+    if(!contained) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Le coordinate non sono valide per il pezzo dato. X: " + std::to_string(x)  + " Y: " + std::to_string(y));
+
+    tetris_piece new_tp{p,x,y};
+    node* new_node;
+    try{ new_node = new node{new_tp, nullptr};}
+    catch(const std::bad_alloc&){ throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Memory allocation failed in add(). X: " + std::to_string(x)  + " Y: " + std::to_string(y)); }
+    
+    new_node->next = m_field;
+    m_field = new_node;
+}
+
+bool tetris::containment(piece const& p, int x, int y) const 
+{
     field f(*this);
     
     uint32_t piece_x = 0;
     int piece_y = int(p.side()) - 1;
-    for(int i = y; i > y - int(p.side()); --i) {
+    for(int i = y; i > y - int(p.side()); --i) 
+    {
         piece_x = 0;
-        for(int j = x; j < x + int(p.side()); ++j) {
-            if(p(piece_y, piece_x)) {
-                if((i < 0 || i >= int(m_height)) || (j < 0 || j >= int(m_width)))
-                    return false;
+        for(int j = x; j < x + int(p.side()); ++j) 
+        {
+            if(p(piece_y, piece_x)) 
+            {
+                if((i < 0 || i >= int(m_height)) || (j < 0 || j >= int(m_width))) return false;
                 if(f.f[i][j]) return false;
             }
             ++piece_x;
@@ -882,7 +876,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         delete[] table_state;
     }
 }
-
 
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
