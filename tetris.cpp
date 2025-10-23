@@ -475,8 +475,10 @@ struct field
             add(*it);
     };
 
-    ~field() {
-        for(uint32_t i = 0; i < t.height(); i++) {
+    ~field() 
+    {
+        for(uint32_t i = 0; i < t.height(); i++) 
+        {
             delete[] f[i];
             delete[] colors[i];
         }
@@ -485,12 +487,16 @@ struct field
         delete[] colors;
     };
 
-    void add(const tetris_piece& tp) {
+    void add(const tetris_piece& tp) 
+    {
         int piece_y = int(tp.p.side()) - 1;
-        for(int i = tp.y; i > tp.y - int(tp.p.side()); --i) {
+        for(int i = tp.y; i > tp.y - int(tp.p.side()); --i) 
+        {
             int piece_x = 0;
-            for(int j = tp.x; j < tp.x + int(tp.p.side()); ++j) {
-                if (tp.p(piece_y, piece_x)) {
+            for(int j = tp.x; j < tp.x + int(tp.p.side()); ++j) 
+            {
+                if (tp.p(piece_y, piece_x)) 
+                {
                     if (i >= 0 && i < int(t.height()) && j >= 0 && j < int(t.width()))
                     {
                         f[i][j] = true;
@@ -503,30 +509,32 @@ struct field
         }
     };
 
-    bool full_row() const {
-        for(int it1 = int(t.height()) - 1; it1 >= 0; --it1) {
+    bool full_row() const 
+    {
+        for(int it1 = int(t.height()) - 1; it1 >= 0; --it1) 
+        {
             uint32_t c = 0;
-            for(uint32_t it2 = 0; it2 < t.width(); ++it2) {
-                if(f[it1][it2])
-                    ++c;
-            }
+            for(uint32_t it2 = 0; it2 < t.width(); ++it2) 
+                if(f[it1][it2]) ++c;
             if(c == t.width()) return true;
         }
         return false;
     };
 
-    int first_full_row() const {
-        for(int it1 = int(t.height()) - 1; it1 >= 0; --it1) {
+    int first_full_row() const 
+    {
+        for(int it1 = int(t.height()) - 1; it1 >= 0; --it1) 
+        {
             int c = 0;
-            for(uint32_t it2 = 0; it2 < t.width(); ++it2) {
+            for(uint32_t it2 = 0; it2 < t.width(); ++it2) 
                 if(f[it1][it2]) ++c;
-            }
             if(uint32_t(c) == t.width()) return it1;
         }
         return int(t.height());
     };
 
-    void clear_field() {
+    void clear_field() 
+    {
         for(int i = 0; i < int(t.height()); ++i)
             for(int j = 0; j < int(t.width()); ++j)
                 f[i][j] = false;
