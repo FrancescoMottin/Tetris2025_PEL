@@ -220,6 +220,32 @@ bool piece::full() const
     return full(0, 0, m_side);
 }
 
+void piece::rotate() 
+{
+	bool** tmp = new bool*[m_side];
+    
+    for(uint32_t it = 0; it < m_side; it++)
+		tmp[it] = new bool[m_side];
+	
+	for(uint32_t it1 = 0; it1 < m_side; it1++) 
+    {
+		for(uint32_t it2 = 0; it2 < m_side; it2++) 
+			tmp[it1][it2] = m_grid[it2][m_side - it1 - 1];
+	}
+		
+	for(uint32_t it1 = 0; it1 < m_side; it1++) 
+    {
+		for(uint32_t it2 = 0; it2 < m_side; it2++) 
+			m_grid[it1][it2] = tmp[it1][it2];
+	}
+	
+	// Deletion of tmp. Otherwise there would be a memory leak
+    for(uint32_t it1 = 0; it1 < m_side; it1++) 
+        delete[] tmp[it1];
+
+    delete[] tmp;
+};
+/*
 void piece::rotate()
 {
     if(m_grid == nullptr || m_side <= 1) return ;
@@ -257,7 +283,7 @@ void piece::rotate()
     delete[] m_grid;                                             
 
     m_grid = tmp_grid;
-}
+}*/
 
 void piece::cut_row(uint32_t i)
 {
