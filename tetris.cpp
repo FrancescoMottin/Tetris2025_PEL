@@ -259,6 +259,21 @@ void piece::rotate()
     m_grid = tmp_grid;
 }
 
+void piece::cut_row(uint32_t i)
+{
+	if(i >= m_side) throw tetris_exception("Given row is incorrect. Out of bounds");
+
+	for(int row = i; row > 0; row--) 
+    {
+		for(uint32_t col = 0; col < m_side; col++) 
+			m_grid[row][col] = m_grid[row - 1][col];
+		
+	}
+
+	for(uint32_t col = 0; col < m_side; col++)
+		m_grid[0][col] = false;
+};
+/*
 //Mal implementato, totalmente da rivedere
 void piece::cut_row(uint32_t i)
 {
@@ -276,7 +291,8 @@ void piece::cut_row(uint32_t i)
     for(uint32_t c = 0; c < m_side; c++)
         m_grid[0][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
 }
- 
+*/
+
 uint32_t piece::side() const { return m_side; }
 int piece::color() const { return m_color; }
 
@@ -900,13 +916,13 @@ void piece::print_ascii_art(std::ostream& os) const
 
     os << "\033[0m";
     /*
-	for(uint32_t it1 = 0; it1 < this->m_side; it1++) 
+	for(uint32_t it1 = 0; it1 < m_side; it1++) 
     {
-		for(uint32_t it2 = 0; it2 < this->m_side; it2++) 
+		for(uint32_t it2 = 0; it2 < m_side; it2++) 
         {
-			if(this->m_grid[it1][it2]) 
+			if(m_grid[it1][it2]) 
             {
-			    os << "\033[48;5;" << int(this->m_color) << "m" << ' ' << "\033[m";
+			    os << "\033[48;5;" << int(m_color) << "m" << ' ' << "\033[m";
 			} 
             else 
             {
