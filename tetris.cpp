@@ -615,7 +615,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     }
 }
 
-
 void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
 {
     //|| x + (int)p.side() > (int)m_width || y + (int)p.side() > (int)m_height
