@@ -569,7 +569,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
                     {
                         //int rel_row = i - pos_y;
                         int rel_row = (i - pos_y) - cuts_done;  
-                        if(rel_row >= (int)to_cut.side() ) throw tetris_exception("ERROR! - insert(piece const& p, int x) - computed rel_row out of range after previous cuts.");
+                        if(rel_row < 0 || rel_row >= (int)to_cut.side() ) throw tetris_exception("ERROR! - insert(piece const& p, int x) - computed rel_row out of range after previous cuts.");
                         
                         try{ to_cut.cut_row((uint32_t) rel_row); } //Aggiungere un possibile try catch per errori
                         catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
