@@ -257,7 +257,6 @@ void piece::rotate()
     delete[] m_grid;                                             
 }
 
-//Mal implementato, totalmente da rivedere
 void piece::cut_row(uint32_t i)
 {
     if(m_grid == nullptr) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
@@ -660,7 +659,7 @@ bool tetris::containment(piece const& p, int x, int y) const
             int fy = y + i;
 
             // checks the borders
-            if (fx < 0 || fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
+            if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
             //if(fy < 0) return false;
 
             // checks collisions with other inserted pieces
