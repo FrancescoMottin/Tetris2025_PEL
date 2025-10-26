@@ -475,12 +475,13 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
             std::cout << "DEBUG: Testing containment at y = " << y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
             
+            /*
             if(!contained)
             {
                 // collisione => l’ultima posizione valida è y-1
                 y_drop = y - 1;
                 break;
-            }
+            }*/
 
             if (contained) pos_y = y;
             else break;
@@ -494,6 +495,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     if(lowest_height < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
     pos_y = lowest_height;
 
+    std::cout << "DEBUG: final drop position pos_y = " << pos_y << std::endl;
     try { add(p,x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
