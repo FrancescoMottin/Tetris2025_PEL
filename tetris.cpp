@@ -457,7 +457,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     int piece_side = static_cast<int>(p.side());
     int lowest_height = m_height;
     
-    /*
     for(int j = 0; j <piece_side; j++)
     {
         bool col_empty = true;
@@ -468,27 +467,28 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             break; 
         }
         if (col_empty) continue;
-    */
-    int y_drop = -1;
-    for(int y = 0; y < static_cast<int>(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
-    {
-        bool contained; 
-        try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-        std::cout << "DEBUG: Testing containment at y = " << y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
-            
-            /*
-        if(!contained)
-        {
-            // collisione => l’ultima posizione valida è y-1
-            y_drop = y - 1;
-            break;
-        }
-        */
-        if (contained) pos_y = y;
-        else break;
-    }
 
-    if (y_drop == -1) y_drop = static_cast<int>(m_height) - piece_side; // se non collide mai
+        int y_drop = -1;
+        for(int y = 0; y < static_cast<int>(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
+        {
+            bool contained; 
+            try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+            std::cout << "DEBUG: Testing containment at y = " << y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
+            
+            if(!contained)
+            {
+                // collisione => l’ultima posizione valida è y-1
+                y_drop = y - 1;
+                break;
+            }
+
+            if (contained) pos_y = y;
+            else break;
+        }
+
+        if (y_drop == -1) y_drop = static_cast<int>(m_height) - piece_side; // se non collide mai
+        lowest_height = std::min(lowest_height, y_drop);
+    }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
     if(lowest_height < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
