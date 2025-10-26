@@ -644,7 +644,7 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
 //L'offeset nella tabella è (abs_x, abs_y), e containment lavora cella per cella piuttosto che pezzo per pezzo
 bool tetris::containment(piece const& p, int x, int y) const 
 {
-    int side = int(p.side());
+    int side = static_cast<int>(p.side());
 
     //if (y < 0 || x + side > int(m_width) || y + side > int(m_height)) return false;
     //if (y < 0) return false;
@@ -656,11 +656,11 @@ bool tetris::containment(piece const& p, int x, int y) const
             if (!p(i, j)) continue;
 
             int fx = x + j;
-            int fy = y + ((int)p.side() - 1 - i);
+            int fy = y + (side - 1 - i); //Bottom-left anchoring
 
             // checks the borders
             if (fx < 0) continue;
-            if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
+            if (/*fx < 0 ||*/ fy < 0 || fx >= static_cast<int>(m_width) || fy >= static_cast<int>(m_height)) return false;
             //if(fy >= int(m_height)) return false;
             //if(fy < 0) return false;
 
@@ -669,13 +669,14 @@ bool tetris::containment(piece const& p, int x, int y) const
             while (tmp != nullptr) 
             {
                 tetris_piece const& tp = tmp->tp;
+                int tside = static_cast<int>(tp.p.side());
                 for (uint32_t pi = 0; pi < tp.p.side(); ++pi) 
                 {
                     for (uint32_t pj = 0; pj < tp.p.side(); ++pj) 
                     {
                         if (!tp.p(pi, pj)) continue;
                         int px = tp.x + int(pj);
-                        int py = tp.y + int(pi);
+                        int py = tp.y + (tside - 1 - pi);
                         if (fx == px && fy == py) return false;
                     }
                 }
