@@ -460,6 +460,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         //if(containment(p,x,i)) pos_y = i;
         bool contained; 
         try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+        std::cout << "DEBUG: Testing containment at y = " << pos_y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
         if(contained) pos_y = y;
         else break;
     }
