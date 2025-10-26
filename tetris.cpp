@@ -446,28 +446,51 @@ bool tetris::operator==(tetris const& rhs) const
 }
 bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 
-
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
-     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
-    //if (x + (int) p.side() > (int)m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo fuori dai limiti orizzontali del campo.");
+    if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
 
     //1. Trovare posizione di caduta
     int pos_y = -1;
-    for(int y = 0; y <= int(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
+
+    int piece_side = static_cast<int>(p.side());
+    int lowest_height = m_height;
+    
+    for(int j = 0; j <piece_side; j++)
     {
-        //if(containment(p,x,i)) pos_y = i;
-        bool contained; 
-        try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-        std::cout << "DEBUG: Testing containment at y = " << pos_y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
-        if(contained) pos_y = y;
-        else break;
+        bool col_empty = true;
+        for (int i = 0; i < piece_side; ++i)
+        if (p(i, j)) 
+        { 
+            col_empty = false; 
+            break; 
+        }
+        if (col_empty) continue;
+
+        int y_drop = -1;
+        for(int y = 0; y < static_cast<int>(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
+        {
+            bool contained; 
+            try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+            std::cout << "DEBUG: Testing containment at y = " << pos_y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
+            
+            if(!contained)
+            {
+                // collisione => l’ultima posizione valida è y-1
+                y_drop = y - 1;
+                break;
+            }
+        }
+
+        if (y_drop == -1) y_drop = static_cast<int>(m_height) - piece_side; // se non collide mai
+        lowest_height = std::min(lowest_height, y_drop);
     }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
-    if(pos_y < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-    
+    if(lowest_height < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
+    pos_y = lowest_height;
+
     try { add(p,x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
