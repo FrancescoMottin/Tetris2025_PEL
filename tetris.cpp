@@ -659,8 +659,9 @@ bool tetris::containment(piece const& p, int x, int y) const
             int fy = y + i;
 
             // checks the borders
-            if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
             if (fx < 0) continue;
+            if(fy >= int(m_height)) return false;
+            //if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
             //if(fy < 0) return false;
 
             // checks collisions with other inserted pieces
