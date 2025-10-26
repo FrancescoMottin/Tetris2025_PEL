@@ -651,6 +651,50 @@ void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle l
 //L'offeset nella tabella è (abs_x, abs_y), e containment lavora cella per cella piuttosto che pezzo per pezzo
 bool tetris::containment(piece const& p, int x, int y) const 
 {
+    int side = int(p.side());
+
+    //if (y < 0 || x + side > int(m_width) || y + side > int(m_height)) return false;
+    //if (y < 0) return false;
+
+    for (int i = 0; i < side; ++i) 
+    {
+        for (int j = 0; j < side; ++j) 
+        {
+            if (!p(i, j)) continue;
+
+            int fx = x + j;
+            int fy = y + i;
+
+            // checks the borders
+            if (fy < 0 || fy >= int(m_height)) return false;
+            if (fx < 0 || fx >= int(m_width)) continue;
+            //if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
+            //if(fy < 0) return false;
+
+            // checks collisions with other inserted pieces
+            node* tmp = m_field;
+            while (tmp != nullptr) 
+            {
+                tetris_piece const& tp = tmp->tp;
+                for (uint32_t pi = 0; pi < tp.p.side(); ++pi) 
+                {
+                    for (uint32_t pj = 0; pj < tp.p.side(); ++pj) 
+                    {
+                        if (!tp.p(pi, pj)) continue;
+                        int px = tp.x + int(pj);
+                        int py = tp.y + int(pi);
+                        if (fx == px && fy == py) return false;
+                    }
+                }
+                tmp = tmp->next;
+            }
+        }
+    }
+
+    return true;
+};
+/*bool tetris::containment(piece const& p, int x, int y) const 
+{
     int side = static_cast<int>(p.side());
 
     //if (y < 0 || x + side > int(m_width) || y + side > int(m_height)) return false;
@@ -668,7 +712,7 @@ bool tetris::containment(piece const& p, int x, int y) const
             // checks the borders
             if (fx < 0 || fx >= static_cast<int>(m_width)) continue;
             if(fy < 0 || fy >= static_cast<int>(m_height)) return false;
-            //if (/*fx < 0 ||*/ fy < 0 || fx >= static_cast<int>(m_width) || fy >= static_cast<int>(m_height)) return false;
+            //if (fx < 0 || fy < 0 || fx >= static_cast<int>(m_width) || fy >= static_cast<int>(m_height)) return false;
             //if(fy >= int(m_height)) return false;
             //if(fy < 0) return false;
 
@@ -695,6 +739,7 @@ bool tetris::containment(piece const& p, int x, int y) const
 
     return true;
 };
+*/
 
 //NOT NECESSARY BUT USEFUL FOR DEBUGGING
 void tetris::print_ascii_art(std::ostream& os) const
