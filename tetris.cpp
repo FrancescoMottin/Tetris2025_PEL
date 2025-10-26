@@ -454,7 +454,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 
     //1. Trovare posizione di caduta
     int pos_y = -1;
-    for(int y = 0; y <= m_height; y++) //for(int y = 0; y < int(m_height); y++) // o con <=
+    for(int y = 0; y <= (int) m_height; y++) //for(int y = 0; y < int(m_height); y++) // o con <=
     {
         //if(containment(p,x,i)) pos_y = i;
         bool contained; 
