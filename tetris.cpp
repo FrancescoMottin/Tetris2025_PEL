@@ -453,28 +453,25 @@ bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 //Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
-    if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
+     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
     //if (x + (int) p.side() > (int)m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo fuori dai limiti orizzontali del campo.");
 
     //1. Trovare posizione di caduta
     int pos_y = -1;
-    //for(int y = int(m_height); y>= 0; y--)
-    //for(int y = 0; y <= int(m_height); y++)
-    for(int y = 0; y < int(m_height); y++) 
+    for(int y = 0; y < int(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
     {
         //if(containment(p,x,i)) pos_y = i;
         bool contained; 
         try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-        /*
         if(contained) pos_y = y;
         else break;
-        */
-        if(contained)
-        {
-            pos_y = y;
-            break;
-        } 
     }
+
+    //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
+    if(pos_y < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
+    
+    try { add(p,x, pos_y); }
+    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
     if(pos_y < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
@@ -668,8 +665,8 @@ bool tetris::containment(piece const& p, int x, int y) const
             int fy = y + i;
 
             // checks the borders
-            if (fy < 0 || fy >= int(m_height)) return false;
-            if (fx < 0 || fx >= int(m_width)) continue;
+            if (fx < 0) continue;
+            if(fy >= int(m_height)) return false;
             //if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
             //if(fy < 0) return false;
 
