@@ -468,9 +468,11 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
     if(pos_y < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
     
-    std::cout << "DEBUG: final drop position pos_y = " << pos_y << std::endl;
+    std::cerr << "DEBUG: add() called with pos_y = " << pos_y << " piece.side=" << p.side() << "\n";
     try { add(p,x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
+    if (m_field) std::cerr << "DEBUG: new node y = " << m_field->tp.y << std::endl;
+
     
     //Parte 2,3 e 4: Gestione righe
     bool* row_full = new bool[m_height];  //new bool[m_height];
