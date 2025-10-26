@@ -462,7 +462,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
         std::cout << "DEBUG: Testing containment at y = " << y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
 
         if(contained) pos_y = y;
-        else continue;
+        else break;
     }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
