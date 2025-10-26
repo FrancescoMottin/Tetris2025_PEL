@@ -458,7 +458,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 
     //1. Trovare posizione di caduta
     int pos_y = -1;
-    for(int y = 0; y < int(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
+    for(int y = 0; y <= int(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
     {
         //if(containment(p,x,i)) pos_y = i;
         bool contained; 
@@ -656,12 +656,12 @@ bool tetris::containment(piece const& p, int x, int y) const
             if (!p(i, j)) continue;
 
             int fx = x + j;
-            int fy = y + i;
+            int fy = y + ((int)p.side() - 1 - i);
 
             // checks the borders
             if (fx < 0) continue;
-            if(fy >= int(m_height)) return false;
-            //if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
+            if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
+            //if(fy >= int(m_height)) return false;
             //if(fy < 0) return false;
 
             // checks collisions with other inserted pieces
