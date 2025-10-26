@@ -253,8 +253,8 @@ void piece::rotate()
     }
 
     for(uint32_t i = 0; i < m_side; i++)    
-        delete[] m_grid[i];                   
-    delete[] m_grid;                                             
+        delete[] tmp_grid[i];                   
+    delete[] tmp_grid;                                             
 }
 
 void piece::cut_row(uint32_t i)
