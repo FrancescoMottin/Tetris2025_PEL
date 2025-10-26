@@ -665,7 +665,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     
 
             //if (fx < 0) continue;
-            if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
+            //if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
             
             //if(fy >= int(m_height)) return false;
             //if(fy < 0) return false;
