@@ -458,13 +458,20 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 
     //1. Trovare posizione di caduta
     int pos_y = -1;
-    for(int y = 0; y < int(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
+    for(int y = int(m_height); y>= 0; y--)//for(int y = 0; y < int(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
     {
         //if(containment(p,x,i)) pos_y = i;
         bool contained; 
         try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+        /*
         if(contained) pos_y = y;
         else break;
+        */
+        if(contained)
+        {
+            pos_y = y;
+            break;
+        } 
     }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
@@ -659,8 +666,9 @@ bool tetris::containment(piece const& p, int x, int y) const
             int fy = y + (side - 1 - i); //Bottom-left anchoring
 
             // checks the borders
-            if (fx < 0) continue;
-            if (/*fx < 0 ||*/ fy < 0 || fx >= static_cast<int>(m_width) || fy >= static_cast<int>(m_height)) return false;
+            if (fx < 0 || fx >= static_cast<int>(m_width)) continue;
+            if(fy < 0 || fy >= static_cast<int>(m_height)) return false;
+            //if (/*fx < 0 ||*/ fy < 0 || fx >= static_cast<int>(m_width) || fy >= static_cast<int>(m_height)) return false;
             //if(fy >= int(m_height)) return false;
             //if(fy < 0) return false;
 
