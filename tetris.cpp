@@ -220,51 +220,6 @@ bool piece::full() const
     return full(0, 0, m_side);
 }
 
-/*
-void piece::rotate()
-{
-    if(m_grid == nullptr || m_side <= 1) return ;
-
-    bool** tmp_grid = nullptr; 
-    try
-    {
-        tmp_grid = new bool*[m_side];
-        for(uint32_t i = 0; i < m_side; i++)    
-        {         
-            tmp_grid[i] = new bool[m_side];
-            for(uint32_t j = 0; j < m_side; j++)
-                tmp_grid[i][j] = false;
-        }    
-    }
-    catch(const std::bad_alloc& e) 
-    {
-        if(tmp_grid)
-        {
-            for(uint32_t i = 0; i < m_side; i++)    
-                delete[] tmp_grid[i];                   
-            delete[] tmp_grid;
-        }
-        throw tetris_exception("ERROR! - rotate() - Errore di allocazione memoria durante la rotazione.");
-    }
-
-    for(uint32_t i = 0; i < m_side; i++)
-    {
-        for(uint32_t j = 0; j < m_side; j++)
-        {
-            uint32_t new_row = j;
-            uint32_t new_col = m_side - i - 1;
-            tmp_grid[new_row][new_col] = m_grid[i][j];  //Sarebbe preferibile prima allocare memoria e dopo copiare i valori
-        } 
-    }
-
-    for(uint32_t i = 0; i < m_side; i++)    
-        delete[] m_grid[i];                   
-    delete[] m_grid;                        
-    m_grid = nullptr;                       
-
-    m_grid = tmp_grid;
-}
-    */
 void piece::rotate()
 {
     if(m_grid == nullptr || m_side <= 1) return ;
