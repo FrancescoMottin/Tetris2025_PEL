@@ -473,12 +473,6 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
     try { add(p,x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
 
-    //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
-    if(pos_y < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-    
-    try { add(p,x, pos_y); }
-    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
-
     //Parte 2,3 e 4: Gestione righe
     bool* row_full = new bool[m_height];  //new bool[m_height];
     bool** table_state = new bool*[m_height]{}; //{} dovrebbe permettere una deallocazione più sciura
