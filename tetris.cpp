@@ -475,13 +475,13 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
             try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
             std::cout << "DEBUG: Testing containment at y = " << y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
             
-            /*
+            
             if(!contained)
             {
                 // collisione => l’ultima posizione valida è y-1
                 y_drop = y - 1;
                 break;
-            }*/
+            }
 
             if (contained) pos_y = y;
             else break;
