@@ -450,55 +450,28 @@ bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
 void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 {
     if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
+    //if (x + (int) p.side() > (int)m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo fuori dai limiti orizzontali del campo.");
 
     //1. Trovare posizione di caduta
     int pos_y = -1;
-
-    int piece_side = static_cast<int>(p.side());
-    int lowest_height = m_height;
-    
-    for(int j = 0; j <piece_side; j++)
+    for(int y = 0; y < int(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
     {
-        bool col_empty = true;
-        for (int i = 0; i < piece_side; ++i)
-        if (p(i, j)) 
-        { 
-            col_empty = false; 
-            break; 
-        }
-        if (col_empty) continue;
+        //if(containment(p,x,i)) pos_y = i;
+        bool contained; 
+        try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
+        std::cout << "DEBUG: Testing containment at y = " << y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
 
-        int y_drop = -1;
-        for(int y = 0; y < static_cast<int>(m_height); y++) //for(int y = 0; y <= int(m_height); y++)
-        {
-            bool contained; 
-            try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-            std::cout << "DEBUG: Testing containment at y = " << y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
-            
-            
-            if(!contained)
-            {
-                // collisione => l’ultima posizione valida è y-1
-                y_drop = y - 1;
-                break;
-            }
-
-            if (contained) pos_y = y;
-            else break;
-        }
-
-        if (y_drop == -1) y_drop = static_cast<int>(m_height) - piece_side; // se non collide mai
-        lowest_height = std::min(lowest_height, y_drop);
+        if(contained) pos_y = y;
+        else break;
     }
 
     //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
-    if(lowest_height < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-    pos_y = lowest_height;
-
+    if(pos_y < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
+    
     std::cout << "DEBUG: final drop position pos_y = " << pos_y << std::endl;
     try { add(p,x, pos_y); }
     catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
-
+    
     //Parte 2,3 e 4: Gestione righe
     bool* row_full = new bool[m_height];  //new bool[m_height];
     bool** table_state = new bool*[m_height]{}; //{} dovrebbe permettere una deallocazione più sciura
