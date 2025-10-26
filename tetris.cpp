@@ -228,12 +228,8 @@ void piece::rotate()
     try
     {
         tmp_grid = new bool*[m_side];
-        for(uint32_t i = 0; i < m_side; i++)    
-        {         
-            tmp_grid[i] = new bool[m_side];
-            for(uint32_t j = 0; j < m_side; j++)
-                tmp_grid[i] = new bool[m_side]();    //tmp_grid[i][j] = false;
-        }    
+        for(uint32_t i = 0; i < m_side; i++)
+            tmp_grid[i] = new bool[m_side]();    //tmp_grid[i][j] = false;
     }
     catch(const std::bad_alloc&) 
     {
@@ -253,8 +249,8 @@ void piece::rotate()
     }
 
     for(uint32_t i = 0; i < m_side; i++)    
-        delete[] tmp_grid[i];                   
-    delete[] tmp_grid;                                             
+        delete[] m_grid[i];                   
+    delete[] m_grid;                                             
 }
 
 void piece::cut_row(uint32_t i)
