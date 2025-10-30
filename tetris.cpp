@@ -454,7 +454,7 @@ void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
 
     //1. Trovare posizione di caduta
     int pos_y = -1;
-    for(int y = - (int) p.side() ; y < (int) m_height; y++) //for(int y = 0; y < int(m_height); y++) // o con <=
+    for(int y = 0 ; y < (int) m_height; y++) //for(int y = 0; y < int(m_height); y++) // o con <=
     {
         //if(containment(p,x,i)) pos_y = i;
         bool contained; 
@@ -868,6 +868,7 @@ uint32_t tetris::score() const { return m_score; }
 uint32_t tetris::width() const { return m_width; }
 uint32_t tetris::height() const { return m_height; }
 
+// S->()|[]|(SSSS)
 void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
 {
     CHECK_ERR(is.fail(), "ERROR! - input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset) - Errore di lettura pre-lettura");
