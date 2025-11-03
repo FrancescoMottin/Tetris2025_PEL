@@ -1,763 +1,652 @@
-#include <cstdint>
 #include "tetris.hpp"
+#include <fstream>
 
 #define CHECK_ERR(cond, msg) if((cond)) { is.setstate(std::ios_base::failbit);  throw tetris_exception(msg); }
+using namespace std;
 
-piece::piece()
+piece::piece() 
 {
-    m_side = 0;
+	m_side = 0;
     m_color = 0;
-    m_grid = nullptr; //E' un doppio puntatore, non può essere altro che nullptr
-}
-
-//Throws "tetris_exception" se side != 2^n OR color = 0
-piece::piece(uint32_t s, uint8_t c)
-{
-    if(s == 0)  throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  La dimensione del pezzo (side) non puo' essere 0.");
-    if((s & (s - 1)) != 0) throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  La dimensione del pezzo (m_side) deve essere una potenza di 2.");
-    if(c == 0)  throw tetris_exception("ERROR! - piece(uint32_t s, uint8_t c) -  Il colore del pezzo (color) non puo' essere 0.");
-
-    m_side = s;
-    m_color = c;
-    
-    try
-    {
-        m_grid = new bool*[m_side]; //initialize a s*s matrix with all cells at false, must be an empty piece
-        for(uint32_t i = 0; i < s; i++)
-        {
-            m_grid[i] = new bool[s];
-            for(uint32_t j = 0; j < s; j++)
-                m_grid[i][j] = false;
-        }
-    }
-    catch(const std::bad_alloc&)
-    {
-        for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
-            delete[] m_grid[i];                 
-        delete[] m_grid;                        //deallocazione righe
-        m_grid = nullptr;
-    }
-}
-
-//Copy constructor
-piece::piece(piece const& rhs)
-{
-    m_side = rhs.m_side;
-    m_color = rhs.m_color;
-
-    if(m_side > 0)
-    {   
-        try
-        {
-            m_grid = new bool*[m_side];
-            for(uint32_t i = 0; i < m_side; i++)
-            {
-                m_grid[i] = new bool[m_side];
-                for(uint32_t j = 0; j < m_side; j++)
-                    m_grid[i][j] = rhs.m_grid[i][j];
-            }
-        }
-        catch(const std::bad_alloc&)
-        {
-            for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
-                delete[] m_grid[i];                 
-            delete[] m_grid;                        //deallocazione righe
-            m_grid = nullptr;
-            
-            throw tetris_exception("ERROR! - piece(piece const& rhs) - Errore di allocazione memoria.");
-        }    
-    }
-    else m_grid = nullptr;
-}
-
-//Move constructor
-piece::piece(piece&& rhs)
-{
-    m_side = rhs.m_side;
-    m_color = rhs.m_color;
-    m_grid = rhs.m_grid;
-
-    rhs.m_side = 0;        
-    rhs.m_color = 0;
-    rhs.m_grid = nullptr;
-}
-
-piece::~piece()
-{
-    if(m_grid == nullptr) return ;
-
-    for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
-        delete[] m_grid[i];                 
-    delete[] m_grid;                        //deallocazione righe
     m_grid = nullptr;
+};
 
-    m_side = 0;
-    m_color = 0;
-}
+bool power2(uint32_t n) {
+    if(n == 1)
+        return true;
+    if(n < 1 || n % 2 != 0)
+        return false;
+    return power2(n / 2);
+};
 
-//assignment operator
-piece& piece::operator=(piece const& rhs)
-{
-    //Se rhs è nulltptr? Forse una throw exception necessaria
-    if(this == &rhs) return *this;
-
-    //se la grandezza è differente tra this.m_grid e rhs.m_grid, avremmo errori!
-    if(m_grid != nullptr)
-    {
-        for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
-            delete[] m_grid[i];                   
-        delete[] m_grid;                        //deallocazione righe
-        m_grid = nullptr;                       
-    }
+piece::piece(uint32_t s, uint8_t c) {
+	if(!power2(s))
+		throw tetris_exception("s = " + std::to_string(s) + " is not a power of 2");
+	else if(c == 0)
+		throw tetris_exception("c is 0");
+	
+	m_side = s;
+    m_color = c;
+    m_grid = new bool*[s];
     
-    m_side = rhs.m_side;
-    m_color = rhs.m_color;
-    if(m_side != 0)
-    {
-        m_grid = new bool*[m_side];
-        for(uint32_t i = 0; i < m_side; i++)
-        {
-            m_grid[i] = new bool[m_side];
-            for(uint32_t j = 0; j < m_side; j++)
-                m_grid[i][j] = rhs.m_grid[i][j];
-        }
-    }
-    else m_grid = nullptr;
+    for(uint32_t it = 0; it < m_side; it++) {
+		// The () value initializes the arrays to false
+		m_grid[it] = new bool[s]();
+	}
+};
 
-    return *this;
-}
+piece::piece(piece const& rhs) {
+	m_side = rhs.m_side;
+	m_color = rhs.m_color;
+	
+	m_grid = new bool*[m_side];
+	
+	for(uint32_t it1 = 0; it1 < rhs.m_side; it1++) {
+		m_grid[it1] = new bool[m_side];
+		for(uint32_t it2 = 0; it2 < rhs.m_side; it2++) {
+			m_grid[it1][it2] = rhs.m_grid[it1][it2];
+		}
+	}
+};
 
-//move assignment operator
-piece& piece::operator=(piece&& rhs)
-{
-    if(this == &rhs) return *this;
+piece::piece(piece&& rhs) {
+	m_side = rhs.m_side;
+	m_color = rhs.m_color;
+	m_grid = rhs.m_grid;
+	
+	rhs.m_side = 0;
+	rhs.m_color = 0;
+	rhs.m_grid = nullptr;
+};
 
-    if(m_grid != nullptr)
-    {
-        for(uint32_t i = 0; i < m_side; i++)    //deallocazione colonne
-            delete[] m_grid[i];                 
-        delete[] m_grid;
-    }
+piece::~piece() { 
+	for(uint32_t it1 = 0; it1 < m_side; it1++) {
+		// Delete on every array of the matrix
+		delete[] m_grid[it1];
+	}
+	
+	// Deletes the array of pointers
+	delete[] m_grid;
+	
+	m_side = 0;
+	m_color = 0;
+};
 
-    m_side = rhs.m_side;
-    m_color = rhs.m_color;
-    m_grid = rhs.m_grid;
+piece& piece::operator=(piece const& rhs) {
+	// Control on the address of the objects to avoid auto assignment
+	if(this == &rhs)
+		return *this;
+	
+	for(uint32_t it1 = 0; it1 < m_side; it1++) {
+		// Delete on every array of the matrix
+		delete[] m_grid[it1];
+	}
+	
+	// Deletes the array of pointers
+	delete[] m_grid;
+	
+	m_side = rhs.m_side;
+	m_color = rhs.m_color;
+	
+	m_grid = new bool*[m_side];
+	
+	for(uint32_t it1 = 0; it1 < rhs.m_side; it1++) {
+		m_grid[it1] = new bool[m_side];
+		for(uint32_t it2 = 0; it2 < rhs.m_side; it2++) {
+			m_grid[it1][it2] = rhs.m_grid[it1][it2];
+		}
+	}
+	
+	/* Dereferenziation of this
+	 * this → pointer to the object
+	 * *this → reference to the object
+	 */
+	return *this;	
+};
 
-    rhs.m_side = 0;        
-    rhs.m_color = 0;
-    rhs.m_grid = nullptr;
+piece& piece::operator=(piece&& rhs) {
+	// Control on the address of the objects to avoid auto assignment
+	if(this == &rhs)
+		return *this;
+	
+	for(uint32_t it1 = 0; it1 < m_side; it1++) {
+		// Delete on every array of the matrix
+		delete[] m_grid[it1];
+	}
+	
+	// Deletes the array of pointers
+	delete[] m_grid;
+	
+	m_side = rhs.m_side;
+	m_color = rhs.m_color;
+	m_grid = rhs.m_grid;
+	
+	rhs.m_side = 0;
+	rhs.m_color = 0;
+	rhs.m_grid = nullptr;
+	
+	/* Dereferenziation of this
+	 * this -> pointer to the object
+	 * *this -> reference to the object
+	 */
+	return *this;
+};
 
-    return *this;
-}
+bool piece::operator==(piece const& rhs) const {
+	if(m_side != rhs.m_side || m_color != rhs.m_color)
+		return false;
+		
+	for(uint32_t it1 = 0; it1 < rhs.m_side; it1++) {
+		for(uint32_t it2 = 0; it2 < rhs.m_side; it2++) {
+			if(m_grid[it1][it2] != rhs.m_grid[it1][it2])
+				return false;
+		}
+	}
+	
+	return true;
+};
 
-bool piece::operator==(piece const& rhs) const
-{
-    if(m_side != rhs.m_side || m_color != rhs.m_color) return false;
+bool piece::operator!=(piece const& rhs) const {
+	return !(*this == rhs);
+};
 
-    for(uint32_t i = 0; i < m_side; i++)
-        for(uint32_t j = 0; j < m_side; j++)
-            if(m_grid[i][j] != rhs.m_grid[i][j]) return false;
+bool& piece::operator()(uint32_t i, uint32_t j) {
+	if(i >= m_side || j >= m_side)
+		throw tetris_exception("Given coordinates are incorrect. Out of bounds: y = " + std::to_string(i) + " x = " + std::to_string(j) + ". side = " + std::to_string(side()));
+	return m_grid[i][j];
+};
+
+bool piece::operator()(uint32_t i, uint32_t j) const {
+	if(i >= m_side || j >= m_side)
+		throw tetris_exception("Given coordinates are incorrect. Out of bounds: y = " + std::to_string(i) + " x = " + std::to_string(j) + ". side = " + std::to_string(side()));
+	return m_grid[i][j];
+};
+
+bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const {
+	if(i >= m_side || j >= m_side || i + s > m_side || j + s > m_side)
+		throw tetris_exception("Given coordinates are incorrect. Out of bounds");
+		
+	for(uint32_t it1 = i; it1 < i + s; it1++) {
+		for(uint32_t it2 = j; it2 < j + s; it2++) {
+			if(this->m_grid[it1][it2])
+				return false;
+		}
+	}
+	
+	return true;
+};
+
+bool piece::full(uint32_t i, uint32_t j, uint32_t s) const {
+	if(i >= this->m_side || j >= this->m_side || i + s > this->m_side || j + s > this->m_side)
+		throw tetris_exception("Given coordinates are incorrect. Out of bounds");
+		
+	for(uint32_t it1 = i; it1 < i + s; it1++) {
+		for(uint32_t it2 = j; it2 < j + s; it2++) {
+			if(!this->m_grid[it1][it2])
+				return false;
+		}
+	}
+	
+	return true;
+};
+
+bool piece::empty() const {
+	if(this->m_side == 0)
+		return true;
+	
+	return empty(0,0,this->m_side);
+};
+
+bool piece::full() const {
+	return full(0,0,this->m_side);
+};
+
+void piece::rotate() {
+	bool** tmp = new bool*[this->m_side];
     
-    return true;
-}
-bool piece::operator!=(piece const& rhs) const { return !(operator==(rhs)); }
+    for(uint32_t it = 0; it < this->m_side; it++) {
+		tmp[it] = new bool[this->m_side];
+	}
+	
+	for(uint32_t it1 = 0; it1 < this->m_side; it1++) {
+		for(uint32_t it2 = 0; it2 < this->m_side; it2++) {
+			tmp[it1][it2] = this->m_grid[it2][this->m_side - it1 - 1];
+		}
+	}
+		
+	for(uint32_t it1 = 0; it1 < this->m_side; it1++) {
+		for(uint32_t it2 = 0; it2 < this->m_side; it2++) {
+			this->m_grid[it1][it2] = tmp[it1][it2];
+		}
+	}
+	
+	// Deletion of tmp. Otherwise there would be a memory leak
+    for(uint32_t it1 = 0; it1 < this->m_side; it1++) {
+        delete[] tmp[it1];
+    }
+    delete[] tmp;
+};
 
-bool& piece::operator()(uint32_t i, uint32_t j)
-{
-    //tetris_exception if (i,j) is out of bounds.
-    if(m_grid == nullptr || i >= m_side || j >= m_side) throw tetris_exception("ERROR! - operator()(uint32_t i, uint32_t j) - Indici (" + std::to_string(i) + ", " + std::to_string(j) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");     
-    return m_grid[i][j];
-}  
+void piece::cut_row(uint32_t i) {
+	if(i >= this->m_side) 
+		throw tetris_exception("Given row is incorrect. Out of bounds");
 
-bool piece::operator()(uint32_t i, uint32_t j) const
-{
-    //tetris_exception if (i,j) is out of bounds.
-    if(m_grid == nullptr || i >= m_side || j >= m_side) throw tetris_exception("ERROR! - operator()(uint32_t i, uint32_t j) const - Indici (" + std::to_string(i) + ", " + std::to_string(j) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");     
-    return m_grid[i][j];
-}
+	for(int row = i; row > 0; row--) {
+		for(uint32_t col = 0; col < this->m_side; col++) {
+			this->m_grid[row][col] = this->m_grid[row - 1][col];
+		}
+	}
 
-bool piece::empty(uint32_t i, uint32_t j, uint32_t s) const
-{
-    if(s == 0) return true;
-    if(m_grid == nullptr) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Accesso a griglia non inizializzata (nullptr).");    //tetris_exception if out of bounds
-    if(i + s > m_side || j + s > m_side) throw tetris_exception("ERROR! - empty(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
+	for(uint32_t col = 0; col < this->m_side; col++) {
+		this->m_grid[0][col] = false;
+	}
+};
+
+//FUNZIONI DI DEBUG
+void piece::print_ascii_art(std::ostream& os) const {
+	for(uint32_t it1 = 0; it1 < this->m_side; it1++) {
+		for(uint32_t it2 = 0; it2 < this->m_side; it2++) {
+			if(this->m_grid[it1][it2]) {
+				 os << "\033[48;5;" << int(this->m_color) << "m" << ' ' << "\033[m";
+			 } else {
+				 os << ' ';
+			 }
+		}
+		os << '\n';
+	}
+};
+
+uint32_t piece::side() const {
+	return this->m_side;
+};
+
+int piece::color() const {
+	return this->m_color;
+};
+
+tetris::tetris() {
+	this->m_score = 0;
+    this->m_width = 0;
+    this->m_height = 0;
+    this->m_field = nullptr;
+};
+
+tetris::tetris(uint32_t w, uint32_t h, uint32_t s) {
+	if(w == 0 || h == 0) {
+		throw tetris_exception("exception in tetris constructor. width or height passed by argument equals to 0");
+	}
+	
+	this->m_score = s;
+    this->m_width = w;
+    this->m_height = h;
+    this->m_field = nullptr;
+};
+
+tetris::tetris(tetris const& rhs) {
+	this->m_score = rhs.m_score;
+    this->m_width = rhs.m_width;
+    this->m_height = rhs.m_height;
+    this->m_field = nullptr;
     
-
-    for(uint32_t i2 = i; i2 < i+s; i2++)
-        for(uint32_t j2 = j; j2 < j+s; j2++)
-            if(m_grid[i2][j2] == true) return false;
-
-    return true;
-}
-
-bool piece::full(uint32_t i, uint32_t j, uint32_t s) const
-{
-    if(s == 0) return true;
-    if(m_grid == nullptr ) throw tetris_exception("ERROR! - full(uint32_t i, uint32_t j, uint32_t s) - Accesso a griglia non inizializzata (nullptr).");    //tetris_exception if out of bounds
-    if(i + s > m_side || j + s > m_side) throw tetris_exception("ERROR! - full(uint32_t i, uint32_t j, uint32_t s) - Sotto-quadrante (" + std::to_string(i) + ", " + std::to_string(j) + ", size=" + std::to_string(s) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
+    node* tmp = rhs.m_field;
     
+    while(tmp != nullptr) {
+		if(this->m_field == nullptr) {
+			this->m_field = new node();
+			this->m_field->tp = tmp->tp;
+			this->m_field->next = nullptr;
+		} else {
+			node* it = this->m_field;
+			
+			while(it->next != nullptr) {
+				it = it->next;
+			}
+			
+			node* newN = new node();
+			newN->tp = tmp->tp;
+			newN->next = nullptr;
+			
+			it->next = newN;
+		}
+		tmp = tmp->next;
+	}  
+};
 
-    for(uint32_t i2 = i; i2 < i+s; i2++)
-        for(uint32_t j2 = j; j2 < j+s; j2++)
-            if(m_grid[i2][j2] == false) return false;
-
-    return true;
-}
-
-bool piece::empty() const
-{
-    if (m_side == 0) return true;
-    if (m_grid == nullptr) throw tetris_exception("ERROR! - empty() - Griglia non inizializzata.");
+tetris::tetris(tetris&& rhs) {
+	this->m_score = rhs.m_score;
+    this->m_width = rhs.m_width;
+    this->m_height = rhs.m_height;
+    this->m_field = rhs.m_field;
     
-    return empty(0, 0, m_side);
-}
-
-bool piece::full() const
-{
-    if (m_side == 0) return false;
-    if (m_grid == nullptr) throw tetris_exception("ERROR! - full() - Griglia non inizializzata.");
-    
-    return full(0, 0, m_side);
-}
-
-void piece::rotate()
-{
-    if(m_grid == nullptr || m_side <= 1) return ;
-
-    bool** tmp_grid = nullptr; 
-    try
-    {
-        tmp_grid = new bool*[m_side];
-        for(uint32_t i = 0; i < m_side; i++)
-            tmp_grid[i] = new bool[m_side]();    //tmp_grid[i][j] = false;
-    }
-    catch(const std::bad_alloc&) 
-    {
-        if(tmp_grid)
-        {
-            for(uint32_t i = 0; i < m_side; i++)    
-                delete[] tmp_grid[i];                   
-            delete[] tmp_grid;
-        }
-        throw tetris_exception("ERROR! - rotate() - Errore di allocazione memoria durante la rotazione.");
-    }
-
-    for(uint32_t i = 0; i < m_side; i++)
-    {
-        for(uint32_t j = 0; j < m_side; j++)
-            tmp_grid[j][m_side - i - 1] = m_grid[i][j];  //Sarebbe preferibile prima allocare memoria e dopo copiare i valori
-    }
-
-    for(uint32_t i = 0; i < m_side; i++)    
-        delete[] tmp_grid[i];                   
-    delete[] tmp_grid;                                             
-}
-
-
-void piece::cut_row(uint32_t i)
-{
-    if(m_grid == nullptr) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Griglia non inizializzata (nullptr).");
-    if(m_side == 0) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Impossibile tagliare riga su un pezzo di dimensione 0.");
-    if(i >= m_side) throw tetris_exception("ERROR! - cut_row(uint32_t i) - Indice di riga (" + std::to_string(i) + ") fuori dai limiti del pezzo (side=" + std::to_string(m_side) + ").");
-
-    //Logica per lo scorrimento delle righe verso il basso (gravità interna al pezzo).
-    // Y=0 è la riga superiore del pezzo, Y cresce verso il basso.
-    for(uint32_t r = i; r > 0; r--)    //se i = 0, r-1 porta ad un errore di underflow
-        for(uint32_t c = 0; c < m_side; c++)    
-            m_grid[r][c] = m_grid[r-1][c];      //m_grid[r][c] = m_grid[r-1][c];
-
-    //la riga 0 (la più in alto) conterrà una copia della sua versione originale. Deve essere svuotata
-    for(uint32_t c = 0; c < m_side; c++)
-        m_grid[0][c] = false;               //m_grid[m_side-1][c] = false; -> Cosi svuotiamo la riga più bassa
-}
- 
-uint32_t piece::side() const { return m_side; }
-int piece::color() const { return m_color; }
-
-tetris::tetris()
-{
-    m_score = 0;
-    m_width = 0;
-    m_height = 0;
-    m_field = nullptr;
-}
-
-//try-catch per l'assegnazione del field?
-tetris::tetris(uint32_t w, uint32_t h, uint32_t s)  //: m_width(0), m_height(0), m_score(0), m_field(nullptr)
-{
-    if(w <= 0) throw tetris_exception("ERROR! - tetris(uint32_t w, uint32_t h, uint32_t s) - La larghezza del tabellone (w) non puo' essere 0.");
-    if(h <= 0) throw tetris_exception("ERROR! - tetris(uint32_t w, uint32_t h, uint32_t s) - L'altezza del tabellone (h) non puo' essere 0.");
-    m_score = s;
-    m_width = w;
-    m_height = h;   
-    m_field = nullptr; //m_field rappresenta i diversi pezzi, non il tabellone stesso
-}
-
-//try_catch per ciclo (nel caso si fallisse l'allocazione)
-tetris::tetris(tetris const& rhs)
-{
-    m_score = rhs.m_score;
-    m_width = rhs.m_width;
-    m_height = rhs.m_height;
-    m_field = nullptr;          //Devo utilzizare tail_field per navigare la struttura, m_field rimane alla testa della lista
-
-    node* tail_field = m_field;
-
-    try
-    {
-        for(node* it = rhs.m_field; it != nullptr; it = it->next) //copia solo il primo nodo
-        {
-            node* new_field = new node{it->tp, nullptr};
-            if(!tail_field) m_field = tail_field = new_field;
-            else 
-            {
-                tail_field->next = new_field;
-                tail_field = tail_field->next;
-            }
-        }
-    }
-    catch(const std::bad_alloc& e) 
-    {
-        node* curr_node = m_field;
-        while(curr_node)
-        {
-            node* tmp_field = curr_node;
-            curr_node = curr_node->next;
-            delete tmp_field; 
-        }
-        m_field = nullptr;
-
-        throw tetris_exception("ERROR! - tetris(tetris const& rhs) - Errore di allocazione memoria.");
-    }
-}
-
-tetris::tetris(tetris&& rhs)
-{
-    m_score = rhs.m_score;
-    m_width = rhs.m_width;
-    m_height = rhs.m_height;
-    m_field = rhs.m_field;
-
     rhs.m_score = 0;
     rhs.m_width = 0;
     rhs.m_height = 0;
     rhs.m_field = nullptr;
-}
+};
 
-tetris::~tetris()
-{
-    node* tail_field = m_field;
-    while(tail_field)
-    {
-        node* tmp_field = tail_field;
-        tail_field = tail_field->next;
-        delete tmp_field; 
-    }
-    m_field = nullptr;
-}
-
-//non safe, cosa succede se la copia fallisce? Usa try catch
-tetris& tetris::operator=(tetris const& rhs)
-{
-    if(this == &rhs) return *this;
+tetris::~tetris() {
+	this->m_score = 0;
+    this->m_width = 0;
+    this->m_height = 0;
     
-    node* tail_field = m_field;
-    while(tail_field)
-    {
-        node* tmp_field = tail_field;
-        tail_field = tail_field->next;
-        delete tmp_field; 
-    }
-    m_field = nullptr;
+    node* tmp = nullptr;
+    
+    while(this->m_field != nullptr) {
+		tmp = this->m_field;
+		this->m_field = this->m_field->next;
+		delete tmp;
+	}
+};
 
-    m_score = rhs.m_score;
-    m_width = rhs.m_width;
-    m_height = rhs.m_height;
-    try 
-    {
-        for(node* it = rhs.m_field; it != nullptr; it = it->next)      //Probabile errore ricostruzione lista
-        {
-            node* new_field = new node{it->tp, nullptr};
-            if(!m_field) m_field = tail_field = new_field;
-            else 
-            {
-                tail_field->next = new_field;
-                tail_field = tail_field->next;
-            }
+tetris& tetris::operator=(tetris const& rhs) {
+	if(*this == rhs)
+		return *this;
+	
+	this->m_score = rhs.m_score;
+    this->m_width = rhs.m_width;
+    this->m_height = rhs.m_height;
+    
+    node* tmp = nullptr;
+    
+    while(this->m_field != nullptr) {
+		tmp = this->m_field;
+		this->m_field = this->m_field->next;
+		delete tmp;
+	}
+    
+    tmp = rhs.m_field;
+    
+    while(tmp != nullptr) {
+		if(this->m_field == nullptr) {
+			node* newN = new node();
+			newN->tp = tmp->tp;
+			newN->next = nullptr;
+			this->m_field = newN;
+		} else {
+			node* it = this->m_field;
+			
+			while(it->next != nullptr) {
+				it = it->next;
+			}
+			
+			node* newN = new node();
+			newN->tp = tmp->tp;
+			newN->next = nullptr;
+			
+			it->next = newN;
+		}
+		tmp = tmp->next;
+	}
+	
+	return *this;	
+};
+
+tetris& tetris::operator=(tetris&& rhs) {
+    if (this != &rhs) {
+        node* tmp;
+        while (this->m_field != nullptr) {
+            tmp = this->m_field;
+            this->m_field = this->m_field->next;
+            delete tmp;
         }
+
+        this->m_score = rhs.m_score;
+        this->m_width = rhs.m_width;
+        this->m_height = rhs.m_height;
+        this->m_field = rhs.m_field;
+
+        rhs.m_score = 0;
+        rhs.m_width = 0;
+        rhs.m_height = 0;
+        rhs.m_field = nullptr;
     }
-    catch(const std::bad_alloc& e) 
-    {
-        node* curr_node = m_field;
-        while(curr_node)
-        {
-            node* tmp_field = curr_node;
-            curr_node = curr_node->next;
-            delete tmp_field; 
-        }
-        m_field = nullptr;
-
-        throw tetris_exception("ERROR! - operator=(tetris const& rhs) - Errore di allocazione memoria.");
-    }
-    
-    return *this;
-}
-
-tetris& tetris::operator=(tetris&& rhs)
-{
-    if(this == &rhs) return *this;
-    
-    node* tail_field = m_field;
-    while(tail_field)
-    {
-        node* tmp_field = tail_field;
-        tail_field = tail_field->next;
-        delete tmp_field; 
-    }
-    m_field = nullptr;
-
-    m_score = rhs.m_score;
-    m_width = rhs.m_width;
-    m_height = rhs.m_height;
-    m_field = rhs.m_field;
-
-    rhs.m_score = 0;
-    rhs.m_width = 0;
-    rhs.m_height = 0;
-    rhs.m_field = nullptr;
 
     return *this;
-}
+};
 
-bool tetris::operator==(tetris const& rhs) const
-{
-    if(m_score != rhs.m_score || m_width != rhs.m_width || m_height != rhs.m_height) return false;
+bool tetris::operator==(tetris const& rhs) const {
+	if(this->m_score != rhs.m_score || this->m_width != rhs.m_width || this->m_height != rhs.m_height)
+		return false;
+	
+	node* tmp1 = this->m_field;
+	node* tmp2 = rhs.m_field;
+	
+	while(tmp1 != nullptr && tmp2 != nullptr) {
+		if(tmp1->tp.p != tmp2->tp.p || tmp1->tp.x != tmp2->tp.x || tmp1->tp.y != tmp2->tp.y)
+			return false;
+		tmp1 = tmp1->next;
+		tmp2 = tmp2->next;		
+	}
+	
+	if((tmp1 != nullptr && tmp2 == nullptr) || (tmp1 == nullptr && tmp2 != nullptr))
+		return false;
+	
+	return true;
+};
 
-    node* tail = m_field;
-    node* it = rhs.m_field;
-    while(tail && it)
-    {
-        if(tail->tp.p != it->tp.p || tail->tp.x != it->tp.x || tail->tp.y != it->tp.y ) return false;
-        tail = tail->next;
-        it = it->next;
-    }
+bool tetris::operator!=(tetris const& rhs) const {
+	return !(*this == rhs);
+};
 
-    return (!it && !tail);
-}
-bool tetris::operator!=(tetris const& rhs) const { return !operator==(rhs);}
+struct field {
+    bool** f;
+    const tetris& t;
 
-//Nota che il controllo se il row sia completamente usato tocca a questa funzione, cut_row() cancella solo la riga incriminata
-void tetris::insert(piece const& p, int x) //Gestisce il campo di gioco
-{
-    if(m_width == 0 || m_height == 0) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Il tabellone non è stato inizializzato con dimensioni valide.");
-    //if (x + (int) p.side() > (int)m_width) throw tetris_exception("ERROR! - insert(piece const& p, int x) - Pezzo fuori dai limiti orizzontali del campo.");
-
-    //1. Trovare posizione di caduta
-    int pos_y = -1;
-    for(int y = 0 ; y < (int) m_height; y++) //for(int y = 0; y < int(m_height); y++) // o con <=
-    {
-        //if(containment(p,x,i)) pos_y = i;
-        bool contained; 
-        try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-        std::cout << "DEBUG: Testing containment at y = " << y << " => " << (contained ? "OK" : "COLLISION") << std::endl;
-
-        if(contained) pos_y = y;
-        else break;
-    }
-
-    //Si attiva troppo facilmente, o la logica si attiva troppo facilmente o non si trova il posizione facilmente
-    if(pos_y < 0)  throw tetris_exception("GAME OVER! - insert(piece const& p, int x) - Non possiamo inserire altri pezzi!");
-    
-    std::cerr << "DEBUG: add() called with pos_y = " << pos_y << " piece.side=" << p.side() << "\n";
-    try { add(p,x, pos_y); }
-    catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
-    if (m_field) std::cerr << "DEBUG: new node y = " << m_field->tp.y << std::endl;
-
-    
-    //Parte 2,3 e 4: Gestione righe
-    bool* row_full = new bool[m_height];  //new bool[m_height];
-    bool** table_state = new bool*[m_height]{}; //{} dovrebbe permettere una deallocazione più sciura
-    try
-    {
-        for(uint32_t i = 0; i < m_height; ++i) 
-            row_full[i] = true;
-
-        for(uint32_t i = 0; i < m_height; i++)
-            table_state[i] = new bool[m_width]{};   //Dovrebbe rendere tutti i valori nell'array "false"
-    }
-    catch(const std::bad_alloc& e)
-    {
-        delete[] row_full;
-        if(table_state != nullptr)
-        {
-            for(uint32_t i = 0; i < m_height; i++)
-                delete[] table_state[i];
-            delete[] table_state;
+    field(const tetris& rhs) : f(nullptr), t(rhs) {
+        this->f = new bool*[this->t.height()];
+        for(uint32_t i = 0; i < this->t.height(); ++i) {
+            this->f[i] = new bool[this->t.width()]();
         }
 
-        throw tetris_exception("ERROR! - insert(piece const& p, int x) - Errore di allocazione memoria per row_full");
-    }
-
-    bool changed;
-    do
-    {
-        changed = false;
-        for (uint32_t i = 0; i < m_height; ++i)
-            row_full[i] = true;
-
-        for (uint32_t i = 0; i < m_height; ++i)
-            for (uint32_t j = 0; j < m_width; ++j)
-                table_state[i][j] = false;
-
-        //2. Identifica le righe piene che dovremo rimuovere, costruisci tabella temporanea
-        for (node* curr = m_field; curr; curr = curr->next)
-        {
-            piece const& curr_piece = curr->tp.p;
-            for(uint32_t grid_x = 0; grid_x < curr_piece.side(); grid_x++)
-            {
-                for(uint32_t grid_y = 0; grid_y < curr_piece.side(); grid_y++)
-                {
-                    if(curr_piece(grid_y, grid_x)) 
-                    {
-                        int global_x = curr->tp.x + grid_x;
-                        int global_y = curr->tp.y + grid_y;
-
-                        //&& global_x >= 0 && global_y >= 0
-                        if(global_x >= 0 && global_x < (int) m_width && global_y >= 0 && global_y < (int) m_height) 
-                            table_state[global_y][global_x] = true;
-                    }
-                }
-            }            
+        for(auto it = rhs.begin(); it != rhs.end(); ++it) {
+            this->add(*it);
         }
-    
-        //3.Identifica righe piene, Gestione taglio pezzi
-        uint32_t clear_rows = 0;
-        for(uint32_t i = 0; i < m_height; i++)
-        {
-            for(uint32_t j = 0; j < m_width; j++)
-            {
-                if(!table_state[i][j])
-                {
-                    row_full[i] = false;
-                    break;
+    };
+
+    ~field() {
+        for(uint32_t i = 0; i < this->t.height(); i++) {
+            delete[] this->f[i];
+        }
+        delete[] this->f;
+    };
+
+    void add(const tetris_piece& tp) {
+        int piece_y = int(tp.p.side()) - 1;
+        for(int i = tp.y; i > tp.y - int(tp.p.side()); --i) {
+            int piece_x = 0;
+            for(int j = tp.x; j < tp.x + int(tp.p.side()); ++j) {
+                if(tp.p(piece_y, piece_x)) {
+                    if (i >= 0 && i < int(this->t.height()) && j >= 0 && j < int(this->t.width()))
+                        this->f[i][j] = true;
                 }
+                ++piece_x;
             }
-            if(row_full[i]) clear_rows++;   //Calcoliamo righe da cancellare
+            --piece_y;
         }
-    
-        if(clear_rows == 0) changed = false;   
-        else 
-        {
-            m_score += clear_rows * m_width;
-            changed = true;
+    };
 
-            for (node* curr = m_field; curr; curr = curr->next)
-            {
-                int fall = 0;
-                piece& to_cut = curr->tp.p;
-                int pos_y = curr->tp.y;
-
-                int original_side = static_cast<int>(to_cut.side());
-                int cuts_done = 0;
-
-                for(int i = static_cast<int>(m_height) - 1; i >= 0; i--) //tagliamo prima righe più basse
-                {
-                    //if(row_full[i] && pos_y < i) fall++;   //Calcola il cambio di movimento da fare
-                    if (row_full[i] && i > pos_y + original_side - 1) fall++;
-
-                    if(row_full[i] && i >= pos_y && i < pos_y + original_side) //Controlla se la riga è da eliminare
-                    {
-                        //int rel_row = i - pos_y;
-                        int rel_row = (i - pos_y) - cuts_done;  
-                        if(rel_row < 0 || rel_row >= (int)to_cut.side()) continue; //throw tetris_exception("ERROR! - insert(piece const& p, int x) - computed rel_row out of range after previous cuts.");
-                        
-                        try{ to_cut.cut_row((uint32_t) rel_row); } //Aggiungere un possibile try catch per errori
-                        catch (const tetris_exception& e) { throw tetris_exception(e.what()); }
-                    
-                        cuts_done++;
-                    }
-                }
-                curr->tp.y += fall;
+    bool full_row() const {
+        for(int it1 = int(this->t.height()) - 1; it1 >= 0; --it1) {
+            uint32_t c = 0;
+            for(uint32_t it2 = 0; it2 < this->t.width(); ++it2) {
+                if(this->f[it1][it2])
+                    ++c;
             }
-
-            //4. Rimozione dalla lista dei pezzi vuoti
-            //If, after cutting one or more rows, some piece becomes empty (i.e., piece::empty() returns true), then it must be removed from the list.
-            node* prev_node = nullptr;
-            node* curr_node = m_field;
-            while (curr_node)
-            {
-                if((curr_node->tp.p).empty())
-                {
-                    if(!prev_node)
-                    {
-                        m_field = curr_node->next;
-                        node* tmp = curr_node;
-                        delete tmp;
-                        curr_node = m_field;
-                    }
-                    else
-                    {
-                        prev_node->next = curr_node->next;
-                        node* tmp = curr_node;
-                        delete tmp;
-                        curr_node = prev_node->next;
-                    }
-                }
-                else
-                {
-                    prev_node = curr_node;
-                    curr_node = curr_node->next;
-                }
-            }
+            if(c == this->t.width()) return true;
         }
-    }
-    while(changed);
+        return false;
+    };
 
-    //Poniamo il codice per deallocare manualmente la memoria dinamica
-    delete[] row_full;
-    if(table_state != nullptr)
-    {
-        for(uint32_t i = 0; i < m_height; i++)
-            delete[] table_state[i];
-        delete[] table_state;
-    }
-}
-
-void tetris::add(piece const& p, int x, int y) //Aggiunge nuovi elementi nelle liste di tetris
-{
-    //|| x + (int)p.side() > (int)m_width || y + (int)p.side() > (int)m_height
-    if (y < 0) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Pezzo fuori dai limiti del campo. Offset X: " + std::to_string(x)  + " Y: " + std::to_string(y));
-
-    bool contained; 
-    try{ contained = containment(p,x,y); } catch(const tetris_exception& e){throw tetris_exception(e.what());};
-    if(!contained) throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Le coordinate non sono valide per il pezzo dato. X: " + std::to_string(x)  + " Y: " + std::to_string(y));
-
-    tetris_piece new_tp{p,x,y};
-    node* new_node;
-    try{ new_node = new node{new_tp, nullptr};}
-    catch(const std::bad_alloc&){ throw tetris_exception("ERROR! - add(piece const& p, int x, int y) - Memory allocation failed in add(). X: " + std::to_string(x)  + " Y: " + std::to_string(y)); }
-    
-    new_node->next = m_field;
-    m_field = new_node;
-}
-
-//controlla se il pezzo p, posizionato all'offset (x,y), può essere contenuto completamente all'interno del campo Tetris
-//L'offeset nella tabella è (abs_x, abs_y), e containment lavora cella per cella piuttosto che pezzo per pezzo
-bool tetris::containment(piece const& p, int x, int y) const 
-{
-    int side = int(p.side());
-
-    //if (y < 0 || x + side > int(m_width) || y + side > int(m_height)) return false;
-    //if (y < 0) return false;
-
-    for (int i = 0; i < side; ++i) 
-    {
-        for (int j = 0; j < side; ++j) 
-        {
-            if (!p(i, j)) continue;
-
-            int fx = x + j;
-            int fy = y + i;
-
-            // checks the borders
-            if (fx < 0 || fx >= int(m_width)) continue;  // fuori dai lati: ignora la cella
-            if (fy >= int(m_height)) return false;
-    
-
-            //if (fx < 0) continue;
-            //if (/*fx < 0 ||*/ fy < 0 || fx >= int(m_width) || fy >= int(m_height)) return false;
-            
-            //if(fy >= int(m_height)) return false;
-            //if(fy < 0) return false;
-
-            // checks collisions with other inserted pieces
-            node* tmp = m_field;
-            while (tmp != nullptr) 
-            {
-                tetris_piece const& tp = tmp->tp;
-                for (uint32_t pi = 0; pi < tp.p.side(); ++pi) 
-                {
-                    for (uint32_t pj = 0; pj < tp.p.side(); ++pj) 
-                    {
-                        if (!tp.p(pi, pj)) continue;
-                        int px = tp.x + int(pj);
-                        int py = tp.y + int(pi);
-                        if (fx == px && fy == py) return false;
-                    }
-                }
-                tmp = tmp->next;
+    int first_full_row() const {
+        for(int it1 = int(this->t.height()) - 1; it1 >= 0; --it1) {
+            int c = 0;
+            for(uint32_t it2 = 0; it2 < this->t.width(); ++it2) {
+                if(this->f[it1][it2]) ++c;
             }
+            if(uint32_t(c) == this->t.width()) return it1;
         }
+        return int(this->t.height());
+    };
+
+    void clear_field() {
+        for(int i = 0; i < int(this->t.height()); ++i)
+            for(int j = 0; j < int(this->t.width()); ++j)
+                f[i][j] = false;
+    };
+};
+
+void tetris::insert(piece const& p, int x) {
+	if(p.empty())
+		return;
+		
+	int max_y = -1;
+	bool obstacle = false;
+	 
+    for(int y = 0; y < int(this->m_height) + int(p.side()); y++) {
+        if(this->containment(p, x, y) && !obstacle) {
+            max_y = y;
+        } else {
+			field f(*this);
+			
+			uint32_t piece_x = 0;
+			int piece_y = int(p.side()) - 1;
+			for(int i = y; i > y - int(p.side()); --i) {
+				piece_x = 0;
+				for(int j = x; j < x + int(p.side()); ++j) {
+					if(((i >= 0 && i < int(this->m_height)) && (j >= 0 && j < int(this->m_width))) && (p(piece_y, piece_x) && f.f[i][j])) {
+						obstacle = true;
+					}
+			
+					++piece_x;
+				}
+				--piece_y;
+			}		
+		}
     }
 
+    if(max_y == -1) 
+        throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+
+    this->add(p, x, max_y);
+    
+    field f(*this);
+	
+	// finds all the full row inside the field
+	while(f.full_row()) {
+		int cutted_row = -1;
+		// iterates all the pieces and cut the row
+		for(auto it = this->begin(); it != this->end(); it++) {
+			int field_y = it->y;
+			for(int y = int(it->p.side()) - 1; y >= 0; --y) {
+				if(f.first_full_row() == field_y) {
+					cutted_row = field_y;
+					it->p.cut_row(y);
+				}
+					
+				field_y--;
+			} 
+		}
+		
+		this->m_score = this->m_score + this->m_width;		
+		
+		// checks if the pieces can be shifted down
+		for(auto it = this->begin(); it != this->end(); it++) {
+			int field_y = it->y;
+			
+			bool shift = true;
+			for(int i = int(it->p.side()) - 1; i >= 0; --i) {
+				for(int j = 0; j < int(it->p.side()); ++j) {
+					if(it->p(i, j) && field_y >= cutted_row) {
+						shift = false;
+					}
+				}	
+				field_y--;
+			} 
+			
+			if(shift) {
+				it->y = it->y + 1;
+			}
+		}
+		
+		// updates the field f
+		f.clear_field();
+		for(auto it = this->begin(); it != this->end(); it++) {
+			f.add(*it);
+		}
+	}
+	
+	// all empty pieces are removed
+	while(this->m_field != nullptr && this->m_field->tp.p.empty()) {
+		node* to_delete = this->m_field;
+		this->m_field = this->m_field->next;
+		delete to_delete;
+	}
+	node* tmp = this->m_field;
+	while(tmp != nullptr) {
+		if(tmp->next != nullptr) {
+			if(tmp->next->tp.p.empty()) {
+				node* to_delete = tmp->next;
+				tmp->next = tmp->next->next;
+				delete to_delete;
+			} else {
+				tmp = tmp->next;
+			}
+		} else {
+			tmp = tmp->next;
+		}
+	}
+};
+
+void tetris::add(piece const& p, int x, int y) {
+	if(!this->containment(p, x, y)) {
+		throw tetris_exception("exception in tetris add function. tetris piece p cannot be contained at offset (x: " + std::to_string(x) + ", y: " + std::to_string(y) + ")");
+	}
+			
+	node* newN = new node();
+	
+	newN->tp.p = p;
+	newN->tp.x = x;
+	newN->tp.y = y;
+	
+	newN->next = this->m_field;
+	this->m_field = newN;
+};
+
+bool tetris::containment(piece const& p, int x, int y) const {
+    field f(*this);
+    
+    uint32_t piece_x = 0;
+    int piece_y = int(p.side()) - 1;
+    for(int i = y; i > y - int(p.side()); --i) {
+        piece_x = 0;
+        for(int j = x; j < x + int(p.side()); ++j) {
+            if(p(piece_y, piece_x)) {
+                if((i < 0 || i >= int(this->m_height)) || (j < 0 || j >= int(this->m_width)))
+                    return false;
+                if(f.f[i][j]) 
+					return false;
+            }
+            ++piece_x;
+        }
+        --piece_y;
+    }
     return true;
 };
-/*bool tetris::containment(piece const& p, int x, int y) const 
-{
-    int side = static_cast<int>(p.side());
 
-    //if (y < 0 || x + side > int(m_width) || y + side > int(m_height)) return false;
-    //if (y < 0) return false;
-
-    for (int i = 0; i < side; ++i) 
-    {
-        for (int j = 0; j < side; ++j) 
-        {
-            if (!p(i, j)) continue;
-
-            int fx = x + j;
-            int fy = y + (side - 1 - i); //Bottom-left anchoring
-
-            // checks the borders
-            if (fx < 0 || fx >= static_cast<int>(m_width)) continue;
-            if(fy < 0 || fy >= static_cast<int>(m_height)) return false;
-            //if (fx < 0 || fy < 0 || fx >= static_cast<int>(m_width) || fy >= static_cast<int>(m_height)) return false;
-            //if(fy >= int(m_height)) return false;
-            //if(fy < 0) return false;
-
-            // checks collisions with other inserted pieces
-            node* tmp = m_field;
-            while (tmp != nullptr) 
-            {
-                tetris_piece const& tp = tmp->tp;
-                int tside = static_cast<int>(tp.p.side());
-                for (uint32_t pi = 0; pi < tp.p.side(); ++pi) 
-                {
-                    for (uint32_t pj = 0; pj < tp.p.side(); ++pj) 
-                    {
-                        if (!tp.p(pi, pj)) continue;
-                        int px = tp.x + int(pj);
-                        int py = tp.y + (tside - 1 - pi);
-                        if (fx == px && fy == py) return false;
-                    }
-                }
-                tmp = tmp->next;
-            }
-        }
-    }
-
-    return true;
-};
-*/
-
-//NOT NECESSARY BUT USEFUL FOR DEBUGGING
-void tetris::print_ascii_art(std::ostream& os) const
-{
+// FUNZIONE DI DEBUG
+void tetris::print_ascii_art(std::ostream& os) const {
     int** tmp_mat = nullptr;
-    try
-    {
+    
+    try {
         tmp_mat = new int*[m_height];
-        for(uint32_t i = 0; i < m_height; i++)
-        {
+        for(uint32_t i = 0; i < m_height; i++) {
             tmp_mat[i] = new int[m_width];
             for(uint32_t j = 0; j < m_width; j++)
                 tmp_mat[i][j] = -1;
         }
     }
-    catch(const std::bad_alloc& e)
-    {
-        if(tmp_mat)
-        {
+    catch(const std::bad_alloc& e) {
+        if(tmp_mat) {
             for(uint32_t i = 0; i < m_height; i++)
                 delete tmp_mat[i];
             delete[] tmp_mat;
@@ -771,18 +660,15 @@ void tetris::print_ascii_art(std::ostream& os) const
     int y = 0;
     int abs_x = 0;
     int abs_y = 0;
-    for(node* it = m_field; it; it = it->next)
-    {
+    
+    for(node* it = m_field; it; it = it->next) {
         p = it->tp.p;
         x = it->tp.x;
         y = it->tp.y;
 
-        for(uint32_t i = 0; i < p.side(); i++)
-        {
-            for(uint32_t j = 0; j < p.side(); j++)
-            {
-                if(p(i,j) == true)
-                {
+        for(uint32_t i = 0; i < p.side(); i++) {
+            for(uint32_t j = 0; j < p.side(); j++) {
+                if(p(i,j) == true) {
                     abs_x = x + j;
                     abs_y = y + i;
                     //tmp_mat[abs_y][abs_x] = '#';  
@@ -800,11 +686,9 @@ void tetris::print_ascii_art(std::ostream& os) const
     os << '-' << std::endl;
 
     
-    for(uint32_t i = 0; i < m_height; i++)
-    {
+    for(uint32_t i = 0; i < m_height; i++) {
         os << '|';
-        for(uint32_t j = 0; j < m_width; j++)
-        {
+        for(uint32_t j = 0; j < m_width; j++) {
             //os << tmp_mat[i][j];
             if(tmp_mat[i][j] != -1) os << "\033[38;5;" << tmp_mat[i][j] << "m#\033[0m"; 
             else os << " ";
@@ -821,52 +705,101 @@ void tetris::print_ascii_art(std::ostream& os) const
         delete[] tmp_mat[i];
     delete[] tmp_mat;
     tmp_mat = nullptr;
-}
+};
 
-tetris::iterator::iterator(node* ptr) { m_ptr = ptr; }
-tetris::iterator::reference tetris::iterator::operator*() { return m_ptr->tp;}                      //ritorno puntatore
-tetris::iterator::pointer tetris::iterator::operator->() { return &(m_ptr->tp);}                    //ritorno reference
-tetris::iterator& tetris::iterator::operator++()
-{
-    m_ptr = m_ptr->next;
-    return *this;
-}
-tetris::iterator tetris::iterator::operator++(int /*dummy*/) 
-{
-    iterator tmp(m_ptr);
-    m_ptr = m_ptr->next;
-    return tmp;
-}
-bool tetris::iterator::operator==(iterator const& rhs) const { return m_ptr == rhs.m_ptr; }
-bool tetris::iterator::operator!=(iterator const& rhs) const { return !operator==(rhs);}
+// ITERATOR METHODS
+
+tetris::iterator::iterator(node* ptr) : m_ptr(ptr) {};
+
+tetris::iterator::reference tetris::iterator::operator*() {
+	// returns the reference to the tetris_piece object 
+	return this->m_ptr->tp;
+};
+
+tetris::iterator::pointer tetris::iterator::operator->() {
+	// returns the pointer to the tetris_piece object 
+	return &(this->m_ptr->tp);
+};
+
+// prefix increment: ++it
+tetris::iterator& tetris::iterator::operator++() {
+	this->m_ptr = this->m_ptr->next;
+	return *this;
+};
+
+// postfix increment: it++
+tetris::iterator tetris::iterator::operator++(int /*dummy*/) {
+	iterator it = this->m_ptr;
+	// call to the prefix operator on this
+	++(*this);
+	return it;
+};
+
+// checks if two iterators are pointing to the same node in the memory
+bool tetris::iterator::operator==(iterator const& rhs) const {
+	return this->m_ptr == rhs.m_ptr;
+};
+
+bool tetris::iterator::operator!=(iterator const& rhs) const {
+	return this->m_ptr != rhs.m_ptr;
+};
+
+// CONST ITERATOR METHODS
+tetris::const_iterator::const_iterator(node const* ptr) : m_ptr(ptr) {};
+
+tetris::const_iterator::reference tetris::const_iterator::operator*() const { 
+	return this->m_ptr->tp;
+};
+
+tetris::const_iterator::pointer tetris::const_iterator::operator->() const {
+	return &(this->m_ptr->tp);
+};
+
+tetris::const_iterator& tetris::const_iterator::operator++() {
+	this->m_ptr = this->m_ptr->next;
+	return *this;
+};
+
+tetris::const_iterator tetris::const_iterator::operator++(int) {
+	const_iterator it = this->m_ptr;
+	++(*this);
+	return it;
+};
+
+bool tetris::const_iterator::operator==(const_iterator const& rhs) const {
+	return this->m_ptr == rhs.m_ptr;
+};
+
+bool tetris::const_iterator::operator!=(const_iterator const& rhs) const {
+	return this->m_ptr != rhs.m_ptr;
+};
+
+typename tetris::iterator
+tetris::begin() {
+	return this->m_field;
+};
+
+typename tetris::iterator
+tetris::end() {
+	return nullptr;
+};
+
+typename tetris::const_iterator
+tetris::begin() const {
+	return this->m_field;
+};
+
+typename tetris::const_iterator
+tetris::end() const {
+	return nullptr;
+};
 
 
-tetris::const_iterator::const_iterator(node const* ptr) { m_ptr = ptr; }
-tetris::const_iterator::reference tetris::const_iterator::operator*() const { return m_ptr->tp;}
-tetris::const_iterator::pointer tetris::const_iterator::operator->() const { return &(m_ptr->tp);}
-tetris::const_iterator& tetris::const_iterator::operator++()
-{
-    m_ptr = m_ptr->next;
-    return *this;
-}
-tetris::const_iterator tetris::const_iterator::operator++(int /*dummy*/)
-{
-    const_iterator tmp(m_ptr);
-    m_ptr = m_ptr->next;
-    return tmp;
-}
-bool tetris::const_iterator::operator==(const_iterator const& rhs) const { return m_ptr == rhs.m_ptr; }
-bool tetris::const_iterator::operator!=(const_iterator const& rhs) const { return !operator==(rhs); }
+uint32_t tetris::score() const { return this->m_score; };
 
+uint32_t tetris::width() const { return this->m_width; };
 
-tetris::iterator tetris::begin() { return iterator(m_field);}
-tetris::iterator tetris::end() { return iterator(nullptr);}
-tetris::const_iterator tetris::begin() const { return const_iterator(m_field);}
-tetris::const_iterator tetris::end() const {return const_iterator(nullptr);}
-
-uint32_t tetris::score() const { return m_score; }
-uint32_t tetris::width() const { return m_width; }
-uint32_t tetris::height() const { return m_height; }
+uint32_t tetris::height() const { return this->m_height; };
 
 // S->()|[]|(SSSS)
 void input_grid_rec(std::istream& is, piece& p, uint32_t curr_side, uint32_t row_offset, uint32_t col_offset)
