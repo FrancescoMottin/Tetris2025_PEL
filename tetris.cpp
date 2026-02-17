@@ -735,7 +735,7 @@ void tetris::print_ascii_art(std::ostream& os) const
         if(tmp_mat) 
         {
             for(uint32_t i = 0; i < m_height; i++)
-                delete tmp_mat[i];
+                delete[] tmp_mat[i];
             delete[] tmp_mat;
         }
 
