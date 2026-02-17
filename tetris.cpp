@@ -225,8 +225,8 @@ void piece::rotate()
     {
 		for(uint32_t it2 = 0; it2 < this->m_side; it2++) 
         {
-			tmp[it1][it2] = m_grid[m_side - 1 - it1][it1];
-            //tmp[it1][it2] = this->m_grid[it2][this->m_side - it1 - 1]; //Rotate antioraria
+			//tmp[it1][it2] = m_grid[m_side - 1 - it1][it1];
+            tmp[it1][it2] = this->m_grid[it2][this->m_side - it1 - 1]; //Rotate antioraria
 		}
 	}
 		
