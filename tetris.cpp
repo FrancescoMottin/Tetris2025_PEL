@@ -712,7 +712,7 @@ bool tetris::containment(piece const& p, int x, int y) const
                 if(i >= (int)m_height) return false; // Tocca il fondo
                 if(i >= 0 && i < (int)m_height && j >= 0 && j < (int)m_width) 
                 { if(f.f[i][j]) return false; } // Tocca un pezzo
-}
+
                 /*
                 if((i < 0 || i >= int(this->m_height)) || (j < 0 || j >= int(this->m_width))) return false;
                 if(f.f[i][j]) return false;
