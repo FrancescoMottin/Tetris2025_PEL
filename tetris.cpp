@@ -593,59 +593,55 @@ void tetris::insert(piece const& p, int x)
     
     field f(*this);
 	
-	// finds all the full row inside the field
-	while(f.full_row()) 
+    field f(*this);
+    while(f.full_row()) 
     {
-		int cutted_row = -1;
-		// iterates all the pieces and cut the row
-		for(auto it = this->begin(); it != this->end(); it++) 
+        int target_y = f.first_full_row();
+        
+        // 1. Taglia la riga in TUTTI i pezzi
+        for(auto it = this->begin(); it != this->end(); it++) 
         {
-			int field_y = it->y;
-			for(int y = int(it->p.side()) - 1; y >= 0; --y) 
+            // Calcoliamo la riga interna della matrice del pezzo (i)
+            // grid_y = y - (side - 1) + i  => i = target_y - y + side - 1
+            int row_in_piece = target_y - it->y + (int(it->p.side()) - 1);
+            if(row_in_piece >= 0 && row_in_piece < int(it->p.side())) 
             {
-				if(f.first_full_row() == field_y) 
+                it->p.cut_row(row_in_piece);
+            }
+        }
+        
+        this->m_score += this->m_width;
+
+        // 2. SHIFT: Ogni pezzo deve cadere finché non tocca qualcosa
+        bool piece_moved;
+        do {
+            piece_moved = false;
+            for(auto it = this->begin(); it != this->end(); it++) 
+            {
+                if(it->p.empty()) continue;
+
+                // Proviamo a vedere se il pezzo 'it' può scendere a y+1
+                // Salviamo la y attuale e incrementiamo temporaneamente
+                int old_y = it->y;
+                it->y++; 
+                
+                // Usiamo containment per vedere se la nuova posizione è valida
+                // NOTA: Dobbiamo usare un containment che ignora il pezzo stesso
+                if(this->containment(it->p, it->x, it->y)) 
                 {
-					cutted_row = field_y;
-					it->p.cut_row(y);
-				}
-					
-				field_y--;
-			} 
-		}
-		
-		this->m_score = this->m_score + this->m_width;		
-		
-		// checks if the pieces can be shifted down
-		for(auto it = this->begin(); it != this->end(); it++) 
-        {
-			int field_y = it->y;
-			
-			bool shift = true;
-			for(int i = int(it->p.side()) - 1; i >= 0; --i) 
-            {
-				for(int j = 0; j < int(it->p.side()); ++j) 
+                    piece_moved = true; // È sceso con successo
+                } 
+                else 
                 {
-					if(it->p(i, j) && field_y >= cutted_row) 
-                    {
-						shift = false;
-					}
-				}	
-				field_y--;
-			} 
-			
-			if(shift) 
-            {
-				it->y = it->y + 1;
-			}
-		}
-		
-		// updates the field f
-		f.clear_field();
-		for(auto it = this->begin(); it != this->end(); it++) 
-        {
-			f.add(*it);
-		}
-	}
+                    it->y = old_y; // Non può scendere, torniamo su
+                }
+            }
+        } while(piece_moved); // Continua finché almeno un pezzo si muove
+        
+        // Aggiorna il campo per il prossimo controllo full_row()
+        f.clear_field();
+        for(auto it = this->begin(); it != this->end(); it++) f.add(*it);
+    }
 	
 	// all empty pieces are removed
 	while(this->m_field != nullptr && this->m_field->tp.p.empty()) 
