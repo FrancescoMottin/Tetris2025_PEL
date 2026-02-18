@@ -564,7 +564,8 @@ void tetris::insert(piece const& p, int x)
         if(this->containment(p, x, y) && !obstacle) { max_y = y; } 
         else 
         {
-			field f(*this);
+			/*
+            field f(*this);
 			
 			uint32_t piece_x = 0;
 			int piece_y = int(p.side()) - 1;
@@ -581,7 +582,9 @@ void tetris::insert(piece const& p, int x)
 					++piece_x;
 				}
 				--piece_y;
-			}		
+			}
+            */
+            break; //Se trovi ostacolo, fermati!		
 		}
     }
 
@@ -705,8 +708,15 @@ bool tetris::containment(piece const& p, int x, int y) const
         {
             if(p(piece_y, piece_x)) 
             {
+                // Invece di if(i < 0 || i >= height) return false;
+                if(i >= (int)m_height) return false; // Tocca il fondo
+                if(i >= 0 && i < (int)m_height && j >= 0 && j < (int)m_width) 
+                { if(f.f[i][j]) return false; } // Tocca un pezzo
+}
+                /*
                 if((i < 0 || i >= int(this->m_height)) || (j < 0 || j >= int(this->m_width))) return false;
                 if(f.f[i][j]) return false;
+                */
             }
             ++piece_x;
         }
