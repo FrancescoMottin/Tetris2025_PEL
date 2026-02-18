@@ -553,129 +553,97 @@ struct field
     };
 };
 
-void tetris::insert(piece const& p, int x) 
-{
-	if(p.empty()) return;
-		
-	int max_y = -1;
-	bool obstacle = false;
-	 
-    for(int y = 0; y < int(this->m_height) + int(p.side()); y++) {
-        if(this->containment(p, x, y) && !obstacle) { max_y = y; } 
-        else 
-        {
-			/*
-            field f(*this);
-			
-			uint32_t piece_x = 0;
-			int piece_y = int(p.side()) - 1;
-			for(int i = y; i > y - int(p.side()); --i) 
-            {
-				piece_x = 0;
-				for(int j = x; j < x + int(p.side()); ++j) 
-                {
-					if(((i >= 0 && i < int(this->m_height)) && (j >= 0 && j < int(this->m_width))) && (p(piece_y, piece_x) && f.f[i][j])) 
-                    {
-				        obstacle = true;
-					}
-			
-					++piece_x;
-				}
-				--piece_y;
-			}
-            */
-            break; //Se trovi ostacolo, fermati!		
-		}
+void tetris::insert(piece const& p, int x) {
+    if (p.empty()) return;
+
+    // 1. CADUTA INIZIALE: Trova il punto più basso (max_y)
+    int max_y = -1;
+    for (int y = 0; y < (int)m_height; y++) {
+        if (this->containment(p, x, y)) max_y = y;
+        else break; // Si ferma al primo ostacolo
     }
 
-    if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+    if (max_y == -1) throw tetris_exception("GAME OVER");
     this->add(p, x, max_y);
-    
-    field f(*this);
-	
-	// finds all the full row inside the field
-	while(f.full_row()) 
-    {
-		int cutted_row = -1;
-		// iterates all the pieces and cut the row
-		for(auto it = this->begin(); it != this->end(); it++) 
-        {
-			int field_y = it->y;
-			for(int y = int(it->p.side()) - 1; y >= 0; --y) 
-            {
-				if(f.first_full_row() == field_y) 
-                {
-					cutted_row = field_y;
-					it->p.cut_row(y);
-				}
-					
-				field_y--;
-			} 
-		}
-		
-		this->m_score = this->m_score + this->m_width;		
-		
-		// checks if the pieces can be shifted down
-		for(auto it = this->begin(); it != this->end(); it++) 
-        {
-			int field_y = it->y;
-			
-			bool shift = true;
-			for(int i = int(it->p.side()) - 1; i >= 0; --i) 
-            {
-				for(int j = 0; j < int(it->p.side()); ++j) 
-                {
-					if(it->p(i, j) && field_y >= cutted_row) 
-                    {
-						shift = false;
-					}
-				}	
-				field_y--;
-			} 
-			
-			if(shift) 
-            {
-				it->y = it->y + 1;
-			}
-		}
-		
-		// updates the field f
-		f.clear_field();
-		for(auto it = this->begin(); it != this->end(); it++) 
-        {
-			f.add(*it);
-		}
-	}
-	
-	// all empty pieces are removed
-	while(this->m_field != nullptr && this->m_field->tp.p.empty()) 
-    {
-		node* to_delete = this->m_field;
-		this->m_field = this->m_field->next;
-		delete to_delete;
-	}
-	node* tmp = this->m_field;
-	while(tmp != nullptr) 
-    {
-		if(tmp->next != nullptr) 
-        {
-			if(tmp->next->tp.p.empty()) 
-            {
-				node* to_delete = tmp->next;
-				tmp->next = tmp->next->next;
-				delete to_delete;
-			} 
-            else 
-            {
-				tmp = tmp->next;
-			}
-		} 
-        else 
-        {
-			tmp = tmp->next;
-		}
-	}
-};
+
+    // 2. CICLO DI CANCELLAZIONE E SHIFT
+    bool repeat;
+    do {
+        repeat = false;
+        field f_current(*this); // Matrice di supporto per vedere quali righe sono piene
+
+        if (f_current.full_row()) {
+            int target_row = f_current.first_full_row();
+            
+            // Taglia la riga in tutti i pezzi coinvolti
+            for (auto it = this->begin(); it != this->end(); ++it) {
+                // Calcoliamo quale riga del pezzo corrisponde alla riga piena del campo
+                int row_to_cut = it->y - target_row; 
+                if (row_to_cut >= 0 && row_to_cut < (int)it->p.side()) {
+                    // Nota: side-1-row_to_cut serve perché i della matrice pezzo e y del campo sono invertiti
+                    it->p.cut_row(it->p.side() - 1 - row_to_cut);
+                }
+            }
+            this->m_score += this->m_width;
+            
+            // 3. SHIFT "FINCHÉ POSSIBILE" (Logica integrata)
+            bool piece_moved;
+            do {
+                piece_moved = false;
+                // Controlliamo ogni pezzo per vedere se può scendere
+                for (node* curr = m_field; curr != nullptr; curr = curr->next) {
+                    if (curr->tp.p.empty()) continue;
+
+                    // Creiamo una matrice che contiene TUTTI tranne il pezzo 'curr'
+                    field f_others(*this);
+                    for (node* other = m_field; other != nullptr; other = other->next) {
+                        if (other != curr && !other->tp.p.empty()) f_others.add(other->tp);
+                    }
+
+                    // Verifichiamo se curr può scendere a y + 1
+                    bool can_drop = true;
+                    int next_y = curr->tp.y + 1;
+                    
+                    for (uint32_t i = 0; i < curr->tp.p.side(); ++i) {
+                        for (uint32_t j = 0; j < curr->tp.p.side(); ++j) {
+                            if (curr->tp.p(i, j)) {
+                                int abs_x = curr->tp.x + j;
+                                int abs_y = next_y - (curr->tp.p.side() - 1) + i;
+
+                                if (abs_y >= (int)m_height || (abs_y >= 0 && abs_x >= 0 && abs_x < (int)m_width && f_others.f[abs_y][abs_x])) {
+                                    can_drop = false;
+                                    break;
+                                }
+                            }
+                        }
+                        if (!can_drop) break;
+                    }
+
+                    if (can_drop) {
+                        curr->tp.y++;
+                        piece_moved = true;
+                        repeat = true; // Se qualcuno si è mosso, ricontrolliamo le righe piene
+                    }
+                }
+            } while (piece_moved);
+        }
+    } while (repeat);
+
+    // 4. PULIZIA FINALE: Rimuove i nodi diventati vuoti
+    while (m_field && m_field->tp.p.empty()) {
+        node* to_delete = m_field;
+        m_field = m_field->next;
+        delete to_delete;
+    }
+    node* curr_node = m_field;
+    while (curr_node && curr_node->next) {
+        if (curr_node->next->tp.p.empty()) {
+            node* to_delete = curr_node->next;
+            curr_node->next = curr_node->next->next;
+            delete to_delete;
+        } else curr_node = curr_node->next;
+    }
+}
 
 void tetris::add(piece const& p, int x, int y) 
 {
