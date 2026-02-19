@@ -560,31 +560,10 @@ void tetris::insert(piece const& p, int x)
 	int max_y = -1;
 	bool obstacle = false;
 	 
-    for(int y = 0; y < int(this->m_height) + int(p.side()); y++) {
+    for(int y = 0; y < int(this->m_height) + int(p.side()); y++) 
+    {
         if(this->containment(p, x, y) && !obstacle) { max_y = y; } 
-        else 
-        {
-            /*
-            field f(*this);
-			
-			uint32_t piece_x = 0;
-			int piece_y = int(p.side()) - 1;
-			for(int i = y; i > y - int(p.side()); --i) 
-            {
-				piece_x = 0;
-				for(int j = x; j < x + int(p.side()); ++j) 
-                {
-					if(((i >= 0 && i < int(this->m_height)) && (j >= 0 && j < int(this->m_width))) && (p(piece_y, piece_x) && f.f[i][j])) 
-                    {
-				        obstacle = true;
-					}
-			
-					++piece_x;
-				}
-				--piece_y;
-			}*/
-            break; //Se trovi ostacolo, fermati!		
-		}
+        else break; //Se trovi ostacolo, fermati!		
     }
 
     if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
