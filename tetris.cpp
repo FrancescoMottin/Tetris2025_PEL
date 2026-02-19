@@ -553,6 +553,7 @@ struct field
     };
 };
 
+/*
 void tetris::insert(piece const& p, int x) 
 {
 	if(p.empty()) return;
@@ -654,6 +655,79 @@ void tetris::insert(piece const& p, int x)
 		}
 	}
 };
+*/
+
+void tetris::insert(piece const& p, int x) 
+{
+    if(p.empty()) return;
+        
+    int max_y = -1;
+    bool found_at_least_one = false;
+
+    // 1. TROVA IL PUNTO DI ATTERRAGGIO
+    // Dobbiamo scansionare da quando il pezzo è tutto fuori (sopra) 
+    // a quando tocca il fondo.
+    for(int y = -int(p.side()); y < int(this->m_height); y++)
+    {
+        if(this->containment(p, x, y)) 
+        { 
+            max_y = y; 
+            found_at_least_one = true;
+        } 
+        else 
+        {
+            // Se avevamo trovato una posizione valida e ora non più,
+            // significa che abbiamo toccato un ostacolo. Fermiamoci.
+            if(found_at_least_one) break; 
+        }
+    }
+
+    // Se non è mai stato trovato un posto (nemmeno in cima), allora è Game Over
+    if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+    
+    this->add(p, x, max_y);
+
+    // 2. RIMOZIONE RIGHE (Logica solida)
+    for(int i = int(m_height) - 1; i >= 0; --i) 
+    {
+        field f(*this);
+        bool row_is_full = true;
+        for(uint32_t col = 0; col < m_width; ++col) {
+            if(!f.f[i][col]) { row_is_full = false; break; }
+        }
+
+        if(row_is_full) { 
+            m_score += m_width;
+            for(auto it = this->begin(); it != this->end(); ++it) {
+                if (i >= it->y && i < it->y + int(it->p.side())) {
+                    it->p.cut_row(i - it->y);
+                }
+                // Ogni pezzo che "inizia" sopra la riga i deve scendere
+                if (it->y < i) {
+                    it->y++;
+                }
+            }
+            i++; 
+        }
+    }
+
+    // 3. PULIZIA LISTA (Versione anti-frammentazione)
+    while(m_field && m_field->tp.p.empty()) {
+        node* del = m_field;
+        m_field = m_field->next;
+        delete del;
+    }
+    node* curr = m_field;
+    while(curr && curr->next) {
+        if(curr->next->tp.p.empty()) {
+            node* del = curr->next;
+            curr->next = curr->next->next;
+            delete del;
+        } else {
+            curr = curr->next;
+        }
+    }
+}
 
 void tetris::add(piece const& p, int x, int y) 
 {
