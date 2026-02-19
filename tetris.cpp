@@ -1030,6 +1030,27 @@ std::istream& operator>>(std::istream& is, tetris& t)
 
     tetris temp_t(width, height, score);
 
+    while(is >> std::ws)
+    {
+        if (is.peek() == EOF) break;
+
+        piece p_data;
+        int x = 0;
+        int y = 0;
+
+        if (is >> p_data >> x >> y) 
+        {
+            try { temp_t.add(p_data, x, y); } 
+            catch (...) { CHECK_ERR(true, "ERROR! - operator>>(std::istream& is, tetris& t) - Errore di allocazione nella lista (causa add)"); }
+        } 
+        else 
+        { 
+            CHECK_ERR(is.fail(), "ERROR! - operator>>(std::istream& is, tetris& t) - Formato input invalido (lettura fallita).");
+            break; 
+        }
+    }
+
+    /*
     uint32_t num_pieces;
     is >> std::skipws >> num_pieces;
     CHECK_ERR(is.fail(), "ERROR! - operator>>(std::istream& is, tetris& t) - Formato input invalido (lettura fallita).");
@@ -1049,6 +1070,7 @@ std::istream& operator>>(std::istream& is, tetris& t)
         catch(const std::bad_alloc& e) { CHECK_ERR(true, "ERROR! - operator>>(std::istream& is, tetris& t) - Errore di allocazione nella lista (causa add)"); }
         catch (const tetris_exception& e) { CHECK_ERR(true, e.what()); }
     }
+    */
 
     t = std::move(temp_t);
     return is;
