@@ -568,7 +568,6 @@ void tetris::insert(piece const& p, int x)
     if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
     this->add(p, x, max_y);
 
-    
     for(int i = int(m_height) - 1; i >= 0; --i) 
     {
         field f(*this);
