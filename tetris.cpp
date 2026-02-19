@@ -657,6 +657,58 @@ void tetris::insert(piece const& p, int x)
 };
 */
 
+void tetris::insert(piece const& p, int x) {
+    if(p.empty()) return;
+    
+    // 1. Cerca la posizione di atterraggio senza aver ancora aggiunto il pezzo
+    int max_y = -1;
+    bool found = false;
+    for(int y = -int(p.side()); y < (int)m_height; ++y) {
+        if(this->containment(p, x, y)) {
+            max_y = y;
+            found = true;
+        } else if(found) break;
+    }
+
+    if(!found) throw tetris_exception("GAME OVER!!!");
+
+    // 2. Solo ora aggiungi
+    this->add(p, x, max_y);
+
+    // 3. Rimuovi righe e applica gravità
+    for(int i = (int)m_height - 1; i >= 0; --i) {
+        field f(*this);
+        bool full = true;
+        for(uint32_t c = 0; c < m_width; ++c) if(!f.f[i][c]) { full = false; break; }
+
+        if(full) {
+            m_score += m_width;
+            for(auto it = begin(); it != end(); ++it) {
+                if(i >= it->y && i < it->y + (int)it->p.side()) it->p.cut_row(i - it->y);
+                if(it->y < i) it->y++;
+            }
+            i++; // Combo check
+        }
+    }
+    
+    while(m_field && m_field->tp.p.empty()) {
+        node* del = m_field;
+        m_field = m_field->next;
+        delete del;
+    }
+    node* curr = m_field;
+    while(curr && curr->next) {
+        if(curr->next->tp.p.empty()) {
+            node* del = curr->next;
+            curr->next = curr->next->next;
+            delete del;
+        } else {
+            curr = curr->next;
+        }
+    }
+}
+
+/*
 void tetris::insert(piece const& p, int x) 
 {
     if(p.empty()) return;
@@ -728,6 +780,7 @@ void tetris::insert(piece const& p, int x)
         }
     }
 }
+*/
 
 void tetris::add(piece const& p, int x, int y) 
 {
