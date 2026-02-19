@@ -582,7 +582,7 @@ void tetris::insert(piece const& p, int x)
     
     this->add(p, x, max_y);
 
-    // --- LOGICA RIGHE E GRAVITÀ (Quella che abbiamo scritto prima) ---
+   // 3. Gestione Righe (Usa questa logica precisa)
     for(int i = int(m_height) - 1; i >= 0; --i) 
     {
         field f(*this);
@@ -594,26 +594,36 @@ void tetris::insert(piece const& p, int x)
         if(row_is_full) { 
             m_score += m_width;
             for(auto it = this->begin(); it != this->end(); ++it) {
-                if (i >= it->y && i < it->y + int(it->p.side())) it->p.cut_row(i - it->y);
-                if (it->y + int(it->p.side()) <= i) it->y++;
+                // Se la riga eliminata i è dentro il pezzo, lo tagliamo
+                if (i >= it->y && i < it->y + int(it->p.side())) {
+                    it->p.cut_row(i - it->y);
+                }
+                
+                // GRAVITÀ CORRETTA: Ogni pezzo il cui "inizio" (y) 
+                // è sopra la riga i, deve scendere di 1.
+                if (it->y < i) {
+                    it->y++;
+                }
             }
-            i++; 
+            i++; // Ricontrolla la riga
         }
     }
 
-    // --- PULIZIA LISTA (Indispensabile per Test D) ---
-    while(this->m_field != nullptr && this->m_field->tp.p.empty()) {
-        node* to_delete = this->m_field;
-        this->m_field = this->m_field->next;
-        delete to_delete;
+    // 4. Pulizia Lista (Versione robusta per pezzi vuoti consecutivi)
+    while(m_field && m_field->tp.p.empty()) {
+        node* del = m_field;
+        m_field = m_field->next;
+        delete del;
     }
-    node* tmp = this->m_field;
-    while(tmp != nullptr && tmp->next != nullptr) {
-        if(tmp->next->tp.p.empty()) {
-            node* to_delete = tmp->next;
-            tmp->next = tmp->next->next;
-            delete to_delete;
-        } else tmp = tmp->next;
+    node* curr = m_field;
+    while(curr && curr->next) {
+        if(curr->next->tp.p.empty()) {
+            node* del = curr->next;
+            curr->next = curr->next->next;
+            delete del;
+        } else {
+            curr = curr->next;
+        }
     }
 }
 
