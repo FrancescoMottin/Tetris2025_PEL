@@ -708,11 +708,20 @@ bool tetris::containment(piece const& p, int x, int y) const
             if(p(piece_y, piece_x)) 
             {
                 // Invece di if(i < 0 || i >= height) return false;
-                
+                /*
                 if(i >= (int)m_height) return false; // Tocca il fondo
                 if(i >= 0 && i < (int)m_height && j >= 0 && j < (int)m_width) 
                 { if(f.f[i][j]) return false; } // Tocca un pezzo
-                
+                */
+
+                // Coordinate grid_x e grid_y già calcolate nel tuo ciclo
+                if (j < 0 || j >= (int)m_width || i >= (int)m_height)   return false; // Blocca muri laterali e pavimento
+
+                if (i >= 0) // Controlla i pezzi esistenti solo se siamo dentro la griglia
+                    if (f.f[i][j]) return false; // Collisione con un altro mattoncino
+
+                // Se grid_y < 0 (sopra il campo), non facciamo nulla: il pezzo può stare lì.
+
                 /*
                 if((i < 0 || i >= int(this->m_height)) || (j < 0 || j >= int(this->m_width))) return false;
                 if(f.f[i][j]) return false;
