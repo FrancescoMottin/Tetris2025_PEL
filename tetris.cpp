@@ -555,81 +555,6 @@ struct field
 
 void tetris::insert(piece const& p, int x) 
 {
-    if(p.empty()) return;
-        
-    int max_y = -1;
-    bool found_valid_start = false;
-
-    // Partiamo da Y molto in alto (negativo) per permettere ai pezzi di entrare
-    for(int y = -int(p.side()); y < int(this->m_height); y++)
-    {
-        if(this->containment(p, x, y)) 
-        { 
-            // La posizione è valida (dentro i bordi e senza collisioni)
-            max_y = y; 
-            found_valid_start = true;
-        } 
-        else 
-        {
-            // Se abbiamo già trovato posizioni valide e ora non lo è più,
-            // significa che abbiamo urtato qualcosa o il fondo.
-            if(found_valid_start) break; 
-        }
-    }
-
-    // Se non abbiamo mai trovato una posizione valida, il pezzo non può entrare
-    if(max_y == -1) throw tetris_exception("GAME OVER!!!");
-    
-    this->add(p, x, max_y);
-
-   // 3. Gestione Righe (Usa questa logica precisa)
-    for(int i = int(m_height) - 1; i >= 0; --i) 
-    {
-        field f(*this);
-        bool row_is_full = true;
-        for(uint32_t col = 0; col < m_width; ++col) {
-            if(!f.f[i][col]) { row_is_full = false; break; }
-        }
-
-        if(row_is_full) { 
-            m_score += m_width;
-            for(auto it = this->begin(); it != this->end(); ++it) {
-                // Se la riga eliminata i è dentro il pezzo, lo tagliamo
-                if (i >= it->y && i < it->y + int(it->p.side())) {
-                    it->p.cut_row(i - it->y);
-                }
-                
-                // GRAVITÀ CORRETTA: Ogni pezzo il cui "inizio" (y) 
-                // è sopra la riga i, deve scendere di 1.
-                if (it->y < i) {
-                    it->y++;
-                }
-            }
-            i++; // Ricontrolla la riga
-        }
-    }
-
-    // 4. Pulizia Lista (Versione robusta per pezzi vuoti consecutivi)
-    while(m_field && m_field->tp.p.empty()) {
-        node* del = m_field;
-        m_field = m_field->next;
-        delete del;
-    }
-    node* curr = m_field;
-    while(curr && curr->next) {
-        if(curr->next->tp.p.empty()) {
-            node* del = curr->next;
-            curr->next = curr->next->next;
-            delete del;
-        } else {
-            curr = curr->next;
-        }
-    }
-}
-
-/*
-void tetris::insert(piece const& p, int x) 
-{
 	if(p.empty()) return;
 		
 	int max_y = -1;
@@ -700,7 +625,6 @@ void tetris::insert(piece const& p, int x)
         else tmp = tmp->next;
 	}
 };
-*/
 
 void tetris::add(piece const& p, int x, int y) 
 {
