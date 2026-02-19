@@ -1018,13 +1018,14 @@ std::ostream& operator<<(std::ostream& os, piece const& p)  //empty(i,j,s) and f
     return os;
 }
 
+//score width height \n p1 x1 y1 \n p2 x2 y2 \n
 //Errori non arrivano?
 std::istream& operator>>(std::istream& is, tetris& t)
 {
     uint32_t width;
     uint32_t height;
     uint32_t score;
-    is >> std::skipws >> width >> height >> score;
+    is >> std::skipws >> score  >> width >> height;
     CHECK_ERR(is.fail(), "ERROR! - operator>>(std::istream& is, tetris& t) - Formato input invalido (lettura fallita).");
 
     tetris temp_t(width, height, score);
@@ -1038,9 +1039,9 @@ std::istream& operator>>(std::istream& is, tetris& t)
         piece p_data;
         int x = 0;
         int y = 0;
-        is >> std::skipws >> x >> y;
-        
+
         is >> std::skipws >> p_data;
+        is >> std::skipws >> x >> y;
         
         CHECK_ERR(is.fail(), "ERROR! - operator>>(std::istream& is, tetris& t) - Formato input invalido (lettura fallita).");
 
