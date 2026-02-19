@@ -558,49 +558,73 @@ void tetris::insert(piece const& p, int x)
 	if(p.empty()) return;
 		
 	int max_y = -1;
+	bool obstacle = false;
 	 
-    for(int y = -int(p.side()); y < int(this->m_height); y++)
+    for(int y = 0; y < int(this->m_height) + int(p.side()); y++) 
     {
-        if(this->containment(p, x, y)) { max_y = y; } 
-        else if(max_y != -1) break; //Se trovi ostacolo, fermati!		
+        if(this->containment(p, x, y) && !obstacle) { max_y = y; } 
+        else break; //Se trovi ostacolo, fermati!		
     }
 
     if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
     this->add(p, x, max_y);
-
-    for(int i = int(m_height) - 1; i >= 0; --i) 
+    
+    field f(*this);
+	
+	// finds all the full row inside the field
+	while(f.full_row()) 
     {
-        field f(*this);
-
-        bool row_is_full = true;
-        for(uint32_t col = 0; col < m_width; ++col) 
+		int cutted_row = -1;
+		// iterates all the pieces and cut the row
+		for(auto it = this->begin(); it != this->end(); it++) 
         {
-            if(!f.f[i][col]) // Se un solo pixel è false, la riga non è piena
-            { 
-                row_is_full = false;
-                break;
-            }
-        }
-
-        if(row_is_full) 
-        { 
-            m_score += m_width;
-
-            // Itera su tutti i pezzi per tagliare o far cadere
-            for(auto it = this->begin(); it != this->end(); ++it) 
+			int field_y = it->y;
+			for(int y = int(it->p.side()) - 1; y >= 0; --y) 
             {
-                // it->y è la coordinata y del pezzo (punto più in alto)
-                // it->p.side() è la dimensione della matrice del pezzo
-                if (i >= it->y && i < it->y + int(it->p.side())) it->p.cut_row(i - it->y);  // 1. Se il pezzo attraversa la riga rimossa, lo tagliamo
-                if (it->y + int(it->p.side()) <= i) it->y++;                                // 2. Se il pezzo è interamente SOPRA la riga rimossa, deve CADERE
-            }
-            i++;
-        }
-        
-        // 3. Rimuovi i pezzi che sono diventati completamente vuoti (Altrimenti la lista si riempie di pezzi invisibili che rallentano tutto)
-        //this->remove_empty_pieces(); 
-    }
-
+				if(f.first_full_row() == field_y) 
+                {
+					cutted_row = field_y;
+					it->p.cut_row(y);
+				}
+					
+				field_y--;
+			} 
+		}
+		
+		this->m_score = this->m_score + this->m_width;		
+		
+		// checks if the pieces can be shifted down
+		for(auto it = this->begin(); it != this->end(); it++) 
+        {
+			int field_y = it->y;
+			
+			bool shift = true;
+			for(int i = int(it->p.side()) - 1; i >= 0; --i) 
+            {
+				for(int j = 0; j < int(it->p.side()); ++j) 
+                {
+					if(it->p(i, j) && field_y >= cutted_row) 
+                    {
+						shift = false;
+					}
+				}	
+				field_y--;
+			} 
+			
+			if(shift) 
+            {
+				it->y = it->y + 1;
+			}
+		}
+		
+		// updates the field f
+		f.clear_field();
+		for(auto it = this->begin(); it != this->end(); it++) 
+        {
+			f.add(*it);
+		}
+	}
+	
 	// all empty pieces are removed
 	while(this->m_field != nullptr && this->m_field->tp.p.empty()) 
     {
@@ -608,7 +632,6 @@ void tetris::insert(piece const& p, int x)
 		this->m_field = this->m_field->next;
 		delete to_delete;
 	}
-
 	node* tmp = this->m_field;
 	while(tmp != nullptr) 
     {
@@ -620,9 +643,15 @@ void tetris::insert(piece const& p, int x)
 				tmp->next = tmp->next->next;
 				delete to_delete;
 			} 
-            else tmp = tmp->next;
+            else 
+            {
+				tmp = tmp->next;
+			}
 		} 
-        else tmp = tmp->next;
+        else 
+        {
+			tmp = tmp->next;
+		}
 	}
 };
 
