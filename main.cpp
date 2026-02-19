@@ -962,6 +962,37 @@ void testA() {
     }    
 }
 
+void debugContainment() 
+{
+    try 
+    {
+        std::cout << "--- DEBUGGING CONTAINMENT COORDINATES ---" << std::endl;
+        tetris t(10, 20, 0); // Un campo 10x20 per il test
+        piece p(2, 1);       // Un quadrato 2x2
+        p(0,0)=p(0,1)=p(1,0)=p(1,1)=true;
+
+        // Valori di Y che spesso causano problemi nei test automatici
+        int test_y[] = {-100, -1, 0, 10, 19, 20, 100};
+        
+        for(int y_val : test_y) {
+            std::cout << "Testing y = " << y_val << "... ";
+            bool result = t.containment(p, 0, y_val);
+            std::cout << "Risultato: " << (result ? "LIBERO" : "OCCUPATO/OUT") << " [OK]" << std::endl;
+        }
+
+        // Test X fuori bordo (molto importante!)
+        std::cout << "Testing x = -5 (fuori sinistra): " << (t.containment(p, -5, 10) ? "ERRORE" : "OK") << std::endl;
+        std::cout << "Testing x = 11 (fuori destra): " << (t.containment(p, 11, 10) ? "ERRORE" : "OK") << std::endl;
+
+    } catch (const std::exception& e) 
+    {
+        std::cout << "CRASH RILEVATO: " << e.what() << std::endl;
+    } catch (...) 
+    {
+        std::cout << "CRASH SCONOSCIUTO (probabile Segmentation Fault)" << std::endl;
+    }
+}
+
 int main() {
     std::cout << "=========================================\n";
     std::cout << "        PEL PROJECT 2024/2025 - TETRIS   \n";
@@ -977,6 +1008,7 @@ int main() {
         std::cout << "  6 -> Test F - TEST Parser Piece\n";
         std::cout << "  7 -> Test G - Test G - TEST Tetris\n";
         std::cout << "  8 -> Test H - Test H - TEST Morris\n";
+        std::cout << "  9 -> Test I - Debug Containment (Random Y)\n";
         std::cout << "  0 -> Esci\n";
         std::cout << "\nScelta: ";
 
@@ -1002,7 +1034,8 @@ int main() {
         divider(100);
         std::cout << "Hai selezionato il test: " << test << "\n\n";
 
-        switch(test) {
+        switch(test) 
+        {
             case 1: testA(); break;
             case 2: testB(); break;
             case 3: testC(); break;
@@ -1011,6 +1044,7 @@ int main() {
             case 6: testF(); break;
             case 7: testG(); break;
             case 8: testH(); break;
+            case 9: debugContainment(); break;
         }
 
         divider(100);
