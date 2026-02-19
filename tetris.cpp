@@ -564,7 +564,6 @@ void tetris::insert(piece const& p, int x)
         if(this->containment(p, x, y) && !obstacle) { max_y = y; } 
         else 
         {
-			/*
             field f(*this);
 			
 			uint32_t piece_x = 0;
@@ -583,8 +582,7 @@ void tetris::insert(piece const& p, int x)
 				}
 				--piece_y;
 			}
-            */
-            break; //Se trovi ostacolo, fermati!		
+            //break; //Se trovi ostacolo, fermati!		
 		}
     }
 
