@@ -672,6 +672,7 @@ void tetris::add(piece const& p, int x, int y)
 	this->m_field = newN;
 };
 
+/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     field f(*this);
@@ -699,6 +700,47 @@ bool tetris::containment(piece const& p, int x, int y) const
     }
     return true;
 };
+*/
+bool tetris::containment(piece const& p, int x, int y) const 
+{
+    for (uint32_t py = 0; py < p.side(); ++py) {
+        for (uint32_t px = 0; px < p.side(); ++px) {
+            
+            // Se il pixel del pezzo che stiamo inserendo è pieno
+            if (p(py, px)) {
+                int field_x = x + (int)px;
+                int field_y = y + (int)py;
+
+                // 1. Controllo Bordi Laterali (Sinistro e Destro)
+                if (field_x < 0 || field_x >= (int)m_width) return false;
+
+                // 2. Controllo Bordo Inferiore (Pavimento)
+                if (field_y >= (int)m_height) return false;
+
+                // 3. Controllo Bordo Superiore
+                // Se il pixel è sopra la griglia (y < 0), non può collidere con pezzi esistenti
+                // ma è comunque in una posizione valida per ora.
+                if (field_y < 0) continue; 
+
+                // 4. Controllo Collisioni con pezzi già presenti (Logica "get_pixel" integrata)
+                // Scorriamo la lista concatenata dei pezzi già nel campo
+                for (const_iterator it = this->begin(); it != this->end(); ++it) {
+                    // Verifichiamo se le coordinate (field_x, field_y) cadono dentro questo pezzo già posizionato
+                    if (field_x >= it->x && field_x < it->x + (int)it->p.side() &&
+                        field_y >= it->y && field_y < it->y + (int)it->p.side()) {
+                        
+                        // Se il pixel corrispondente nel pezzo esistente è true, c'è collisione
+                        if (it->p(field_y - it->y, field_x - it->x)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    // Se nessun pixel ha violato i bordi o colliso con pezzi esistenti
+    return true; 
+}
 
 // FUNZIONE DI DEBUG
 void tetris::print_ascii_art(std::ostream& os) const 
