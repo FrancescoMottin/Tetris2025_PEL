@@ -794,8 +794,11 @@ bool tetris::containment(piece const& p, int x, int y) const
                 // 3. Controllo Bordo Superiore
                 // Se il pixel è sopra la griglia (y < 0), non può collidere con pezzi esistenti
                 // ma è comunque in una posizione valida per ora.
-                if (field_y < 0) continue; 
-
+                if (field_y < 0) 
+                {
+                    if (field_x < 0 || field_x >= (int)m_width) return false;
+                    continue; // Non controllare collisioni con altri pezzi se siamo sopra il campo
+                }
                 // 4. Controllo Collisioni con pezzi già presenti (Logica "get_pixel" integrata)
                 // Scorriamo la lista concatenata dei pezzi già nel campo
                 for (const_iterator it = this->begin(); it != this->end(); ++it) {
