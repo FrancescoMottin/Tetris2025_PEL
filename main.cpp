@@ -1026,7 +1026,7 @@ int main() {
             break;
         }
 
-        if (test < 0 || test > 8) {
+        if (test < 0 || test > 9) {
             std::cout << "\nScelta non valida! Inserisci un numero tra 0 e 8.\n\n";
             continue;
         }
