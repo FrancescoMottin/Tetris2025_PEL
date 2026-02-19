@@ -966,6 +966,61 @@ void debugContainment()
 {
     try 
     {
+        std::cout << "\n--- DEBUGGING INTEGRALE [-100, 100] ---" << std::endl;
+        uint32_t tw = 10, th = 20;
+        tetris t(tw, th, 0); 
+        piece p(2, 1); // Quadrato 2x2
+        p(0,0)=p(0,1)=p(1,0)=p(1,1)=true;
+
+        int crashes = 0;
+        int unexpected_free = 0;
+
+        for(int y = -100; y <= 100; ++y) {
+            for(int x = -100; x <= 100; ++x) {
+                try {
+                    bool res = t.containment(p, x, y);
+                    
+                    // Verifica logica di base:
+                    // Un pezzo 2x2 a (x,y) è LIBERO solo se:
+                    // x >= 0 AND x+1 < 10 AND y+1 < 20
+                    // Nota: y può essere negativo in alcuni progetti, 
+                    // ma y+side non può mai superare th.
+                    bool logicamente_valido = (x >= 0 && (x + 1) < (int)tw && (y + 1) < (int)th);
+                    
+                    // Se y è molto negativo, dipende se il tuo containment lo accetta o no.
+                    // Se il tuo containment blocca y < 0, allora logicamente_valido dovrebbe includere y >= 0.
+
+                    if (res && !logicamente_valido) {
+                        // Se containment dice LIBERO ma siamo palesemente fuori bordo
+                        unexpected_free++;
+                        if (unexpected_free < 10) // Non intasiamo il terminale
+                            std::cout << "ANOMALIA: Libero a x=" << x << ", y=" << y << " (dovrebbe essere OUT)" << std::endl;
+                    }
+
+                } catch (...) {
+                    crashes++;
+                }
+            }
+        }
+
+        std::cout << "--- FINE TEST ---" << std::endl;
+        std::cout << "Crash rilevati: " << crashes << std::endl;
+        std::cout << "Posizioni 'libere' fuori bordo: " << unexpected_free << std::endl;
+        if(crashes == 0 && unexpected_free == 0) 
+            std::cout << "RISULTATO: Il containment sembra solido!" << std::endl;
+        else
+            std::cout << "RISULTATO: Ci sono problemi di confini da risolvere." << std::endl;
+
+    } catch (const std::exception& e) {
+        std::cout << "ERRORE FATALE: " << e.what() << std::endl;
+    }
+}
+
+/*
+void debugContainment() 
+{
+    try 
+    {
         std::cout << "--- DEBUGGING CONTAINMENT COORDINATES ---" << std::endl;
         tetris t(10, 20, 0); // Un campo 10x20 per il test
         piece p(2, 1);       // Un quadrato 2x2
@@ -992,6 +1047,7 @@ void debugContainment()
         std::cout << "CRASH SCONOSCIUTO (probabile Segmentation Fault)" << std::endl;
     }
 }
+*/
 
 int main() {
     std::cout << "=========================================\n";
