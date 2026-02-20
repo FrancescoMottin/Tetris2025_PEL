@@ -552,7 +552,7 @@ struct field
                 f[i][j] = false;
     };
 };
-
+/*
 void tetris::insert(piece const& p, int x) 
 {
 	if(p.empty()) return;
@@ -654,6 +654,111 @@ void tetris::insert(piece const& p, int x)
 		}
 	}
 };
+*/
+
+void tetris::insert(piece const& p, int x) {
+    if(p.empty()) return;
+
+    int current_y = -((int)p.side()); // Parte sopra il campo
+    int best_y = current_y;
+
+    // Finché il pezzo può stare nella posizione successiva (y+1), scendi
+    while (containment(p, x, best_y + 1)) {
+        best_y++;
+        if (best_y >= (int)m_height) break; 
+    }
+
+    // Se il pezzo non è mai riuscito a entrare nemmeno parzialmente nel campo
+    if (best_y + (int)p.side() <= 0) 
+        throw tetris_exception("GAME OVER!!!");
+
+    this->add(p, x, best_y);
+    
+       field f(*this);
+	
+	// finds all the full row inside the field
+	while(f.full_row()) 
+    {
+		int cutted_row = -1;
+		// iterates all the pieces and cut the row
+		for(auto it = this->begin(); it != this->end(); it++) 
+        {
+			int field_y = it->y;
+			for(int y = int(it->p.side()) - 1; y >= 0; --y) 
+            {
+				if(f.first_full_row() == field_y) 
+                {
+					cutted_row = field_y;
+					it->p.cut_row(y);
+				}
+					
+				field_y--;
+			} 
+		}
+		
+		this->m_score = this->m_score + this->m_width;		
+		
+		// checks if the pieces can be shifted down
+		for(auto it = this->begin(); it != this->end(); it++) 
+        {
+			int field_y = it->y;
+			
+			bool shift = true;
+			for(int i = int(it->p.side()) - 1; i >= 0; --i) 
+            {
+				for(int j = 0; j < int(it->p.side()); ++j) 
+                {
+					if(it->p(i, j) && field_y >= cutted_row) 
+                    {
+						shift = false;
+					}
+				}	
+				field_y--;
+			} 
+			
+			if(shift) 
+            {
+				it->y = it->y + 1;
+			}
+		}
+		
+		// updates the field f
+		f.clear_field();
+		for(auto it = this->begin(); it != this->end(); it++) 
+        {
+			f.add(*it);
+		}
+	}
+	
+	// all empty pieces are removed
+	while(this->m_field != nullptr && this->m_field->tp.p.empty()) 
+    {
+		node* to_delete = this->m_field;
+		this->m_field = this->m_field->next;
+		delete to_delete;
+	}
+	node* tmp = this->m_field;
+	while(tmp != nullptr) 
+    {
+		if(tmp->next != nullptr) 
+        {
+			if(tmp->next->tp.p.empty()) 
+            {
+				node* to_delete = tmp->next;
+				tmp->next = tmp->next->next;
+				delete to_delete;
+			} 
+            else 
+            {
+				tmp = tmp->next;
+			}
+		} 
+        else 
+        {
+			tmp = tmp->next;
+		}
+	}
+}
 
 void tetris::add(piece const& p, int x, int y) 
 {
