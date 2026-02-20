@@ -985,7 +985,8 @@ void debugContainment()
                     // x >= 0 AND x+1 < 10 AND y+1 < 20
                     // Nota: y può essere negativo in alcuni progetti, 
                     // ma y+side non può mai superare th.
-                    bool logicamente_valido = (x >= 0 && (x + 1) < (int)tw && (y + 1) < (int)th);
+                    bool logicamente_valido = (x >= 0 && (x + 1) < (int)tw && y < (int)th && (y - 1) >= 0);
+                    //bool logicamente_valido = (x >= 0 && (x + 1) < (int)tw && (y + 1) < (int)th);
                     
                     // Se y è molto negativo, dipende se il tuo containment lo accetta o no.
                     // Se il tuo containment blocca y < 0, allora logicamente_valido dovrebbe includere y >= 0.
