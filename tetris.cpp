@@ -672,6 +672,7 @@ void tetris::add(piece const& p, int x, int y)
 	this->m_field = newN;
 };
 
+/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     field f(*this);
@@ -700,8 +701,8 @@ bool tetris::containment(piece const& p, int x, int y) const
     }
     return true;
 };
+*/
 
-/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     for (uint32_t py = 0; py < p.side(); ++py) {
@@ -710,7 +711,7 @@ bool tetris::containment(piece const& p, int x, int y) const
             // Se il pixel del pezzo che stiamo inserendo è pieno
             if (p(py, px)) {
                 int field_x = x + (int)px;
-                int field_y = y + (int)py;
+                int field_y = y - (int)py;
 
                 // 1. Controllo Bordi Laterali (Sinistro e Destro)
                 if (field_x < 0 || field_x >= (int)m_width) return false;
@@ -745,7 +746,6 @@ bool tetris::containment(piece const& p, int x, int y) const
     // Se nessun pixel ha violato i bordi o colliso con pezzi esistenti
     return true; 
 }
-*/
 
 // FUNZIONE DI DEBUG
 void tetris::print_ascii_art(std::ostream& os) const 
