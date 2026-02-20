@@ -687,7 +687,7 @@ bool tetris::containment(piece const& p, int x, int y) const
             {
                 // Coordinate grid_x e grid_y già calcolate nel tuo ciclo
                 //"i >= (int)m_height - 1" permette di accedere ad una versione con il test di containment funzionantw ma meno performante (ma senza freeze)
-                if (j < 0 || j >= (int)m_width || i >= (int)m_height - 1)   return false; // Blocca muri laterali e pavimento
+                if (j < 0 || j >= (int)m_width || i >= (int)m_height)   return false; // Blocca muri laterali e pavimento
 
                 if (i >= 0) // Controlla i pezzi esistenti solo se siamo dentro la griglia
                     if (f.f[i][j]) return false; // Collisione con un altro mattoncino
