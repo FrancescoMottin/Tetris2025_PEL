@@ -672,6 +672,7 @@ void tetris::add(piece const& p, int x, int y)
 	this->m_field = newN;
 };
 
+/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     field f(*this);
@@ -699,8 +700,36 @@ bool tetris::containment(piece const& p, int x, int y) const
         --piece_y;
     }
     return true;
-};
+}; 
+*/
+bool tetris::containment(piece const& p, int x, int y) const {
+    for (uint32_t py = 0; py < p.side(); ++py) {
+        for (uint32_t px = 0; px < p.side(); ++px) {
+            if (p(py, px)) { // Se la cella del pezzo è piena
+                int field_x = x + (int)px;
+                int field_y = y + (int)py; // Sommiamo py per scendere nella griglia
 
+                // 1. Bordi laterali e fondo
+                if (field_x < 0 || field_x >= (int)m_width || field_y >= (int)m_height) 
+                    return false;
+
+                // 2. Collisione con pezzi esistenti (solo se siamo dentro la griglia)
+                if (field_y >= 0) {
+                    // Qui puoi usare la logica della classe field o un ciclo sugli iterator
+                    for (const_iterator it = this->begin(); it != this->end(); ++it) {
+                        int rel_x = field_x - it->x;
+                        int rel_y = field_y - it->y;
+                        if (rel_x >= 0 && rel_x < (int)it->p.side() &&
+                            rel_y >= 0 && rel_y < (int)it->p.side()) {
+                            if (it->p(rel_y, rel_x)) return false;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
 /*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
