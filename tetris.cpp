@@ -657,18 +657,18 @@ void tetris::insert(piece const& p, int x)
 */
 
 void tetris::insert(piece const& p, int x) {
-    if(p.empty()) return;
+if(p.empty()) return;
 
-    int current_y = -((int)p.side()); // Parte sopra il campo
-    int best_y = current_y;
+    // Partiamo da sopra il campo affinché il pezzo possa apparire gradualmente
+    int best_y = -((int)p.side()); 
 
-    // Finché il pezzo può stare nella posizione successiva (y+1), scendi
+    // Finché la posizione y+1 è valida, scendiamo
     while (containment(p, x, best_y + 1)) {
         best_y++;
         if (best_y >= (int)m_height) break; 
     }
 
-    // Se il pezzo non è mai riuscito a entrare nemmeno parzialmente nel campo
+    // Se il pezzo non è riuscito a entrare nel campo (nemmeno parzialmente)
     if (best_y + (int)p.side() <= 0) 
         throw tetris_exception("GAME OVER!!!");
 
@@ -810,20 +810,20 @@ bool tetris::containment(piece const& p, int x, int y) const
 bool tetris::containment(piece const& p, int x, int y) const {
     for (uint32_t py = 0; py < p.side(); ++py) {
         for (uint32_t px = 0; px < p.side(); ++px) {
-            if (p(py, px)) { // Se la cella del pezzo è piena
+            if (p(py, px)) { // Controlla solo i blocchi pieni del pezzo
                 int field_x = x + (int)px;
-                int field_y = y + (int)py; // Sommiamo py per scendere nella griglia
+                int field_y = y + (int)py; 
 
-                // 1. Bordi laterali e fondo
+                // 1. Controlla i bordi (sinistro, destro e pavimento)
                 if (field_x < 0 || field_x >= (int)m_width || field_y >= (int)m_height) 
                     return false;
 
-                // 2. Collisione con pezzi esistenti (solo se siamo dentro la griglia)
+                // 2. Controlla collisioni con pezzi esistenti (solo se dentro il campo)
                 if (field_y >= 0) {
-                    // Qui puoi usare la logica della classe field o un ciclo sugli iterator
                     for (const_iterator it = this->begin(); it != this->end(); ++it) {
                         int rel_x = field_x - it->x;
                         int rel_y = field_y - it->y;
+                        // Se il punto cade dentro l'area di un pezzo già presente
                         if (rel_x >= 0 && rel_x < (int)it->p.side() &&
                             rel_y >= 0 && rel_y < (int)it->p.side()) {
                             if (it->p(rel_y, rel_x)) return false;
@@ -833,7 +833,7 @@ bool tetris::containment(piece const& p, int x, int y) const {
             }
         }
     }
-    return true;
+    return true; 
 }
 /*
 bool tetris::containment(piece const& p, int x, int y) const 
