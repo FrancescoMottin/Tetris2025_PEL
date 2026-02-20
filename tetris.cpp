@@ -657,6 +657,7 @@ void tetris::insert(piece const& p, int x)
 };
 */
 
+/*
 void tetris::insert(piece const& p, int x) {
     if (p.empty()) return;
 
@@ -745,6 +746,84 @@ void tetris::insert(piece const& p, int x) {
         while (reversed_list != nullptr) {
             node* to_del = reversed_list;
             reversed_list = reversed_list->next;
+            delete to_del;
+        }
+    }
+}*/
+
+void tetris::insert(piece const& p, int x) {
+    if (p.empty()) return;
+
+    // 1. Trova il punto di atterraggio (Gravità iniziale)
+    int best_y = -((int)p.side());
+    while (this->containment(p, x, best_y + 1)) {
+        best_y++;
+        if (best_y >= (int)m_height) break;
+    }
+    
+    // Controllo Game Over (se il pezzo non entra nemmeno in riga 0)
+    if (best_y < 0 && !this->containment(p, x, 0)) 
+        throw tetris_exception("GAME OVER!!!");
+
+    this->add(p, x, best_y);
+
+    // 2. Ciclo di rimozione righe piene
+    bool rows_were_cut = false;
+    while (true) {
+        field f(*this); // Crea la foto del campo attuale
+        if (!f.full_row()) break; // Esci se non ci sono più righe piene
+
+        rows_were_cut = true;
+        int target_row = f.first_full_row();
+
+        // Taglia la riga in tutti i pezzi della lista
+        for (auto it = this->begin(); it != this->end(); ++it) {
+            int rel_y = target_row - it->y;
+            if (rel_y >= 0 && rel_y < (int)it->p.side()) {
+                it->p.cut_row(rel_y);
+            }
+        }
+        this->m_score += this->m_width;
+        // Il ciclo while ricomincerà, creerà una nuova f e vedrà se ci sono altre righe
+    }
+
+    // 3. SE HO TAGLIATO: Riposizionamento "a pioggia"
+    // Questo evita loop infiniti perché non chiama più la logica di taglio
+    if (rows_were_cut) {
+        // Rubiamo la lista
+        node* old_list = this->m_field;
+        this->m_field = nullptr;
+
+        // Trasferiamo i pezzi validi in una nuova lista temporanea rovesciata
+        // (per reinserirli dal più vecchio al più nuovo)
+        node* reversed = nullptr;
+        while (old_list) {
+            if (!old_list->tp.p.empty()) {
+                node* n = new node();
+                n->tp = old_list->tp;
+                n->next = reversed;
+                reversed = n;
+            }
+            node* to_del = old_list;
+            old_list = old_list->next;
+            delete to_del; // Pulizia nodi vecchi
+        }
+
+        // Reinserimento fisico: ogni pezzo cade finché può
+        while (reversed) {
+            piece curr_p = reversed->tp.p;
+            int curr_x = reversed->tp.x;
+            
+            int new_y = -((int)curr_p.side());
+            while (this->containment(curr_p, curr_x, new_y + 1)) {
+                new_y++;
+                if (new_y >= (int)m_height) break;
+            }
+            
+            this->add(curr_p, curr_x, new_y);
+            
+            node* to_del = reversed;
+            reversed = reversed->next;
             delete to_del;
         }
     }
