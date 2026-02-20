@@ -672,7 +672,6 @@ void tetris::add(piece const& p, int x, int y)
 	this->m_field = newN;
 };
 
-/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     field f(*this);
@@ -701,8 +700,8 @@ bool tetris::containment(piece const& p, int x, int y) const
     }
     return true;
 };
-*/
 
+/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     for (uint32_t py = 0; py < p.side(); ++py) {
@@ -746,7 +745,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     // Se nessun pixel ha violato i bordi o colliso con pezzi esistenti
     return true; 
 }
-
+*/
 // FUNZIONE DI DEBUG
 void tetris::print_ascii_art(std::ostream& os) const 
 {
