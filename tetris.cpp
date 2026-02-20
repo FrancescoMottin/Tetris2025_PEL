@@ -552,7 +552,8 @@ struct field
                 f[i][j] = false;
     };
 };
-/*
+
+
 void tetris::insert(piece const& p, int x) 
 {
 	if(p.empty()) return;
@@ -654,111 +655,7 @@ void tetris::insert(piece const& p, int x)
 		}
 	}
 };
-*/
 
-void tetris::insert(piece const& p, int x) {
-if(p.empty()) return;
-
-    // Partiamo da sopra il campo affinché il pezzo possa apparire gradualmente
-    int best_y = -((int)p.side()); 
-
-    // Finché la posizione y+1 è valida, scendiamo
-    while (containment(p, x, best_y + 1)) {
-        best_y++;
-        if (best_y >= (int)m_height) break; 
-    }
-
-    // Se il pezzo non è riuscito a entrare nel campo (nemmeno parzialmente)
-    if (best_y + (int)p.side() <= 0) 
-        throw tetris_exception("GAME OVER!!!");
-
-    this->add(p, x, best_y);
-    
-       field f(*this);
-	
-	// finds all the full row inside the field
-	while(f.full_row()) 
-    {
-		int cutted_row = -1;
-		// iterates all the pieces and cut the row
-		for(auto it = this->begin(); it != this->end(); it++) 
-        {
-			int field_y = it->y;
-			for(int y = int(it->p.side()) - 1; y >= 0; --y) 
-            {
-				if(f.first_full_row() == field_y) 
-                {
-					cutted_row = field_y;
-					it->p.cut_row(y);
-				}
-					
-				field_y--;
-			} 
-		}
-		
-		this->m_score = this->m_score + this->m_width;		
-		
-		// checks if the pieces can be shifted down
-		for(auto it = this->begin(); it != this->end(); it++) 
-        {
-			int field_y = it->y;
-			
-			bool shift = true;
-			for(int i = int(it->p.side()) - 1; i >= 0; --i) 
-            {
-				for(int j = 0; j < int(it->p.side()); ++j) 
-                {
-					if(it->p(i, j) && field_y >= cutted_row) 
-                    {
-						shift = false;
-					}
-				}	
-				field_y--;
-			} 
-			
-			if(shift) 
-            {
-				it->y = it->y + 1;
-			}
-		}
-		
-		// updates the field f
-		f.clear_field();
-		for(auto it = this->begin(); it != this->end(); it++) 
-        {
-			f.add(*it);
-		}
-	}
-	
-	// all empty pieces are removed
-	while(this->m_field != nullptr && this->m_field->tp.p.empty()) 
-    {
-		node* to_delete = this->m_field;
-		this->m_field = this->m_field->next;
-		delete to_delete;
-	}
-	node* tmp = this->m_field;
-	while(tmp != nullptr) 
-    {
-		if(tmp->next != nullptr) 
-        {
-			if(tmp->next->tp.p.empty()) 
-            {
-				node* to_delete = tmp->next;
-				tmp->next = tmp->next->next;
-				delete to_delete;
-			} 
-            else 
-            {
-				tmp = tmp->next;
-			}
-		} 
-        else 
-        {
-			tmp = tmp->next;
-		}
-	}
-}
 
 void tetris::add(piece const& p, int x, int y) 
 {
@@ -807,35 +704,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     return true;
 }; 
 */
-bool tetris::containment(piece const& p, int x, int y) const {
-    for (uint32_t py = 0; py < p.side(); ++py) {
-        for (uint32_t px = 0; px < p.side(); ++px) {
-            if (p(py, px)) { // Controlla solo i blocchi pieni del pezzo
-                int field_x = x + (int)px;
-                int field_y = y + (int)py; 
 
-                // 1. Controlla i bordi (sinistro, destro e pavimento)
-                if (field_x < 0 || field_x >= (int)m_width || field_y >= (int)m_height) 
-                    return false;
-
-                // 2. Controlla collisioni con pezzi esistenti (solo se dentro il campo)
-                if (field_y >= 0) {
-                    for (const_iterator it = this->begin(); it != this->end(); ++it) {
-                        int rel_x = field_x - it->x;
-                        int rel_y = field_y - it->y;
-                        // Se il punto cade dentro l'area di un pezzo già presente
-                        if (rel_x >= 0 && rel_x < (int)it->p.side() &&
-                            rel_y >= 0 && rel_y < (int)it->p.side()) {
-                            if (it->p(rel_y, rel_x)) return false;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    return true; 
-}
-/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     for (uint32_t py = 0; py < p.side(); ++py) {
@@ -879,7 +748,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     // Se nessun pixel ha violato i bordi o colliso con pezzi esistenti
     return true; 
 }
-*/
+
 // FUNZIONE DI DEBUG
 void tetris::print_ascii_art(std::ostream& os) const 
 {
