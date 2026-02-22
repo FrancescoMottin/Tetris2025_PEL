@@ -502,12 +502,10 @@ struct field
     void add(const tetris_piece& tp) 
     {
         int piece_y = int(tp.p.side()) - 1;
-        //for(int i = tp.y; i > tp.y - int(tp.p.side()); --i) 
-        for(uint32_t i = 0; i < tp.p.side(); ++i)
+        for(int i = tp.y; i > tp.y - int(tp.p.side()); --i) 
         {
             int piece_x = 0;
-            //for(int j = tp.x; j < tp.x + int(tp.p.side()); ++j) 
-            for(uint32_t j = 0; j < tp.p.side(); ++j)
+            for(int j = tp.x; j < tp.x + int(tp.p.side()); ++j)
             {
                 if(tp.p(piece_y, piece_x)) 
                 {
