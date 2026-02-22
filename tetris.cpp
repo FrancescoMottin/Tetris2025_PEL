@@ -553,6 +553,8 @@ struct field
     };
 };
 
+
+/*
 void tetris::insert(piece const& p, int x) 
 {
 	if(p.empty()) return;
@@ -653,6 +655,85 @@ void tetris::insert(piece const& p, int x)
 			tmp = tmp->next;
 		}
 	}
+}
+*/
+
+void tetris::insert(piece const& p, int x) 
+{
+    if(p.empty()) return;
+        
+    // 1. Inserimento iniziale del pezzo
+    int max_y = -((int)p.side()); 
+    for(int y = -((int)p.side()); y < (int)m_height; y++) 
+    {
+        if(this->containment(p, x, y + 1)) max_y = y + 1;
+        else break;
+    }
+    this->add(p, x, max_y);
+    
+    // 2. Ciclo di esplosione righe e riposizionamento
+    field f_checker(*this);
+    while(f_checker.full_row()) 
+    {
+        int row_to_cut = f_checker.first_full_row();
+        
+        // Taglio chirurgico in tutti i pezzi
+        for(auto it = this->begin(); it != this->end(); it++) 
+        {
+            int relative_row = row_to_cut - it->y; // Distanza dalla cima
+            if(relative_row >= 0 && relative_row < (int)it->p.side()) 
+            {
+                it->p.cut_row(relative_row);
+            }
+        }
+        this->m_score += this->m_width;
+
+        // --- IL CUORE DELLA LOGICA MAGICA ---
+        // Salviamo i pezzi esistenti e svuotiamo la lista del tetris
+        node* old_list = this->m_field;
+        this->m_field = nullptr; 
+
+        // Invertiamo la lista per reinserire dal pezzo che era più in BASSO 
+        // Questo garantisce stabilità (il "pavimento" si forma prima del "soffitto")
+        node* reversed = nullptr;
+        while(old_list) 
+        {
+            if(!old_list->tp.p.empty()) // Teniamo solo pezzi che hanno ancora pixel
+            {
+                node* n = new node();
+                n->tp = old_list->tp;
+                n->next = reversed;
+                reversed = n;
+            }
+            node* to_del = old_list;
+            old_list = old_list->next;
+            delete to_del;
+        }
+
+        // Reinserimento a pioggia: ogni pezzo ricade finché non tocca qualcosa
+        while(reversed) 
+        {
+            piece rp = reversed->tp.p;
+            int rx = reversed->tp.x;
+            int ry = -((int)rp.side()); 
+            
+            // Ogni pezzo "cade" di nuovo nel campo ricostruito parzialmente
+            for(int y = -((int)rp.side()); y < (int)m_height; y++) 
+            {
+                if(this->containment(rp, rx, y + 1)) ry = y + 1;
+                else break;
+            }
+            this->add(rp, rx, ry); // Lo riaggiungiamo alla lista m_field
+            
+            node* to_del = reversed;
+            reversed = reversed->next;
+            delete to_del;
+        }
+
+        // Aggiorniamo la f_checker: se la caduta ha creato una NUOVA riga piena, il while ricomincia
+        f_checker.clear_field();
+        for(auto it = this->begin(); it != this->end(); it++) f_checker.add(*it);
+    }
 }
 
 void tetris::add(piece const& p, int x, int y) 
