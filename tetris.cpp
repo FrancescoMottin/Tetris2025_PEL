@@ -552,7 +552,7 @@ struct field
                 f[i][j] = false;
     };
 };
-
+/*
 void tetris::insert(piece const& p, int x) 
 {
 	if(p.empty()) return;
@@ -654,6 +654,118 @@ void tetris::insert(piece const& p, int x)
 		}
 	}
 };
+*/
+
+void tetris::insert(piece const& p, int x) 
+{
+	if(p.empty()) return;
+		
+	int max_y = -1;
+	bool obstacle = false;
+	 
+    for(int y = 0; y < int(this->m_height) + int(p.side()); y++) 
+    {
+        if(this->containment(p, x, y) && !obstacle) { max_y = y; } 
+        else break; //Se trovi ostacolo, fermati!		
+    }
+
+    if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+    this->add(p, x, max_y);
+    
+    field f(*this);
+
+    while(f.full_row()) 
+    {
+        int row_to_cut = f.first_full_row();
+        
+        // Tagliamo la riga in tutti i pezzi
+        for(auto it = this->begin(); it != this->end(); it++) 
+        {
+            
+            int relative_row = it->y - row_to_cut;  // Se it->y è la base, la riga relativa è: 
+            if(relative_row >= 0 && relative_row < (int)it->p.side()) 
+                it->p.cut_row((it->p.side() - 1) - relative_row); // Invertiamo l'indice se la tua cut_row conta dall'alto
+            
+        }
+    
+
+        this->m_score += this->m_width;
+
+        node* old_list = this->m_field;
+        this->m_field = nullptr; 
+
+        // Invertiamo la lista per reinserire dal pezzo più vecchio (quello sotto)
+        node* reversed = nullptr;
+        node* curr = old_list;
+        while(curr) 
+        {
+            if(!curr->tp.p.empty()) 
+            {
+                node* n = new node();
+                n->tp = curr->tp;
+                n->next = reversed;
+                reversed = n;
+            }
+            node* to_del = curr;
+            curr = curr->next;
+            delete to_del;
+        }
+
+        // Reinserimento a pioggia: risolve il Test D (caduta multipla)
+        node* reinsert = reversed;
+        while(reinsert) 
+        {
+            piece rp = reinsert->tp.p;
+            int rx = reinsert->tp.x;
+            int ry = -1;
+        
+            // Cerca la nuova max_y per questo pezzo nel campo che si sta ricostruendo
+            for(int y = 0; y < int(this->m_height); y++) 
+            {
+                if(this->containment(rp, rx, y)) { ry = y; }
+                else break;
+            }
+            if(ry != -1) this->add(rp, rx, ry);
+            
+            node* to_del = reinsert;
+            reinsert = reinsert->next;
+            delete to_del;
+        }
+
+        // Aggiorna la f_checker per vedere se la caduta ha creato nuove righe piene
+        f.clear_field();
+        for(auto it = this->begin(); it != this->end(); it++) 
+            f.add(*it);
+    }
+
+    while(this->m_field != nullptr && this->m_field->tp.p.empty()) 
+    {
+		node* to_delete = this->m_field;
+		this->m_field = this->m_field->next;
+		delete to_delete;
+	}
+	node* tmp = this->m_field;
+	while(tmp != nullptr) 
+    {
+		if(tmp->next != nullptr) 
+        {
+			if(tmp->next->tp.p.empty()) 
+            {
+				node* to_delete = tmp->next;
+				tmp->next = tmp->next->next;
+				delete to_delete;
+			} 
+            else 
+            {
+				tmp = tmp->next;
+			}
+		} 
+        else 
+        {
+			tmp = tmp->next;
+		}
+	}
+}
 
 void tetris::add(piece const& p, int x, int y) 
 {
