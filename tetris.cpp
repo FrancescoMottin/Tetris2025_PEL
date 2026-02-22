@@ -513,7 +513,7 @@ struct field
                 }
                 ++piece_x;
             }
-            ++piece_y;
+            --piece_y;
         }
     };
 
