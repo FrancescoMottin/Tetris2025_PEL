@@ -513,7 +513,7 @@ struct field
                 }
                 ++piece_x;
             }
-            --piece_y;
+            ++piece_y;
         }
     };
 
@@ -552,7 +552,7 @@ struct field
                 f[i][j] = false;
     };
 };
-/*
+
 void tetris::insert(piece const& p, int x) 
 {
 	if(p.empty()) return;
@@ -654,8 +654,8 @@ void tetris::insert(piece const& p, int x)
 		}
 	}
 };
-*/
 
+/*
 void tetris::insert(piece const& p, int x) 
 {
 	if(p.empty()) return;
@@ -766,6 +766,7 @@ void tetris::insert(piece const& p, int x)
 		}
 	}
 }
+*/
 
 void tetris::add(piece const& p, int x, int y) 
 {
