@@ -657,90 +657,54 @@ void tetris::insert(piece const& p, int x)
 }
 */
 
-void tetris::insert(piece const& p, int x) 
-{
+void tetris::insert(piece const& p, int x) {
     if(p.empty()) return;
-        
-    // 1. Inserimento iniziale del pezzo
-    int max_y = -((int)p.side()); 
-    for(int y = -((int)p.side()); y < (int)m_height; y++) 
-    {
-        if(this->containment(p, x, y + 1)) max_y = y + 1;
-        else break;
-    }
-    this->add(p, x, max_y);
     
-    // 2. Ciclo di esplosione righe e riposizionamento
-    //field f_checker(*this);
-    //while(f_checker.full_row()) 
-    bool rows_exploded = true;
-    while(rows_exploded)
-    {
-        field f_checker(*this);
-        if(!f_checker.full_row()) 
-        {
-            rows_exploded = false; // Non ci sono più righe piene, possiamo uscire
-            break;
-        }
+    // 1. Cerca la posizione di atterraggio senza aver ancora aggiunto il pezzo
+    int max_y = -1;
+    bool found = false;
+    for(int y = -int(p.side()); y < (int)m_height; ++y) {
+        if(this->containment(p, x, y)) {
+            max_y = y;
+            found = true;
+        } else if(found) break;
+    }
 
-        int row_to_cut = f_checker.first_full_row();
+    if(!found) throw tetris_exception("GAME OVER!!!");
 
-        // Taglio chirurgico in tutti i pezzi
-        for(auto it = this->begin(); it != this->end(); it++) 
-        {
-            int relative_row = row_to_cut - it->y; // Distanza dalla cima
-            if(relative_row >= 0 && relative_row < (int)it->p.side()) 
-            {
-                it->p.cut_row(relative_row);
+    // 2. Solo ora aggiungi
+    this->add(p, x, max_y);
+
+    // 3. Rimuovi righe e applica gravità
+    for(int i = (int)m_height - 1; i >= 0; --i) {
+        field f(*this);
+        bool full = true;
+        for(uint32_t c = 0; c < m_width; ++c) if(!f.f[i][c]) { full = false; break; }
+
+        if(full) {
+            m_score += m_width;
+            for(auto it = begin(); it != end(); ++it) {
+                if(i >= it->y && i < it->y + (int)it->p.side()) it->p.cut_row(i - it->y);
+                if(it->y < i) it->y++;
             }
+            i++; // Combo check
         }
-        this->m_score += this->m_width;
-
-        // --- IL CUORE DELLA LOGICA MAGICA ---
-        // Salviamo i pezzi esistenti e svuotiamo la lista del tetris
-        node* old_list = this->m_field;
-        this->m_field = nullptr; 
-
-        // Invertiamo la lista per reinserire dal pezzo che era più in BASSO 
-        // Questo garantisce stabilità (il "pavimento" si forma prima del "soffitto")
-        node* reversed = nullptr;
-        while(old_list) 
-        {
-            if(!old_list->tp.p.empty()) // Teniamo solo pezzi che hanno ancora pixel
-            {
-                node* n = new node();
-                n->tp = old_list->tp;
-                n->next = reversed;
-                reversed = n;
-            }
-            node* to_del = old_list;
-            old_list = old_list->next;
-            delete to_del;
+    }
+    
+    while(m_field && m_field->tp.p.empty()) {
+        node* del = m_field;
+        m_field = m_field->next;
+        delete del;
+    }
+    node* curr = m_field;
+    while(curr && curr->next) {
+        if(curr->next->tp.p.empty()) {
+            node* del = curr->next;
+            curr->next = curr->next->next;
+            delete del;
+        } else {
+            curr = curr->next;
         }
-
-        // Reinserimento a pioggia: ogni pezzo ricade finché non tocca qualcosa
-        while(reversed) 
-        {
-            piece rp = reversed->tp.p;
-            int rx = reversed->tp.x;
-            int ry = -((int)rp.side()); 
-            
-            // Ogni pezzo "cade" di nuovo nel campo ricostruito parzialmente
-            for(int y = -((int)rp.side()); y < (int)m_height; y++) 
-            {
-                if(this->containment(rp, rx, y + 1)) ry = y + 1;
-                else break;
-            }
-            this->add(rp, rx, ry); // Lo riaggiungiamo alla lista m_field
-            
-            node* to_del = reversed;
-            reversed = reversed->next;
-            delete to_del;
-        }
-
-        // Aggiorniamo la f_checker: se la caduta ha creato una NUOVA riga piena, il while ricomincia
-        f_checker.clear_field();
-        for(auto it = this->begin(); it != this->end(); it++) f_checker.add(*it);
     }
 }
 
