@@ -672,11 +672,20 @@ void tetris::insert(piece const& p, int x)
     this->add(p, x, max_y);
     
     // 2. Ciclo di esplosione righe e riposizionamento
-    field f_checker(*this);
-    while(f_checker.full_row()) 
+    //field f_checker(*this);
+    //while(f_checker.full_row()) 
+    bool rows_exploded = true;
+    while(rows_exploded)
     {
+        field f_checker(*this);
+        if(!f_checker.full_row()) 
+        {
+            rows_exploded = false; // Non ci sono più righe piene, possiamo uscire
+            break;
+        }
+
         int row_to_cut = f_checker.first_full_row();
-        
+
         // Taglio chirurgico in tutti i pezzi
         for(auto it = this->begin(); it != this->end(); it++) 
         {
