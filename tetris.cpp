@@ -658,52 +658,94 @@ void tetris::insert(piece const& p, int x)
 */
 
 void tetris::insert(piece const& p, int x) {
-    if(p.empty()) return;
-    
-    // 1. Cerca la posizione di atterraggio senza aver ancora aggiunto il pezzo
+    if (p.empty()) return;
+
+    // 1. Trova la posizione di caduta (max_y)
     int max_y = -1;
-    bool found = false;
-    for(int y = -int(p.side()); y < (int)m_height; ++y) {
-        if(this->containment(p, x, y)) {
-            max_y = y;
-            found = true;
-        } else if(found) break;
-    }
-
-    if(!found) throw tetris_exception("GAME OVER!!!");
-
-    // 2. Solo ora aggiungi
-    this->add(p, x, max_y);
-
-    // 3. Rimuovi righe e applica gravità
-    for(int i = (int)m_height - 1; i >= 0; --i) {
-        field f(*this);
-        bool full = true;
-        for(uint32_t c = 0; c < m_width; ++c) if(!f.f[i][c]) { full = false; break; }
-
-        if(full) {
-            m_score += m_width;
-            for(auto it = begin(); it != end(); ++it) {
-                if(i >= it->y && i < it->y + (int)it->p.side()) it->p.cut_row(i - it->y);
-                if(it->y < i) it->y++;
-            }
-            i++; // Combo check
+    for (int y = -((int)p.side()); y < (int)m_height; y++) {
+        if (this->containment(p, x, y + 1)) {
+            max_y = y + 1;
+        } else {
+            break;
         }
     }
-    
-    while(m_field && m_field->tp.p.empty()) {
-        node* del = m_field;
-        m_field = m_field->next;
-        delete del;
+
+    if (max_y == -1 && !this->containment(p, x, 0)) 
+        throw tetris_exception("GAME OVER!!!");
+
+    // 2. Aggiungi il pezzo alla lista (in testa)
+    this->add(p, x, max_y);
+
+    // 3. Controllo e taglio righe piene
+    field f(*this);
+    bool has_cut = false;
+    while (f.full_row()) {
+        has_cut = true;
+        int row_to_cut = f.first_full_row();
+        
+        for (auto it = this->begin(); it != this->end(); ++it) {
+            int relative_row = row_to_cut - it->y;
+            if (relative_row >= 0 && relative_row < (int)it->p.side()) {
+                it->p.cut_row(relative_row);
+            }
+        }
+        this->m_score += this->m_width;
+        
+        f.clear_field();
+        for (auto it = this->begin(); it != this->end(); ++it) f.add(*it);
     }
-    node* curr = m_field;
-    while(curr && curr->next) {
-        if(curr->next->tp.p.empty()) {
-            node* del = curr->next;
-            curr->next = curr->next->next;
-            delete del;
-        } else {
+
+    // 4. Se abbiamo tagliato, riposizioniamo tutto
+    if (has_cut) {
+        node* old_list = this->m_field; // "Rubo" il riferimento
+        this->m_field = nullptr;        // Svuoto il campo ufficiale
+
+        // Invertiamo la lista temporaneamente per reinserire i pezzi 
+        // dall'ordine di arrivo (dal più vecchio al più nuovo)
+        node* reversed_list = nullptr;
+        node* curr = old_list;
+        while (curr != nullptr) {
+            if (!curr->tp.p.empty()) {
+                // Creiamo un nuovo nodo per la lista invertita
+                node* n = new node();
+                n->tp = curr->tp; // Copia i dati (pezzo, x, y)
+                n->next = reversed_list;
+                reversed_list = n;
+            }
             curr = curr->next;
+        }
+
+        // Puliamo la vecchia lista rubata
+        while (old_list != nullptr) {
+            node* to_del = old_list;
+            old_list = old_list->next;
+            delete to_del;
+        }
+
+        // 5. REINSERIMENTO (Ricorsione simulata/Iterazione)
+        // Ora scorriamo la lista invertita (che parte dal pezzo più vecchio)
+        node* reinsert_curr = reversed_list;
+        while (reinsert_curr != nullptr) {
+            piece& p_ref = reinsert_curr->tp.p;
+            int old_x = reinsert_curr->tp.x;
+            
+            // Calcoliamo la nuova caduta libera per questo pezzo nel campo svuotato
+            int new_y = -((int)p_ref.side());
+            while (this->containment(p_ref, old_x, new_y + 1)) {
+                new_y++;
+                if (new_y >= (int)m_height) break;
+            }
+            
+            // Aggiungiamo il pezzo nella sua nuova posizione "caduta"
+            this->add(p_ref, old_x, new_y);
+            reinsert_curr = reinsert_curr->next;
+        }
+
+        // Puliamo la lista invertita
+        while (reversed_list != nullptr) {
+            node* to_del = reversed_list;
+            reversed_list = reversed_list->next;
+            delete to_del;
         }
     }
 }
