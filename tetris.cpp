@@ -673,7 +673,40 @@ void tetris::add(piece const& p, int x, int y)
 	this->m_field = newN;
 };
 
+bool tetris::containment(piece const& p, int x, int y) const 
+{
+    field f(*this);
+    int side = (int)p.side();
+    
 
+    for (int i = 0; i < side; ++i) 
+    {
+        for (int j = 0; j < side; ++j) 
+        {
+            // Controlliamo solo i pixel PIENI del pezzo che stiamo inserendo
+            if (p(i, j)) 
+            {
+                int field_x = x + j;
+                int field_y = y - (side - 1 - i); // Calcolo della riga nel campo: y è la riga della base del box del pezzo
+
+                
+                if (field_x < 0 || field_x >= (int)m_width) return false; // 1. Controllo Bordi Laterali
+                if (field_y >= (int)m_height) return false; // 2. Controllo Fondo (il soffitto y < 0 è ignorato per permettere l'entrata)
+
+                // 3. Controllo Collisioni con altri pezzi già presenti
+                // Creiamo un field temporaneo o usiamo una funzione di check rapida
+                // Se nella posizione (field_x, field_y) c'è già un pixel pieno:    
+                if (field_y >= 0) 
+                {
+                    if (f.f[field_x][field_y]) return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     field f(*this);
@@ -702,6 +735,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     }
     return true;
 }; 
+*/
 
 // FUNZIONE DI DEBUG
 void tetris::print_ascii_art(std::ostream& os) const 
