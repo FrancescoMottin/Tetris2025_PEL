@@ -673,13 +673,11 @@ void tetris::add(piece const& p, int x, int y)
 	this->m_field = newN;
 };
 
-/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     field f(*this);
-    int side = (int)p.side();
+    int side = (int)p.side() - 1;
     
-
     for (int i = 0; i < side; ++i) 
     {
         for (int j = 0; j < side; ++j) 
@@ -706,8 +704,9 @@ bool tetris::containment(piece const& p, int x, int y) const
     }
     return true;
 }
-*/
 
+
+/*
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     field f(*this);
@@ -736,7 +735,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     }
     return true;
 }; 
-
+*/
 
 // FUNZIONE DI DEBUG
 void tetris::print_ascii_art(std::ostream& os) const 
