@@ -713,7 +713,7 @@ bool tetris::containment(piece const& p, int x, int y) const
     field f(*this);
     
     uint32_t piece_x = 0;
-    int piece_y = int(p.side()); //- 1;
+    int piece_y = int(p.side())- 1;
     for(int i = y; i > y - int(p.side()); --i) 
     {
         piece_x = 0;
