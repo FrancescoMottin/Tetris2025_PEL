@@ -678,9 +678,9 @@ bool tetris::containment(piece const& p, int x, int y) const
     field f(*this);
     int side = (int)p.side() - 1;
     
-    for (int i = 0; i < side; ++i) 
+    for(int i = y; i > y - int(p.side()); --i) 
     {
-        for (int j = 0; j < side; ++j) 
+        for(int j = x; j < x + int(p.side()); ++j) 
         {
             // Controlliamo solo i pixel PIENI del pezzo che stiamo inserendo
             if (p(i, j)) 
