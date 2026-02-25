@@ -672,9 +672,38 @@ void tetris::add(piece const& p, int x, int y)
 	this->m_field = newN;
 };
 
-/**/
-//NUOVO
 bool tetris::containment(piece const& p, int x, int y) const 
+{
+    field f(*this); // O la versione ottimizzata suggerita prima
+    int side = (int)p.side();
+
+    // Cicliamo sul pezzo (coordinate locali)
+    for(int py = 0; py < side; ++py) {
+        for(int px = 0; px < side; ++px) {
+            
+            // TESTIAMO SOLO I PIXEL PIENI
+            if(p(py, px)) {
+                int fx = x + px;
+                int fy = y - (side - 1 - py); // Mappatura corretta: y è la base
+
+                // 1. Muri laterali
+                if (fx < 0 || fx >= (int)m_width) return false;
+                
+                // 2. Pavimento
+                if (fy >= (int)m_height) return false;
+
+                // 3. Collisione con altri pezzi (solo se siamo dentro il campo)
+                if (fy >= 0) {
+                    if (f.f[fy][fx]) return false;
+                }
+            }
+        }
+    }
+    return true;
+}
+
+//NUOVO
+/*bool tetris::containment(piece const& p, int x, int y) const 
 {
     field f(*this); 
     int side = (int)p.side();
@@ -695,7 +724,7 @@ bool tetris::containment(piece const& p, int x, int y) const
         }
     }
     return true;
-}
+}*/
 
 /*
 //VECCHIO
