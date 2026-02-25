@@ -672,38 +672,8 @@ void tetris::add(piece const& p, int x, int y)
 	this->m_field = newN;
 };
 
-bool tetris::containment(piece const& p, int x, int y) const 
-{
-    field f(*this); // O la versione ottimizzata suggerita prima
-    int side = (int)p.side();
-
-    // Cicliamo sul pezzo (coordinate locali)
-    for(int py = 0; py < side; ++py) {
-        for(int px = 0; px < side; ++px) {
-            
-            // TESTIAMO SOLO I PIXEL PIENI
-            if(p(py, px)) {
-                int fx = x + px;
-                int fy = y - (side - 1 - py); // Mappatura corretta: y è la base
-
-                // 1. Muri laterali
-                if (fx < 0 || fx >= (int)m_width) return false;
-                
-                // 2. Pavimento
-                if (fy >= (int)m_height) return false;
-
-                // 3. Collisione con altri pezzi (solo se siamo dentro il campo)
-                if (fy >= 0) {
-                    if (f.f[fy][fx]) return false;
-                }
-            }
-        }
-    }
-    return true;
-}
-
 //NUOVO
-/*bool tetris::containment(piece const& p, int x, int y) const 
+bool tetris::containment(piece const& p, int x, int y) const 
 {
     field f(*this); 
     int side = (int)p.side();
@@ -724,39 +694,7 @@ bool tetris::containment(piece const& p, int x, int y) const
         }
     }
     return true;
-}*/
-
-/*
-//VECCHIO
-bool tetris::containment(piece const& p, int x, int y) const 
-{
-    field f(*this);
-    
-    uint32_t piece_x = 0;
-    int piece_y = int(p.side())- 1;
-    for(int i = y; i > y - int(p.side()); --i) 
-    {
-        piece_x = 0;
-        for(int j = x; j < x + int(p.side()); ++j) 
-        {
-            if(p(piece_y, piece_x)) 
-            {
-                // Coordinate grid_x e grid_y già calcolate nel tuo ciclo
-                //"i >= (int)m_height - 1" permette di accedere ad una versione con il test di containment funzionantw ma meno performante (ma senza freeze)
-                if (j < 0 || j >= (int)m_width || i >= (int)m_height)   return false; // Blocca muri laterali e pavimento
-
-                if (i >= 0) // Controlla i pezzi esistenti solo se siamo dentro la griglia
-                    if (f.f[i][j]) return false; // Collisione con un altro mattoncino
-
-                // Se grid_y < 0 (sopra il campo), non facciamo nulla: il pezzo può stare lì.
-            }
-            ++piece_x;
-        }
-        --piece_y;
-    }
-    return true;
-}; 
-*/
+}
 
 // FUNZIONE DI DEBUG
 void tetris::print_ascii_art(std::ostream& os) const 
