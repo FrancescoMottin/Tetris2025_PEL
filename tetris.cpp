@@ -655,7 +655,6 @@ void tetris::insert(piece const& p, int x)
 	}
 }
 
-
 void tetris::add(piece const& p, int x, int y) 
 {
 	if(!this->containment(p, x, y)) 
@@ -677,38 +676,21 @@ void tetris::add(piece const& p, int x, int y)
 //NUOVO
 bool tetris::containment(piece const& p, int x, int y) const 
 {
-    // 1. OTTIMIZZAZIONE: Non creare un field intero qui.
-    // Se proprio devi, usa una versione statica o passa un riferimento.
     field f(*this); 
-    
     int side = (int)p.side();
     
-    // Scendiamo nelle righe del pezzo (dall'alto in basso del pezzo)
     for(int py = 0; py < side; ++py) 
     {
         for(int px = 0; px < side; ++px) 
         {
-            // Controlliamo solo se il pixel del pezzo è pieno
             if(p(py, px)) 
             {
-                // COORDINATA X: semplice offset
                 int field_x = x + px;
-                
-                // COORDINATA Y: 
-                // Se 'y' è la riga dove poggia la BASE del box del pezzo (riga side-1),
-                // allora la riga corrente nel campo è:
                 int field_y = y - (side - 1 - py);
 
-                // A. Controllo Bordi Laterali (X) e Fondo (Y)
-                if (field_x < 0 || field_x >= (int)m_width || field_y >= (int)m_height) {
-                    return false;
-                }
-
-                // B. Controllo Collisioni con pezzi esistenti
-                // Solo se field_y >= 0, perché sopra lo schermo (y < 0) è sempre libero
-                if (field_y >= 0) {
-                    if (f.f[field_y][field_x]) return false;
-                }
+                if (field_x < 0 || field_x >= (int)m_width || field_y >= (int)m_height) return false;
+                if (field_y >= 0)
+                    if (f.f[field_y][field_x]) return false;            
             }
         }
     }
