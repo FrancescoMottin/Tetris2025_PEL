@@ -593,8 +593,8 @@ void tetris::insert(piece const& p, int x)
     if(!placed) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
 
     //if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
-    this->add(p, x, max_y);
-    
+    //this->add(p, x, max_y);
+    this->add(p, x, ry);
     field f(*this);
 	
 	// finds all the full row inside the field
