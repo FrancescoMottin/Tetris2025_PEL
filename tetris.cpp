@@ -555,6 +555,7 @@ struct field
 
 void tetris::insert(piece const& p, int x) 
 {
+    /*
 	if(p.empty()) return;
 		
 	int max_y = -1;
@@ -565,8 +566,33 @@ void tetris::insert(piece const& p, int x)
         if(this->containment(p, x, y) && !obstacle) { max_y = y; } 
         else break; //Se trovi ostacolo, fermati!		
     }
+    */
 
-    if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+    if(p.empty()) return;
+        
+    // Partiamo da "fuori" dal campo (y negativo) 
+    // così il pezzo può entrare anche se il campo è quasi pieno
+    int side = (int)p.side();
+    int ry = -(side); 
+    bool placed = false;
+
+    // Nota: controlliamo sempre se il pezzo può stare nella posizione SUCCESSIVA (y + 1)
+    for(int y = -(side); y < (int)m_height; y++) 
+    {
+        if(this->containment(p, x, y + 1)) 
+        {
+            ry = y + 1;
+            placed = true;
+        }
+        else 
+        {
+            break; // Abbiamo trovato un ostacolo sotto, ci fermiamo a 'ry'
+        }
+    }
+
+    if(!placed) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+
+    //if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
     this->add(p, x, max_y);
     
     field f(*this);
