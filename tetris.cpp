@@ -583,18 +583,17 @@ void tetris::insert(piece const& p, int x)
 	if(p.empty()) return;
 		
 	int max_y = -1;
-	bool obstacle = false;
+	//bool obstacle = false;
 	 
     for(int y = 0; y < int(this->m_height) + int(p.side()); y++) 
     {
-        if(this->containment(p, x, y) && !obstacle) { max_y = y; } 
+        if(this->containment(p, x, y) /*&& !obstacle*/) { max_y = y; } 
         else break; //Se trovi ostacolo, fermati!		
     }
     
     if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
     this->add(p, x, max_y);
     
-
     field f(*this);
 	
 	// finds all the full row inside the field
