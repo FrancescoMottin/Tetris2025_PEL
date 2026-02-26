@@ -566,35 +566,37 @@ void tetris::insert(piece const& p, int x)
         if(this->containment(p, x, y) && !obstacle) { max_y = y; } 
         else break; //Se trovi ostacolo, fermati!		
     }
+    
+
+    if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+    this->add(p, x, max_y);
     */
-
-    if(p.empty()) return;
+   
+    if(p.empty()) return ;
         
-    // Partiamo da "fuori" dal campo (y negativo) 
-    // così il pezzo può entrare anche se il campo è quasi pieno
     int side = (int)p.side();
-    int ry = -(side); 
-    bool placed = false;
+    // Il pezzo deve poter "apparire" con la sua riga più bassa (indice side-1) alla riga 0 del campo.
+    // Quindi la y iniziale minima è 0.
+    int ry = -1; 
 
-    // Nota: controlliamo sempre se il pezzo può stare nella posizione SUCCESSIVA (y + 1)
-    for(int y = -(side); y < (int)m_height; y++) 
+    // Proviamo a vedere se il pezzo può stare almeno alla riga 0
+    if (!this->containment(p, x, 0)) {
+        throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
+    }
+    
+    ry = 0;
+    // Ora lo facciamo scendere finché possibile
+    for(int y = 0; y < (int)m_height - 1; y++) 
     {
-        if(this->containment(p, x, y + 1)) 
-        {
+        if(this->containment(p, x, y + 1)) {
             ry = y + 1;
-            placed = true;
-        }
-        else 
-        {
-            break; // Abbiamo trovato un ostacolo sotto, ci fermiamo a 'ry'
+        } else {
+            break; 
         }
     }
 
-    if(!placed) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
-
-    //if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
-    //this->add(p, x, max_y);
     this->add(p, x, ry);
+
     field f(*this);
 	
 	// finds all the full row inside the field
