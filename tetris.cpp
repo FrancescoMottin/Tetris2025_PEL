@@ -499,6 +499,7 @@ struct field
         delete[] this->f;
     };
 
+    /*
     void add(const tetris_piece& tp) 
     {
         int piece_y = int(tp.p.side()) - 1;
@@ -516,6 +517,30 @@ struct field
             --piece_y;
         }
     };
+    */
+    void add(const tetris_piece& tp) 
+    {
+        int side = (int)tp.p.side();
+        for(int py = 0; py < side; ++py) 
+        {
+            for(int px = 0; px < side; ++px) 
+            {
+                // Fondamentale: usiamo la STESSA logica della containment
+                if(tp.p(py, px)) 
+                {
+                    int fx = tp.x + px;
+                    int fy = tp.y - (side - 1 - py); // Mappatura identica
+
+                    // Scriviamo nel campo solo se siamo nei limiti
+                    if (fy >= 0 && fy < (int)this->t.height() && 
+                        fx >= 0 && fx < (int)this->t.width()) 
+                    {
+                        this->f[fy][fx] = true;
+                    }
+                }
+            }
+        }
+    }
 
     bool full_row() const 
     {
