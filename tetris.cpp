@@ -555,7 +555,6 @@ struct field
 
 void tetris::insert(piece const& p, int x) 
 {
-    /*
 	if(p.empty()) return;
 		
 	int max_y = -1;
@@ -567,35 +566,9 @@ void tetris::insert(piece const& p, int x)
         else break; //Se trovi ostacolo, fermati!		
     }
     
-
     if(max_y == -1) throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
     this->add(p, x, max_y);
-    */
-   
-    if(p.empty()) return ;
-        
-    int side = (int)p.side();
-    // Il pezzo deve poter "apparire" con la sua riga più bassa (indice side-1) alla riga 0 del campo.
-    // Quindi la y iniziale minima è 0.
-    int ry = -1; 
-
-    // Proviamo a vedere se il pezzo può stare almeno alla riga 0
-    if (!this->containment(p, x, 0)) {
-        throw tetris_exception("GAME OVER!!! tetris piece p cannot be placed");
-    }
     
-    ry = 0;
-    // Ora lo facciamo scendere finché possibile
-    for(int y = 0; y < (int)m_height - 1; y++) 
-    {
-        if(this->containment(p, x, y + 1)) {
-            ry = y + 1;
-        } else {
-            break; 
-        }
-    }
-
-    this->add(p, x, ry);
 
     field f(*this);
 	
@@ -700,7 +673,6 @@ void tetris::add(piece const& p, int x, int y)
 	this->m_field = newN;
 };
 
-//NUOVO
 bool tetris::containment(piece const& p, int x, int y) const 
 {
     field f(*this); 
