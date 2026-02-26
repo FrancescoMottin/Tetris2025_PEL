@@ -499,25 +499,6 @@ struct field
         delete[] this->f;
     };
 
-    /*
-    void add(const tetris_piece& tp) 
-    {
-        int piece_y = int(tp.p.side()) - 1;
-        for(int i = tp.y; i > tp.y - int(tp.p.side()); --i) 
-        {
-            int piece_x = 0;
-            for(int j = tp.x; j < tp.x + int(tp.p.side()); ++j)
-            {
-                if(tp.p(piece_y, piece_x)) 
-                {
-                    if (i >= 0 && i < int(this->t.height()) && j >= 0 && j < int(this->t.width())) this->f[i][j] = true;
-                }
-                ++piece_x;
-            }
-            --piece_y;
-        }
-    };
-    */
     void add(const tetris_piece& tp) 
     {
         int side = (int)tp.p.side();
@@ -532,11 +513,7 @@ struct field
                     int fy = tp.y - (side - 1 - py); // Mappatura identica
 
                     // Scriviamo nel campo solo se siamo nei limiti
-                    if (fy >= 0 && fy < (int)this->t.height() && 
-                        fx >= 0 && fx < (int)this->t.width()) 
-                    {
-                        this->f[fy][fx] = true;
-                    }
+                    if (fy >= 0 && fy < (int)this->t.height() && fx >= 0 && fx < (int)this->t.width()) this->f[fy][fx] = true;
                 }
             }
         }
@@ -583,11 +560,10 @@ void tetris::insert(piece const& p, int x)
 	if(p.empty()) return;
 		
 	int max_y = -1;
-	//bool obstacle = false;
 	 
     for(int y = 0; y < int(this->m_height) + int(p.side()); y++) 
     {
-        if(this->containment(p, x, y) /*&& !obstacle*/) { max_y = y; } 
+        if(this->containment(p, x, y)) { max_y = y; } 
         else break; //Se trovi ostacolo, fermati!		
     }
     
