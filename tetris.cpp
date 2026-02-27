@@ -560,8 +560,8 @@ void tetris::insert(piece const& p, int x)
     if(p.empty()) return;
         
     int max_y = -1;
-    // 1. Discesa del pezzo
-    for(int y = 0; y < int(this->m_height); y++) 
+    // 1. Trova il punto di caduta (assicurati che y arrivi a m_height)
+    for(int y = 0; y < (int)this->m_height; y++) 
     {
         if(this->containment(p, x, y)) max_y = y;
         else break;
@@ -570,44 +570,65 @@ void tetris::insert(piece const& p, int x)
     if(max_y == -1) throw tetris_exception("GAME OVER!!!");
     this->add(p, x, max_y);
     
-    // 2. Pulizia Righe
-    field f(*this);
-    while(f.full_row()) 
+    // 2. Ciclo di esplosione righe
+    bool changed = true;
+    while(changed) 
     {
-        int row_to_cut = f.first_full_row();
-        this->m_score += this->m_width;
-
-        // Taglia la riga in tutti i pezzi
-        for(auto it = this->begin(); it != this->end(); ++it) 
+        changed = false;
+        field f(*this);
+        if(f.full_row()) 
         {
-            // Un pezzo è coinvolto se la riga row_to_cut cade nel suo ingombro y
-            // Se y è la base: la riga più alta è y - side + 1
-            int side = (int)it->p.side();
-            if(row_to_cut <= it->y && row_to_cut > it->y - side) 
+            int row_to_cut = f.first_full_row();
+            this->m_score += this->m_width;
+            changed = true;
+
+            for(auto it = this->begin(); it != this->end(); ++it) 
             {
-                // Calcola l'indice interno al pezzo (py)
-                int py = side - 1 - (it->y - row_to_cut);
-                it->p.cut_row(py);
-            }
-            
-            // SHIFT DOWN: Tutti i pezzi che stavano SOPRA la riga tagliata cadono
-            if(it->y < row_to_cut) 
-            {
-                it->y++;
+                int side = (int)it->p.side();
+                // riga_base = it->y, riga_cima = it->y - side + 1
+                
+                // CASO A: Il pezzo attraversa la riga da eliminare
+                if(row_to_cut <= it->y && row_to_cut > it->y - side) 
+                {
+                    // Calcola py (riga interna del pezzo)
+                    int py = side - 1 - (it->y - row_to_cut);
+                    it->p.cut_row(py);
+                    
+                    // IMPORTANTE: Se abbiamo tagliato una riga interna, 
+                    // la "base" visiva del pezzo non cambia, ma tutto ciò 
+                    // che era SOPRA la riga py nel pezzo deve scendere di 1.
+                    // it->y++ sposta l'intero box del pezzo verso il basso.
+                    it->y++; 
+                }
+                // CASO B: Il pezzo è interamente SOPRA la riga eliminata
+                else if(it->y < row_to_cut) 
+                {
+                    it->y++;
+                }
             }
         }
-
-        // Aggiorna il campo virtuale per il prossimo controllo nel while
-        f.clear_field();
-        for(auto it = this->begin(); it != this->end(); ++it) f.add(*it);
     }
     
-    // 3. Rimozione pezzi diventati vuoti
-   f.clear_field();
-	for(auto it = this->begin(); it != this->end(); it++) 
-    {
-		f.add(*it);
-	}
+    // 3. Pulizia finale dei pezzi svuotati
+    while (this->m_field != nullptr && this->m_field->tp.p.empty()) {
+        node* to_delete = this->m_field;
+        this->m_field = this->m_field->next;
+        delete to_delete;
+    }
+
+    // Rimuove i nodi vuoti nel resto della lista
+    if (this->m_field != nullptr) {
+        node* curr = this->m_field;
+        while (curr->next != nullptr) {
+            if (curr->next->tp.p.empty()) {
+                node* to_delete = curr->next;
+                curr->next = curr->next->next;
+                delete to_delete;
+            } else {
+                curr = curr->next;
+            }
+        }
+    } 
 }
 
 /*
