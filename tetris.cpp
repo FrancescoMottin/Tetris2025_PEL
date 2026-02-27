@@ -560,52 +560,57 @@ void tetris::insert(piece const& p, int x)
     if (p.empty()) return;
 
     // 1. TROVA LA POSIZIONE DI ATTERRAGGIO (MAX Y)
+    // Partiamo dall'alto e scendiamo finché la posizione è valida (containment == true)
     int max_y = -1;
-    // Partiamo da -side per gestire pezzi che iniziano parzialmente fuori
-    int side_p = (int)p.side();
-    for (int y = -side_p; y < (int)m_height; ++y) 
+    int side_p = static_cast<int>(p.side());
+
+    // Cerchiamo il valore di y più alto possibile (dove y=0 è la base)
+    // Nota: containment controlla se il pezzo si sovrappone ad altri o esce dai bordi
+    for (int y = 0; y <= (int)m_height + side_p; ++y) 
     {
         if (this->containment(p, x, y)) {
             max_y = y;
         } else {
-            // Se abbiamo già trovato una posizione valida e ora collide, 
-            // quella precedente era la più bassa.
-            if (max_y != -1) break;
+            // Se troviamo una collisione, il punto precedente era l'ultimo valido
+            break;
         }
     }
 
-    // Se non è possibile inserire il pezzo nemmeno in cima
-    if (max_y == -1) throw tetris_exception("GAME OVER!!! Piece cannot be placed.");
+    // Se non è possibile inserire il pezzo (collisione immediata in cima)
+    if (max_y == -1) {
+        throw tetris_exception("GAME OVER!!! Piece cannot be placed.");
+    }
 
     // 2. AGGIUNGI IL PEZZO ALLA LISTA
     this->add(p, x, max_y);
 
-    // 3. GESTIONE ESPLOSIONE RIGHE (LOOP)
+    // 3. GESTIONE ESPLOSIONE RIGHE (Row Cut)
     bool lines_cleared;
     do {
         lines_cleared = false;
-        field f(*this); // Snapshot attuale del campo per controllare le righe
+        field f(*this); // Crea una griglia temporanea per analizzare lo stato
 
         if (f.full_row()) {
             int row_to_cut = f.first_full_row();
-            this->m_score += this->m_width;
+            this->m_score += this->m_width; // Incrementa il punteggio
             lines_cleared = true;
 
-            // Aggiorna tutti i pezzi esistenti
+            // Aggiorna tutti i pezzi presenti nella lista
             for (auto it = this->begin(); it != this->end(); ++it) {
-                int side_it = (int)it->p.side();
+                int side_it = static_cast<int>(it->p.side());
                 
                 // Il pezzo interseca la riga piena?
-                // Un pezzo occupa le righe da it->y - side + 1 fino a it->y
+                // Un pezzo occupa le righe da (it->y - side + 1) a (it->y)
                 if (row_to_cut <= it->y && row_to_cut > it->y - side_it) {
                     // Calcola la riga relativa interna al pezzo
-                    int py = side_it - 1 - (it->y - row_to_cut);
-                    it->p.cut_row(py);
+                    // Inversione della coordinata per p(i, j)
+                    uint32_t relative_row = side_it - 1 - (it->y - row_to_cut);
+                    it->p.cut_row(relative_row); // Taglia la riga internamente al pezzo
                     
-                    // Dopo il taglio, la parte superiore del pezzo deve scendere
+                    // Dopo il taglio, la parte superiore "scivola" giù (y aumenta nel tuo sistema)
                     it->y++;
                 } 
-                // Il pezzo è interamente SOPRA la riga eliminata?
+                // Se il pezzo è interamente sopra la riga eliminata, scende di uno
                 else if (it->y < row_to_cut) {
                     it->y++;
                 }
@@ -613,27 +618,19 @@ void tetris::insert(piece const& p, int x)
         }
     } while (lines_cleared);
 
-    // 4. RIMOZIONE NODI VUOTI (PULIZIA LISTA)
-    // Rimuovi nodi in testa
-    while (m_field != nullptr && m_field->tp.p.empty()) {
-        node* to_delete = m_field;
-        m_field = m_field->next;
-        delete to_delete;
-    }
-    // Rimuovi nodi nel resto della lista
-    if (m_field != nullptr) {
-        node* curr = m_field;
-        while (curr->next != nullptr) {
-            if (curr->next->tp.p.empty()) {
-                node* to_delete = curr->next;
-                curr->next = curr->next->next;
-                delete to_delete;
-            } else {
-                curr = curr->next;
-            }
+    // 4. PULIZIA DELLA LISTA (Rimuovi i pezzi diventati completamente vuoti)
+    node** curr = &m_field;
+    while (*curr != nullptr) {
+        if ((*curr)->tp.p.empty()) {
+            node* to_delete = *curr;
+            *curr = (*curr)->next;
+            delete to_delete;
+        } else {
+            curr = &((*curr)->next);
         }
     }
 }
+
 /*
 void tetris::insert(piece const& p, int x) 
 {
