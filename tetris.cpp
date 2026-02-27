@@ -557,6 +557,62 @@ struct field
 
 void tetris::insert(piece const& p, int x) 
 {
+    if(p.empty()) return;
+        
+    int max_y = -1;
+    // 1. Discesa del pezzo
+    for(int y = 0; y < int(this->m_height); y++) 
+    {
+        if(this->containment(p, x, y)) max_y = y;
+        else break;
+    }
+    
+    if(max_y == -1) throw tetris_exception("GAME OVER!!!");
+    this->add(p, x, max_y);
+    
+    // 2. Pulizia Righe
+    field f(*this);
+    while(f.full_row()) 
+    {
+        int row_to_cut = f.first_full_row();
+        this->m_score += this->m_width;
+
+        // Taglia la riga in tutti i pezzi
+        for(auto it = this->begin(); it != this->end(); ++it) 
+        {
+            // Un pezzo è coinvolto se la riga row_to_cut cade nel suo ingombro y
+            // Se y è la base: la riga più alta è y - side + 1
+            int side = (int)it->p.side();
+            if(row_to_cut <= it->y && row_to_cut > it->y - side) 
+            {
+                // Calcola l'indice interno al pezzo (py)
+                int py = side - 1 - (it->y - row_to_cut);
+                it->p.cut_row(py);
+            }
+            
+            // SHIFT DOWN: Tutti i pezzi che stavano SOPRA la riga tagliata cadono
+            if(it->y < row_to_cut) 
+            {
+                it->y++;
+            }
+        }
+
+        // Aggiorna il campo virtuale per il prossimo controllo nel while
+        f.clear_field();
+        for(auto it = this->begin(); it != this->end(); ++it) f.add(*it);
+    }
+    
+    // 3. Rimozione pezzi diventati vuoti
+   f.clear_field();
+	for(auto it = this->begin(); it != this->end(); it++) 
+    {
+		f.add(*it);
+	}
+}
+
+/*
+void tetris::insert(piece const& p, int x) 
+{
 	if(p.empty()) return;
 		
 	int max_y = -1;
@@ -572,6 +628,23 @@ void tetris::insert(piece const& p, int x)
     
     field f(*this);
 	
+    // 3. LOGICA CRUCIALE: Rilevamento e rimozione righe
+    // Devi usare la tua classe 'field' per analizzare se ci sono righe piene
+    bool exploded = true;
+    while(exploded) 
+    {
+        field f(*this);
+        if(f.full_row()) 
+        {
+            int row_to_cut = f.first_full_row();
+            f.cut_row(row_to_cut); // Rimuove la riga e sposta i pezzi sopra
+            this->m_score += this->m_width; // Aggiorna il punteggio
+        } 
+        else
+            exploded = false
+    }
+    
+
 	// finds all the full row inside the field
 	while(f.full_row()) 
     {
@@ -654,7 +727,7 @@ void tetris::insert(piece const& p, int x)
 			tmp = tmp->next;
 		}
 	}
-}
+}*/
 
 void tetris::add(piece const& p, int x, int y) 
 {
