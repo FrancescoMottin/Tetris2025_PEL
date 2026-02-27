@@ -560,7 +560,7 @@ void tetris::insert(piece const& p, int x)
     if(p.empty()) return;
         
     int max_y = -1;
-    // 1. Trova il punto di caduta (assicurati che y arrivi a m_height)
+    // 1. Discesa: trova la Y più profonda (nota: y può arrivare a m_height-1)
     for(int y = 0; y < (int)this->m_height; y++) 
     {
         if(this->containment(p, x, y)) max_y = y;
@@ -570,7 +570,7 @@ void tetris::insert(piece const& p, int x)
     if(max_y == -1) throw tetris_exception("GAME OVER!!!");
     this->add(p, x, max_y);
     
-    // 2. Ciclo di esplosione righe
+    // 2. Pulizia Righe
     bool changed = true;
     while(changed) 
     {
@@ -585,19 +585,15 @@ void tetris::insert(piece const& p, int x)
             for(auto it = this->begin(); it != this->end(); ++it) 
             {
                 int side = (int)it->p.side();
-                // riga_base = it->y, riga_cima = it->y - side + 1
                 
                 // CASO A: Il pezzo attraversa la riga da eliminare
                 if(row_to_cut <= it->y && row_to_cut > it->y - side) 
                 {
-                    // Calcola py (riga interna del pezzo)
                     int py = side - 1 - (it->y - row_to_cut);
                     it->p.cut_row(py);
                     
-                    // IMPORTANTE: Se abbiamo tagliato una riga interna, 
-                    // la "base" visiva del pezzo non cambia, ma tutto ciò 
-                    // che era SOPRA la riga py nel pezzo deve scendere di 1.
-                    // it->y++ sposta l'intero box del pezzo verso il basso.
+                    // CRUCIALE: Se il pezzo viene tagliato, la sua "base" y 
+                    // deve comunque scendere per far scendere la parte superiore.
                     it->y++; 
                 }
                 // CASO B: Il pezzo è interamente SOPRA la riga eliminata
@@ -609,14 +605,12 @@ void tetris::insert(piece const& p, int x)
         }
     }
     
-    // 3. Pulizia finale dei pezzi svuotati
+    // 3. Rimozione fisica dei nodi vuoti dalla lista (per evitare "disordine" e leak)
     while (this->m_field != nullptr && this->m_field->tp.p.empty()) {
         node* to_delete = this->m_field;
         this->m_field = this->m_field->next;
         delete to_delete;
     }
-
-    // Rimuove i nodi vuoti nel resto della lista
     if (this->m_field != nullptr) {
         node* curr = this->m_field;
         while (curr->next != nullptr) {
@@ -628,7 +622,7 @@ void tetris::insert(piece const& p, int x)
                 curr = curr->next;
             }
         }
-    } 
+    }
 }
 
 /*
