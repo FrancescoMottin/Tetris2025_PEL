@@ -557,62 +557,72 @@ struct field
 
 void tetris::insert(piece const& p, int x) 
 {
-    if(p.empty()) return;
-        
+    if (p.empty()) return;
+
+    // 1. TROVA LA POSIZIONE DI ATTERRAGGIO (MAX Y)
     int max_y = -1;
-    // 1. Discesa: trova la Y più profonda (nota: y può arrivare a m_height-1)
-    for(int y = 0; y < (int)this->m_height; y++) 
+    // Partiamo da -side per gestire pezzi che iniziano parzialmente fuori
+    int side_p = (int)p.side();
+    for (int y = -side_p; y < (int)m_height; ++y) 
     {
-        if(this->containment(p, x, y)) max_y = y;
-        else break;
+        if (this->containment(p, x, y)) {
+            max_y = y;
+        } else {
+            // Se abbiamo già trovato una posizione valida e ora collide, 
+            // quella precedente era la più bassa.
+            if (max_y != -1) break;
+        }
     }
-    
-    if(max_y == -1) throw tetris_exception("GAME OVER!!!");
+
+    // Se non è possibile inserire il pezzo nemmeno in cima
+    if (max_y == -1) throw tetris_exception("GAME OVER!!! Piece cannot be placed.");
+
+    // 2. AGGIUNGI IL PEZZO ALLA LISTA
     this->add(p, x, max_y);
-    
-    // 2. Pulizia Righe
-    bool changed = true;
-    while(changed) 
-    {
-        changed = false;
-        field f(*this);
-        if(f.full_row()) 
-        {
+
+    // 3. GESTIONE ESPLOSIONE RIGHE (LOOP)
+    bool lines_cleared;
+    do {
+        lines_cleared = false;
+        field f(*this); // Snapshot attuale del campo per controllare le righe
+
+        if (f.full_row()) {
             int row_to_cut = f.first_full_row();
             this->m_score += this->m_width;
-            changed = true;
+            lines_cleared = true;
 
-            for(auto it = this->begin(); it != this->end(); ++it) 
-            {
-                int side = (int)it->p.side();
+            // Aggiorna tutti i pezzi esistenti
+            for (auto it = this->begin(); it != this->end(); ++it) {
+                int side_it = (int)it->p.side();
                 
-                // CASO A: Il pezzo attraversa la riga da eliminare
-                if(row_to_cut <= it->y && row_to_cut > it->y - side) 
-                {
-                    int py = side - 1 - (it->y - row_to_cut);
+                // Il pezzo interseca la riga piena?
+                // Un pezzo occupa le righe da it->y - side + 1 fino a it->y
+                if (row_to_cut <= it->y && row_to_cut > it->y - side_it) {
+                    // Calcola la riga relativa interna al pezzo
+                    int py = side_it - 1 - (it->y - row_to_cut);
                     it->p.cut_row(py);
                     
-                    // CRUCIALE: Se il pezzo viene tagliato, la sua "base" y 
-                    // deve comunque scendere per far scendere la parte superiore.
-                    it->y++; 
-                }
-                // CASO B: Il pezzo è interamente SOPRA la riga eliminata
-                else if(it->y < row_to_cut) 
-                {
+                    // Dopo il taglio, la parte superiore del pezzo deve scendere
+                    it->y++;
+                } 
+                // Il pezzo è interamente SOPRA la riga eliminata?
+                else if (it->y < row_to_cut) {
                     it->y++;
                 }
             }
         }
-    }
-    
-    // 3. Rimozione fisica dei nodi vuoti dalla lista (per evitare "disordine" e leak)
-    while (this->m_field != nullptr && this->m_field->tp.p.empty()) {
-        node* to_delete = this->m_field;
-        this->m_field = this->m_field->next;
+    } while (lines_cleared);
+
+    // 4. RIMOZIONE NODI VUOTI (PULIZIA LISTA)
+    // Rimuovi nodi in testa
+    while (m_field != nullptr && m_field->tp.p.empty()) {
+        node* to_delete = m_field;
+        m_field = m_field->next;
         delete to_delete;
     }
-    if (this->m_field != nullptr) {
-        node* curr = this->m_field;
+    // Rimuovi nodi nel resto della lista
+    if (m_field != nullptr) {
+        node* curr = m_field;
         while (curr->next != nullptr) {
             if (curr->next->tp.p.empty()) {
                 node* to_delete = curr->next;
@@ -624,7 +634,6 @@ void tetris::insert(piece const& p, int x)
         }
     }
 }
-
 /*
 void tetris::insert(piece const& p, int x) 
 {
